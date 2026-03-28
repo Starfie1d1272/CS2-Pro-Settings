@@ -57,7 +57,10 @@ jupyter notebook
 │   ├── cs2_pro_2026_Active_Master.csv   # 主数据（基础）
 │   ├── cs2_pro_detailed_RAW.csv         # 细节原始数据
 │   ├── cs2_pro_2026_Active_Final.csv    # 分析使用的最终表
-│   └── archive/                         # 历史中间产物
+│   └── archive/
+│       ├── cs2_pro_2026_Active_Cleaned.csv   # 关键中间表（清洗后）
+│       ├── cs2_pro_raw.csv                    # 关键中间表（列表页原始抓取）
+│       └── legacy_experiments/                # 历史实验产物
 ├── figures/                             # 已导出图表
 ├── 01_data_collection.ipynb
 ├── 02_data_cleaning.ipynb
@@ -67,6 +70,28 @@ jupyter notebook
 ├── requirements.txt
 └── environment.yml
 ```
+
+## 数据保留策略
+
+主目录长期保留：
+
+- `data/cs2_pro_2026_Active_Master.csv`
+- `data/cs2_pro_2026_Active_Final.csv`
+- `data/cs2_pro_detailed_RAW.csv`
+
+`data/archive/` 保留关键中间表：
+
+- `data/archive/cs2_pro_2026_Active_Cleaned.csv`
+- `data/archive/cs2_pro_raw.csv`
+
+历史实验与测试文件统一放入：
+
+- `data/archive/legacy_experiments/`
+
+这样可以同时满足两个目标：
+
+- 主流程复现路径简洁，文件不混乱
+- 历史研究痕迹可追溯，不需要硬删除
 
 ## 输出示例
 
