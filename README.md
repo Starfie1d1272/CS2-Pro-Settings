@@ -16,17 +16,10 @@
 
 看完整流程：
 
-1. `01_data_collection.ipynb`（采集）
-2. `02_data_cleaning.ipynb`（清洗）
-3. `03_exploratory_analysis.ipynb`（分析）
-4. `04_final_report.ipynb`（最终输出）
-
-对应文件名：
-
-1. `01_data_collection.ipynb`
-2. `02_data_cleaning.ipynb`
-3. `03_exploratory_analysis.ipynb`
-4. `04_final_report.ipynb`
+1. `01_data_collection.ipynb`（网页采集）
+2. `02_data_cleaning.ipynb`（数据清洗与特征工程）
+3. `03_statistical_analysis.ipynb`（数据质检 + K-Means 聚类 + 相关性分析）
+4. `04_final_report.ipynb`（20+ 高级图表可视化输出）
 
 ## 环境与安装
 
@@ -64,7 +57,7 @@ jupyter notebook
 ├── figures/                             # 已导出图表
 ├── 01_data_collection.ipynb
 ├── 02_data_cleaning.ipynb
-├── 03_exploratory_analysis.ipynb
+├── 03_statistical_analysis.ipynb
 ├── 04_final_report.ipynb
 ├── analysis.py
 ├── requirements.txt
