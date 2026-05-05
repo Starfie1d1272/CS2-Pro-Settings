@@ -55,6 +55,8 @@ conda activate cs2_data
 - 采集：2026-05-05 | 耗时约 33 分钟
 - 选手：HLTV Top 30（2026-05-04）+ 老牌豪门/赛区代表/明星选手队，**41 队 198 人**
 
+![41队全览](./figures/Teams%20Overview.png)
+
 ## License
 
 MIT
