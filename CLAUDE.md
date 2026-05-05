@@ -14,7 +14,7 @@ CS2 职业选手参数数据挖掘项目。从 prosettings.net 爬取 Top 战队
 ```
 01_data_collection.ipynb  → Phase 1: 网页爬取 → cs2_pro_raw.csv, cs2_pro_detailed_RAW.csv
 02_data_cleaning.ipynb    → Phase 2: ETL 清洗 + 质检 + 特征增强 → cs2_pro_2026_Active_Final.csv
-03_final_report.ipynb     → Phase 3: 20+ 张可视化图表渲染 → figures/*.png
+03_final_report.ipynb     → Phase 3: 23 张图表渲染（22 数据分析 + 1 AI 生成全览）→ figures/*.png
 ```
 
 02 是唯一的清洗入口：
@@ -84,3 +84,18 @@ df = pd.read_csv('data/cs2_pro_2026_Active_Final.csv', low_memory=False)
 - 准星颜色: Custom 38.4%, Cyan 31.3%, Green 23.2%
 - V-Sync: 100% 关闭, Reflex: 48.5% 开启
 - 雷达旋转: 79.3%, 雷达居中: 72.2%
+- 亮度默认值即为 93%, 并非选手精心选择
+- 鼠标回报率: 1000Hz 62.6%, 4000Hz+ 18.2%
+
+## 发布与社交平台
+
+- 主报告 `CS-Pro-Settings.md` → GitHub README 引用
+- `social/heybox-article.md` → 小黑盒（标题栏手动填，不支持 `` ` `` 和 H3/H4，图片拖入）
+- `social/xiaohongshu.md` → 小红书 9 篇拆解（5 天发布计划）
+- `social/wechat.md` / `social/bilibili.md` → 公众号/B站参考
+- 公众号账号: Starfie1d（科技互联网+科学科普+旅游摄影）
+
+## 已知缺口
+
+- RAW 中有 Gamma、Digital Vibrance、Color Temperature 等显示器参数未提取到 02 pipeline
+- CITATION.cff 已配置 GitHub 引用按钮，LICENSE 为 CC BY 4.0
