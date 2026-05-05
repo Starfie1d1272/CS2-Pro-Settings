@@ -1,0 +1,9 @@
+cff-version: 1.2.0
+message: "If you use this data or analysis, please cite it as below."
+authors:
+  - family-names: Du
+    given-names: Xinyu
+    alias: Starfie1d
+title: "CS2 Pro Settings 2026: A Data-Driven Meta Analysis"
+url: "https://github.com/Starfie1d1272/CS2-Pro-Settings"
+date-released: 2026-05-05

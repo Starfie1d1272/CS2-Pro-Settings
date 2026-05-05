@@ -60,4 +60,4 @@ conda activate cs2_data
 
 ## License
 
-MIT
+[CC BY 4.0](https://creativecommons.org/licenses/by/4.0/) — 转载署名即可
