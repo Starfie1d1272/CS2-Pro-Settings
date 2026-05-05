@@ -9,16 +9,15 @@ CS2 职业选手参数数据挖掘项目。从 prosettings.net 爬取 Top 战队
 主报告：`CS-Pro-Settings.md`（面向读者的数据分析文章）。
 仓库说明：`README.md`（面向开发者的复现指南）。
 
-## 数据管道 (4 阶段)
+## 数据管道 (3 阶段)
 
 ```
-01_data_collection.ipynb         → Phase 1: 网页爬取，产出 data/cs2_pro_raw.csv, data/cs2_pro_detailed_RAW.csv
-02_data_cleaning.ipynb           → Phase 2: ETL 清洗 + 特征工程，产出 data/cs2_pro_2026_Active_Final.csv
-03_statistical_analysis.ipynb    → Phase 3: 统计质检 + KMeans 聚类 + 相关性热力图
-04_final_report.ipynb            → Phase 4: 20+ 张可视化图表渲染，产出 figures/*.png
+01_data_collection.ipynb  → Phase 1: 网页爬取 → cs2_pro_raw.csv, cs2_pro_detailed_RAW.csv
+02_data_cleaning.ipynb    → Phase 2: ETL 清洗 + 质检 + 特征增强 → cs2_pro_2026_Active_Final.csv
+03_final_report.ipynb     → Phase 3: 20+ 张可视化图表渲染 → figures/*.png
 ```
 
-数据流：`cs2_pro_2026_Active_Master.csv` → 清洗/特征工程 → `cs2_pro_2026_Active_Final.csv`（终极分析大表）。
+02 是唯一的清洗入口（白名单→数值化→去重→RAW特征合并→Final.csv），无需中间文件。
 
 ## 环境
 
@@ -41,7 +40,7 @@ jupyter notebook
 
 ## 绘图引擎
 
-所有图表统一使用暗黑赛博朋克主题 (`dark_background` + 自定义 rcParams)，封装在 `04_final_report.ipynb` 的 Cell 1 工厂函数中：
+所有图表统一使用暗黑赛博朋克主题 (`dark_background` + 自定义 rcParams)，封装在 `03_final_report.ipynb` 的 Cell 1 工厂函数中：
 - `setup_cs2_theme()` — 初始化全局 rcParams
 - `plot_cs2_bar()` — 柱状图（自动标注数值）
 - `plot_cs2_pie()` — 饼图（<4% 不显示标签）
