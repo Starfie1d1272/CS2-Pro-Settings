@@ -1,23 +1,18 @@
-# B站专栏发布模板
+# B站专栏发布指南
 
-专栏文章可直接复用 `CS-Pro-Settings.md` 的正文内容。发布时注意：
+## 格式
+B站专栏编辑器直接支持 Markdown，复制 `CS-Pro-Settings.md` 全文即可。
 
-## 排版适配
-- 每段文字控制在 3-4 行以内（B站移动端阅读体验）
-- 每个 H3 小节配一张对应的 figures/ 图表
-- 图表插入语法：`![描述](../figures/xxx.png)`
+## 注意事项
+- **标题**：B站标题可以更长更中二，比如"我爬了41支职业战队198名选手的数据，总结出这份CS2设置终极答案"
+- **封面**：16:9 比例，用 `Custom Color.png` 或自己合成一张带大字标题的封面
+- **图片**：专栏编辑器直接拖拽替换 Markdown 图片链接，自动上传到B站图床
+- **分区**：游戏 → CS:GO
+- **标签**：CS2、职业选手、游戏设置、参数分析、灵敏度
+- **互动**：文末放 GitHub 链接 + "三连支持一下"引导
+- **发布时间**：周五下午/傍晚（B站游戏区流量高峰）
 
-## 推荐标题
-- 「拒绝脑补，只看数据：184名CS2职业选手参数深度分析」
-- 「CS2职业哥设置大数据：800 eDPI、4:3拉伸、FOV 68的终极答案」
-
-## 图表插入顺序
-1. 封面：`eDPI.png`
-2. Q1 eDPI：`eDPI.png`
-3. Q2 DPI/Sens：`DPI.png` + `Sensitivity by DPI.png`
-4. Q3 刷新率/FPS：`Monitor Hz.png` + `Maximun FPS.png`
-5. Q4 准星：`Dot and Outline.png` + `Crosshair Geometry.png` + `Base Color.png` + `Custom Color.png`
-6. Q5 持枪视角：`FOV.png` + `Offsets.png`
-7. Q6 分辨率/亮度：`Ratio Religion.png` + `resolution.png` + `Brightness.png`
-8. Q7 画质：`Global Shadow Quality.png` + `Shader and Particle.png` + `Anti-Aliasing.png` + `Texture Filtering Mode.png`
-9. Q8 雷达：`Map Zoom.png` + `Radar Rotate.png` + `Radar Center.png`
+## 与小黑盒的差异
+- B站读者对"数据驱动的硬核内容"接受度更高，可以不用改任何措辞
+- 评论区的讨论质量通常比小黑盒高，可以积极参与回复
+- 可以配合发一条动态引流："刚发了一篇198名职业哥的数据分析，感兴趣的可以看看"

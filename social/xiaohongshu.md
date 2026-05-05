@@ -1,39 +1,24 @@
-# 小红书发布模板
+# 小红书发布指南
 
-小红书适合单图+短文的形式，每篇聚焦一个结论。
+## 策略：九宫格系列（9篇独立笔记）
 
-## 推荐选题（9 宫格系列）
+每篇聚焦一个结论，而不是搬运全文。
 
-1. **eDPI 真相**：800 是中位数，不要再高敏了
-   图：`figures/eDPI.png`
-   文案：184名职业选手的eDPI中位数是800...
+| 篇 | 标题 | 配图 | 文案要点 |
+|----|------|------|----------|
+| 1 | CS2职业哥都在用多少eDPI？ | `eDPI.png` | 中位数800，超了1600的建议降 |
+| 2 | 400还是800 DPI？数据说话了 | `DPI.png` | 800 DPI 53.5%赢了，差距还在拉大 |
+| 3 | 职业选手的分辨率答案 | `resolution.png` | 134人选1280x960，断崖式领先 |
+| 4 | 你们的准星什么颜色？ | `Base Color.png` + `Custom Color.png` | 绿色不是第一了！Custom登顶 |
+| 5 | 职业哥怎么藏枪？ | `FOV.png` + `Offsets.png` | FOV 68 + X2.5 Y0 Z-1.5 黄金公式 |
+| 6 | 画质到底开高还是开低？ | `Global Shadow Quality.png` | 阴影开高，其他全低 |
+| 7 | 雷达怎么设才能当老六？ | `Map Zoom.png` | Zoom 0.4一眼看全图 |
+| 8 | 540Hz显示器有必要吗？ | `Monitor Hz.png` | 31.8%已经上了，360Hz是底线 |
+| 9 | 198名职业选手数据总结 | `eDPI.png` | 合集总结，引导看完整文章 |
 
-2. **DPI 革命**：800 DPI 已取代 400 DPI
-   图：`figures/DPI.png` + `figures/Sensitivity by DPI.png`
-
-3. **分辨率密码**：126 人用 1280x960
-   图：`figures/resolution.png` + `figures/Ratio Religion.png`
-
-4. **准星玄学**：86% 关闭 Dot 和 Outline
-   图：`figures/Dot and Outline.png` + `figures/Base Color.png`
-
-5. **藏枪终极解**：FOV=68, X=2.5, Y=0, Z=-1.5
-   图：`figures/FOV.png` + `figures/Offsets.png`
-
-6. **亮度甜点**：82 人统一 93%
-   图：`figures/Brightness.png`
-
-7. **画质取舍**：阴影 High，其他全 Low
-   图：`figures/Global Shadow Quality.png` + `figures/Shader and Particle.png`
-
-8. **雷达天眼**：98% 开旋转，88% 居中
-   图：`figures/Radar Center.png` + `figures/Radar Rotate.png`
-
-9. **刷新率门槛**：144Hz 已死，360Hz 底线
-   图：`figures/Monitor Hz.png`
-
-## 发布格式
-- 标题：emoji + 一句话结论（15字以内）
-- 正文：3-5 句关键数据 + 个人解读
-- 标签：#CS2 #职业选手参数 #FPS游戏设置 #电竞数据
-- 图片比例：1:1 或 4:3（小红书最佳展示比）
+## 注意事项
+- **图片比例**：1:1 或 4:3（小红书最佳展示比），原图需要裁剪
+- **标签**：#CS2 #职业选手参数 #FPS游戏设置 #电竞 #游戏外设
+- **文案**：每篇 200 字以内，3-5 句关键数据 + 一句点评
+- **发布时间**：每天 1-2 篇，连续发一周，保持活跃度
+- **评论区**：引导互动"你的灵敏度是多少？"
