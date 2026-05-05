@@ -53,7 +53,7 @@ jupyter notebook
 ├── figures/                             # 已导出图表 (20+ PN)
 ├── 01_data_collection.ipynb             # 网页爬取
 ├── 02_data_cleaning.ipynb               # 清洗 + 特征工程
-├── 04_final_report.ipynb                # 图表渲染引擎
+├── 03_final_report.ipynb                # 图表渲染引擎
 ├── CS-Pro-Settings.md                   # 正式数据分析文章
 ├── requirements.txt
 ├── environment.yml
@@ -62,8 +62,10 @@ jupyter notebook
 
 ## 数据范围
 
-- 主题：CS2 职业选手参数
-- 时间：2026 年整理版本
+- 数据来源：[prosettings.net/lists/cs2](https://prosettings.net/lists/cs2/)
+- 采集时间：2026-05-05
+- 选手范围：HLTV Top 30（2026-05-04 排名）+ 老牌豪门 + 赛区代表 + 明星选手队，共 41 支目标战队
+- 爬取耗时：约 33 分钟（890 名选手详情页，含 1-2.5s 随机延迟防封禁）
 
 ## License
 
