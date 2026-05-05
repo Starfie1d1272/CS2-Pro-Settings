@@ -4,6 +4,8 @@ CS2 职业选手参数数据采集、清洗、分析与可视化。
 
 ## 阅读报告
 
+![41 Teams](./figures/Teams%20Overview.png)
+
 👉 **[拒绝脑补，只看数据：198名CS2现役职业选手设置深度分析](./CS-Pro-Settings.md)**
 
 ## 快速开始
@@ -55,7 +57,6 @@ conda activate cs2_data
 - 采集：2026-05-05 | 耗时约 33 分钟
 - 选手：HLTV Top 30（2026-05-04）+ 老牌豪门/赛区代表/明星选手队，**41 队 198 人**
 
-![41队全览](./figures/Teams%20Overview.png)
 
 ## License
 
