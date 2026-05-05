@@ -188,4 +188,4 @@
 
 ---
 
-*数据截止 2026年5月5日。来源: prosettings.net / HLTV 2026-05-04 排名。共爬取 890 名选手，筛选 41 队 198 名现役首发。*
+*数据截止 2026年5月5日。来源: prosettings.net / HLTV 2026-05-04 排名。共爬取 890 名选手，筛选 41 队 198 名现役首发。完整代码与原始数据: [GitHub/CS2-Pro-Settings](https://github.com/Starfie1d1272/CS2-Pro-Settings)*
