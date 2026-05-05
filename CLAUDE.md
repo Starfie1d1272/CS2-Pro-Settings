@@ -17,7 +17,13 @@ CS2 职业选手参数数据挖掘项目。从 prosettings.net 爬取 Top 战队
 03_final_report.ipynb     → Phase 3: 20+ 张可视化图表渲染 → figures/*.png
 ```
 
-02 是唯一的清洗入口（白名单→数值化→去重→RAW特征合并→Final.csv），无需中间文件。
+02 是唯一的清洗入口：
+- Cell 1: 战队白名单（41队/64变体）+ 选手白名单（202人/216变体，含HLTV→prosettings别名）
+- Cell 2: 数值化 + 质检去重 → Master.csv
+- Cell 3: RAW特征合并（30+字段，含准星/视角/雷达） → Final.csv
+- Cell 4: 就绪检查
+
+03 Cell 0 包含跨平台中文字体自动检测（Windows → macOS → Linux fallback），无需手动配置。
 
 ## 环境
 
@@ -40,11 +46,12 @@ jupyter notebook
 
 ## 绘图引擎
 
-所有图表统一使用暗黑赛博朋克主题 (`dark_background` + 自定义 rcParams)，封装在 `03_final_report.ipynb` 的 Cell 1 工厂函数中：
+所有图表统一使用暗黑赛博朋克主题 (`dark_background` + 自定义 rcParams)，封装在 `03_final_report.ipynb` 的 Cell 0 中：
 - `setup_cs2_theme()` — 初始化全局 rcParams
-- `plot_cs2_bar()` — 柱状图（自动标注数值）
-- `plot_cs2_pie()` — 饼图（<4% 不显示标签）
-- `plot_cs2_hist()` — 直方图 + KDE + 统计线
+- `bar()` — 柱状图（自动标注数值）
+- `pie()` — 饼图
+- `hist()` — 直方图 + KDE + 可选均值/中位数参考线
+- `save()` — 封装 `plt.savefig()`，统一输出到 `figures/`，150dpi
 
 ## 数据清洗规则
 
@@ -66,13 +73,14 @@ df = pd.read_csv('data/cs2_pro_2026_Active_Final.csv', low_memory=False)
 "
 ```
 
-关键数字速查：
-- 总选手: 184, 战队: 39
-- eDPI 中位数: 800
-- 800 DPI: 51.6%, 400 DPI: 42.4%
-- 1280x960: 126 人 (68.5%), 4:3: 78.3%
-- 360Hz: 33.3%, 540Hz+: 28.4%
-- FOV 68: 85.2%, X=2.5/Y=0/Z=-1.5 为黄金公式
-- 亮度 93%: 82 人
-- Dot+Outline 双关: 86.3%
+关键数字速查（198人/41队, 数据截至2026-05-05）：
+- eDPI 中位数: 800, 均值: 848
+- 800 DPI: 53.5%, 400 DPI: 41.4%, >=1600: 3.5%
+- 1280x960: 134人 (67.7%), 4:3: 78.1%
+- 显示器: 360Hz 31.8%, 540Hz+ 31.8%
+- FOV 68: 85.3%, X=2.5/Y=0/Z=-1.5 为黄金公式
+- 亮度 93%: 87人, 100%: 18人, 130%: 23人
+- Dot+Outline 双关: 81.8%
+- 准星颜色: Custom 38.4%, Cyan 31.3%, Green 23.2%
 - V-Sync: 100% 关闭, Reflex: 48.5% 开启
+- 雷达旋转: 79.3%, 雷达居中: 72.2%
