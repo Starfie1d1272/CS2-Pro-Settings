@@ -1,0 +1,129 @@
+provider: hltv
+ranking_authority: hltv
+presentation_host: hltv.org
+ranking_type: world
+date: '2026-08-03'
+source_url: https://www.hltv.org/ranking/teams/2026/august/3
+source_host: hltv.org
+top_n: 30
+teams:
+- rank: 1
+  display_name: Falcons
+  team_id: falcons
+  settings_slug: falcons
+- rank: 2
+  display_name: Spirit
+  team_id: team-spirit
+  settings_slug: spirit
+- rank: 3
+  display_name: FURIA
+  team_id: furia
+  settings_slug: furia
+- rank: 4
+  display_name: Vitality
+  team_id: vitality
+  settings_slug: vitality
+- rank: 5
+  display_name: MOUZ
+  team_id: mouz
+  settings_slug: mouz
+- rank: 6
+  display_name: Natus Vincere
+  team_id: natus-vincere
+  settings_slug: navi
+- rank: 7
+  display_name: 9z
+  team_id: 9z
+  settings_slug: 9z
+- rank: 8
+  display_name: Aurora
+  team_id: aurora
+  settings_slug: null
+- rank: 9
+  display_name: G2
+  team_id: g2
+  settings_slug: g2
+- rank: 10
+  display_name: BetBoom
+  team_id: betboom
+  settings_slug: betboom
+- rank: 11
+  display_name: FaZe
+  team_id: faze
+  settings_slug: faze
+- rank: 12
+  display_name: Legacy
+  team_id: legacy
+  settings_slug: legacy
+- rank: 13
+  display_name: Astralis
+  team_id: astralis
+  settings_slug: astralis
+- rank: 14
+  display_name: The MongolZ
+  team_id: the-mongolz
+  settings_slug: the-mongolz
+- rank: 15
+  display_name: FUT
+  team_id: fut
+  settings_slug: fut
+- rank: 16
+  display_name: PARIVISION
+  team_id: parivision
+  settings_slug: parivision
+- rank: 17
+  display_name: B8
+  team_id: b8
+  settings_slug: b8
+- rank: 18
+  display_name: paiN
+  team_id: pain
+  settings_slug: pain
+- rank: 19
+  display_name: Liquid
+  team_id: liquid
+  settings_slug: liquid
+- rank: 20
+  display_name: 3DMAX
+  team_id: 3dmax
+  settings_slug: 3dmax
+- rank: 21
+  display_name: GamerLegion
+  team_id: gamerlegion
+  settings_slug: gamerlegion
+- rank: 22
+  display_name: magic
+  team_id: magic
+  settings_slug: null
+- rank: 23
+  display_name: Luminosity
+  team_id: luminosity
+  settings_slug: null
+- rank: 24
+  display_name: MIBR
+  team_id: mibr
+  settings_slug: mibr
+- rank: 25
+  display_name: TYLOO
+  team_id: tyloo
+  settings_slug: tyloo
+- rank: 26
+  display_name: Alliance
+  team_id: alliance
+  settings_slug: alliance
+- rank: 27
+  display_name: Ninjas in Pyjamas
+  team_id: ninjas-in-pyjamas
+  settings_slug: ninjas-in-pyjamas
+- rank: 28
+  display_name: BIG
+  team_id: big
+  settings_slug: null
+- rank: 29
+  display_name: DENDELE
+  team_id: dendele
+  settings_slug: null
+- rank: 30
+  display_name: HEROIC
+  team_id: heroic
+  settings_slug: heroic

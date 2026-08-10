@@ -228,13 +228,24 @@ def compute_metrics(
 
 
 def public_aggregate(metrics: dict) -> dict:
-    """Strip work-only per-player values; keep ids for panel matching."""
+    """Public snapshot shape: aggregates + panel METADATA only.
+
+    Per-player values and stable identity lists (SteamIDs) are operational
+    state, NOT public data. The public panel carries status and counts so
+    downstream consumers can reason about matched-panel availability without
+    a row-equivalent identity list.
+    """
     agg = dict(metrics["aggregate"])
-    panel = {
-        "status": metrics["panel"].get("status", "available"),
-        "player_ids": sorted(metrics["panel"].get("player_ids", [])),
+    panel = metrics.get("panel", {})
+    ids = panel.get("player_ids") or []
+    return {
+        "aggregate": agg,
+        "panel": {
+            "status": panel.get("status", "unavailable" if not ids else "available"),
+            "player_count": len(ids),
+            "stable_identity_count": len(ids),
+        },
     }
-    return {"aggregate": agg, "panel": panel}
 
 
 def metric_path(aggregate: dict, dotted: str) -> Any:

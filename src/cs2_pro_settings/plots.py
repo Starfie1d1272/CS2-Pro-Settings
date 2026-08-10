@@ -63,6 +63,13 @@ def _bar(ax, cats: dict, title: str, color: str, ylabel: str = "Player Count") -
     ax.set_xticklabels(labels, rotation=30, ha="right")
 
 
+_EDPI_BIN_RANGES = [
+    ("0-400", 0, 400), ("400-600", 400, 600), ("600-800", 600, 800),
+    ("800-1000", 800, 1000), ("1000-1200", 1000, 1200), ("1200-1600", 1200, 1600),
+    ("1600+", 1600, float("inf")),
+]
+
+
 def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     """Render the headline figures; returns the written paths."""
     agg = metrics["aggregate"]
@@ -78,9 +85,17 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     counts = list(dist.values())
     ax.bar(labels, counts, color=ACCENT, edgecolor="#121212")
     med = edpi.get("median")
-    if labels:
-        ax.axvline(labels.index("800-1000") if "800-1000" in labels else 0,
-                   color=MAGENTA, linestyle="--", alpha=0.7)
+    # median marker: draw the line at the histogram bin that CONTAINS the
+    # current median (not a hard-coded 800-1000 bin)
+    if med is not None:
+        median_bin = None
+        for label, lo, hi in _EDPI_BIN_RANGES:
+            if lo <= med < hi:
+                median_bin = label
+                break
+        if median_bin and median_bin in labels:
+            ax.axvline(labels.index(median_bin), color=MAGENTA,
+                       linestyle="--", alpha=0.7)
     ax.set_title(f"eDPI Distribution (median {med}, mean {edpi.get('mean')})",
                  fontsize=13, fontweight="bold", color=ACCENT)
     ax.set_ylabel("Player Count")
@@ -143,15 +158,18 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     plt.close(fig)
     written.append(p)
 
-    # Radar
+    # Radar: rotating and centered have INDEPENDENT denominators
     radar = agg.get("radar") or {}
+    rot_valid = radar.get("rotating_valid_n", radar.get("valid_n", 0))
+    cent_valid = radar.get("centered_valid_n", radar.get("valid_n", 0))
     rot_share = radar.get("rotating_share") or 0.0
     cent_share = radar.get("centered_share") or 0.0
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar(["Rotating", "Centered"],
-           [rot_share * radar.get("valid_n", 0), cent_share * radar.get("valid_n", 0)],
+           [rot_share * rot_valid, cent_share * cent_valid],
            color=[CYAN, ACCENT], edgecolor="#121212")
-    ax.set_title(f"Radar preferences (n={radar.get('valid_n', 0)})", fontsize=13, fontweight="bold", color=CYAN)
+    ax.set_title(f"Radar preferences (rotating n={rot_valid}, centered n={cent_valid})",
+                 fontsize=13, fontweight="bold", color=CYAN)
     ax.set_ylabel("Player Count")
     fig.tight_layout()
     p = out_dir / "radar.png"

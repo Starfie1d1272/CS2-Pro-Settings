@@ -1,7 +1,8 @@
 {
   "aggregate": {},
   "panel": {
-    "status": "available",
-    "player_ids": []
+    "status": "unavailable",
+    "player_count": 0,
+    "stable_identity_count": 0
   }
 }

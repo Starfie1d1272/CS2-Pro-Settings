@@ -46,6 +46,8 @@ def _patch_sh(monkeypatch):
     monkeypatch.setattr(actions_common, "sh", fake_sh)
     monkeypatch.setenv("DRY_RUN", "false")
     monkeypatch.setenv("PIPELINE_OUTCOME", "success")
+    # default: collection complete (tests opt into incomplete scenarios)
+    _write_work("collection-manifest.json", {"collection_complete": True})
     yield state, calls
 
 

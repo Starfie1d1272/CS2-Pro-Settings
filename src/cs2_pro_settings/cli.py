@@ -146,21 +146,94 @@ def step_audit(scheduled_only: bool, offline: bool) -> dict:
 
 
 def cohort_scope() -> dict:
-    """Build the scope block for metrics from config/cohort.yaml (v3)."""
-    from .cohort import core_slugs, tracked_slugs
+    """Build the scope block for metrics from config/cohort.yaml (v4).
+
+    Ranking defines competitive scope; the settings source defines
+    observability. The scope block carries both: ranking membership truth
+    (core/consensus/union by team_id) and source-resolved slugs.
+    """
+    from .cohort import load_cohort_sets, tracked_slugs
 
     cfg = load_cohort_config()
+    sets = load_cohort_sets(cfg)
     universe = tracked_slugs(cfg)
-    core = core_slugs(cfg)
     core_cfg = cfg.get("cohort", {}).get("core", {})
+    ref_cfg = cfg.get("cohort", {}).get("reference", {})
+    core_slugs_set = {t.get("settings_slug") for t in (core_cfg.get("teams") or [])
+                      if t.get("settings_slug")}
+    core_unresolved = sorted(
+        t["team_id"] for t in (core_cfg.get("teams") or []) if not t.get("settings_slug"))
     return {
-        "scope_id": "top-tier-plus-selected-v1",  # legacy-compatible id
-        "cohort_model": "core-watchlist-supplemental-v3",
+        "scope_id": "vrs-core-v2",
+        "cohort_model": "vrs-core-hltv-reference-v4",
         "core_snapshot": core_cfg.get("snapshot"),
+        "core_provider": core_cfg.get("provider", "valve"),
+        "reference_snapshot": ref_cfg.get("snapshot"),
+        "reference_provider": ref_cfg.get("provider", "hltv"),
+        "core_teams": sets["core_teams"],
+        "reference_teams": sets["reference_teams"],
+        "consensus_teams": sets["consensus_teams"],
+        "ranked_union_teams": sets["ranked_union_teams"],
+        "core_team_count": sets["core_count"],
+        "reference_team_count": sets["reference_count"],
+        "consensus_team_count": sets["consensus_count"],
+        "ranked_union_team_count": sets["ranked_union_count"],
+        "core_scope_hash": sets["core_scope_hash"],
         "tracked_teams": universe,
         "tracked_team_count": len(universe),
-        "core_team_count": len(core),
-        "mode": cfg.get("mode", "tracked_teams"),
+        "source_resolved_core_teams": len(core_slugs_set),
+        "source_unresolved_core_teams": core_unresolved,
+    }
+
+
+def build_collection_manifest(
+    core_slugs_requested: list[str],
+    core_roster_failures: list[str],
+    core_players_requested: list[str],
+    core_player_failures: list[str],
+    unresolved_source_teams: list[str],
+    all_tracked_requested: list[str],
+    all_tracked_failures: list[str],
+) -> dict:
+    """Deterministic collection manifest — fail closed on partial Core.
+
+    ANY Core team roster fetch failure or unresolved Core source team makes
+    collection incomplete; a significant Core player fetch failure makes the
+    Core player collection incomplete. Watchlist/reference failures do NOT
+    fail Core.
+    """
+    n_core = len(core_slugs_requested)
+    core_ok = n_core - len(core_roster_failures) - len(unresolved_source_teams)
+    core_team_coverage = round(core_ok / n_core, 4) if n_core else 0.0
+    n_players = len(core_players_requested)
+    player_ok = n_players - len(core_player_failures)
+    player_coverage = round(player_ok / n_players, 4) if n_players else 0.0
+    reasons: list[str] = []
+    if unresolved_source_teams:
+        reasons.append(f"unresolved core source teams: {unresolved_source_teams}")
+    if core_roster_failures:
+        reasons.append(f"core roster fetch failures: {core_roster_failures}")
+    if core_player_failures:
+        reasons.append(f"core player settings failures: {core_player_failures}")
+    if n_players == 0:
+        reasons.append("no expected core players")
+    return {
+        "requested_core_teams": n_core,
+        "resolved_core_teams": len(core_slugs_requested),
+        "successful_core_team_rosters": len(core_slugs_requested) - len(core_roster_failures),
+        "failed_core_team_rosters": sorted(core_roster_failures),
+        "unresolved_source_teams": sorted(unresolved_source_teams),
+        "expected_core_players": n_players,
+        "requested_players": n_players,
+        "successful_players": player_ok,
+        "failed_players": sorted(core_player_failures),
+        "core_team_coverage": core_team_coverage,
+        "player_collection_coverage": player_coverage,
+        "collection_complete": not reasons,
+        "core_player_collection_complete": not core_player_failures and n_players > 0,
+        "incomplete_reasons": reasons,
+        "all_tracked_requested_teams": len(all_tracked_requested),
+        "all_tracked_roster_failures": sorted(all_tracked_failures),
     }
 
 
@@ -169,11 +242,28 @@ def step_collect(
     offline: bool,
     source_filter: Optional[str],
     players: Optional[list[str]],
-) -> tuple[list[SourceObservation], dict[str, list[str]]]:
+) -> tuple[list[SourceObservation], dict[str, list[str]], dict]:
     observations: list[SourceObservation] = []
     roster_by_team: dict[str, list[str]] = {}
     identity = IdentityIndex()
     cohort_cfg = load_cohort_config()
+    from .cohort import core_slugs, tracked_slugs
+
+    core_source_slugs: list[str] = []
+    if not (players or offline):
+        core_cfg = cohort_cfg.get("cohort", {}).get("core", {})
+        core_source_slugs = sorted(
+            t["settings_slug"] for t in (core_cfg.get("teams") or [])
+            if t.get("settings_slug"))
+        core_unresolved_ids = sorted(
+            t["team_id"] for t in (core_cfg.get("teams") or []) if not t.get("settings_slug"))
+    else:
+        core_unresolved_ids = []
+    core_roster_failures: list[str] = []
+    core_player_failures: list[str] = []
+    core_players_requested: list[str] = []
+    all_tracked_requested: list[str] = []
+    all_tracked_failures: list[str] = []
 
     for name, _sc in enabled_sources(scheduled_only):
         if source_filter and name != source_filter:
@@ -187,14 +277,13 @@ def step_collect(
             elif offline:
                 roster = src.list_players()
             else:
-                # cohort v3: tracked universe = Core ∪ Watchlist ∪ Supplemental
-                from .cohort import tracked_slugs
-
+                # cohort v4: scheduled universe = ranked union ∪ watchlist
                 roster_fn = getattr(src, "list_team_roster", None)
                 if roster_fn is not None:
                     roster = []
                     seen: set[str] = set()
                     for slug in tracked_slugs(cohort_cfg):
+                        all_tracked_requested.append(slug)
                         try:
                             for entry in roster_fn(slug):
                                 if entry["source_id"] not in seen:
@@ -202,6 +291,9 @@ def step_collect(
                                     roster.append(entry)
                         except SourceError as exc:
                             print(f"  [!] {name}/teams/{slug}: {exc}")
+                            all_tracked_failures.append(slug)
+                            if slug in core_source_slugs:
+                                core_roster_failures.append(slug)
                 else:
                     roster = src.list_players()
         except SourceError as exc:
@@ -213,6 +305,9 @@ def step_collect(
                 parsed = src.fetch_player(source_id)
             except SourceError as exc:
                 print(f"  [!] {name}/{source_id}: {exc}")
+                if entry.get("team") in core_source_slugs or (
+                        not players and not offline):
+                    core_player_failures.append(source_id)
                 continue
             # cohort policy: role filter (coach/retired/content_creator excluded)
             from .cohort import player_allowed
@@ -221,6 +316,8 @@ def step_collect(
             if not allowed:
                 print(f"  [-] {name}/{source_id}: {reason} (excluded)")
                 continue
+            if parsed.team in core_source_slugs:
+                core_players_requested.append(source_id)
             ident = identity.register(
                 source=name,
                 source_id=source_id,
@@ -252,12 +349,22 @@ def step_collect(
                     )
                 )
 
+    manifest = build_collection_manifest(
+        core_slugs_requested=core_source_slugs,
+        core_roster_failures=core_roster_failures,
+        core_players_requested=core_players_requested,
+        core_player_failures=core_player_failures,
+        unresolved_source_teams=core_unresolved_ids,
+        all_tracked_requested=all_tracked_requested,
+        all_tracked_failures=all_tracked_failures,
+    )
     _write_work("observations.json", [obs.__dict__ for obs in observations])
     _write_work("identities.json", {
         "players": [p.__dict__ for p in identity.all()],
         "problems": identity.identity_problems,
     })
-    return observations, roster_by_team
+    _write_work("collection-manifest.json", manifest)
+    return observations, roster_by_team, manifest
 
 
 def step_normalize(observations: list[SourceObservation]) -> None:
@@ -287,29 +394,45 @@ def step_reconcile(observations: list[SourceObservation]) -> tuple[dict, list[di
 
 
 def step_metrics(players: dict) -> dict:
+    from .cohort import load_cohort_sets, team_ids_to_slugs, watchlist_slugs
+
     objs = [NormalizedPlayerSettings.from_dict(d) for d in players.values()]
     today = date.today().isoformat()
     scope = cohort_scope()
+    cohort_cfg = load_cohort_config()
+    sets = load_cohort_sets(cohort_cfg)
+    slug_map = sets.get("slug_map", {})
 
-    def seg(tiers):
-        return [p for p in objs if p.cohort_tier in tiers]
+    def seg(team_ids) -> list:
+        slugs = set(team_ids_to_slugs(team_ids, slug_map))
+        return [p for p in objs if p.team in slugs]
 
-    core_players = seg({"core"})
-    core_watch_players = seg({"core", "watchlist"})
+    core_players = seg(scope["core_teams"])
+    core_slugs_set = {p.team for p in core_players}
+    consensus_ids = scope["consensus_teams"]
+    union_ids = scope["ranked_union_teams"]
+    watch_slugs = set(watchlist_slugs(cohort_cfg))
+    core_watch_players = [p for p in objs if p.team in core_slugs_set or p.team in watch_slugs]
 
     core_agg = compute_metrics(
-        core_players, today, source_note="v2-core", scope=scope,
-        series={"series_id": "hltv-core-v2", "cohort_semantics": "core_top30"})["aggregate"]
+        core_players, today, source_note="v2-vrs-core", scope=scope,
+        series={"series_id": "vrs-core-v2", "cohort_semantics": "core_top30"})["aggregate"]
     metrics = {
         "aggregate": core_agg,
         "segments": {
-            "core": core_agg,
+            "vrs_core": core_agg,
+            "consensus": compute_metrics(
+                seg(consensus_ids), today, source_note="v2-consensus", scope=scope,
+                series={"series_id": "vrs-core-v2", "cohort_semantics": "consensus"})["aggregate"],
+            "ranked_union": compute_metrics(
+                seg(union_ids), today, source_note="v2-ranked-union", scope=scope,
+                series={"series_id": "vrs-core-v2", "cohort_semantics": "ranked_union"})["aggregate"],
             "core_plus_watchlist": compute_metrics(
                 core_watch_players, today, source_note="v2-core+watchlist", scope=scope,
-                series={"series_id": "hltv-core-v2", "cohort_semantics": "core_plus_watchlist"})["aggregate"],
+                series={"series_id": "vrs-core-v2", "cohort_semantics": "core_plus_watchlist"})["aggregate"],
             "all_tracked": compute_metrics(
                 objs, today, source_note="v2-all-tracked", scope=scope,
-                series={"series_id": "hltv-core-v2", "cohort_semantics": "all_tracked"})["aggregate"],
+                series={"series_id": "vrs-core-v2", "cohort_semantics": "all_tracked"})["aggregate"],
         },
         "panel": {
             "status": "available" if core_players else "empty",
@@ -333,12 +456,13 @@ def step_drift(baseline_path: Path) -> DriftReport:
     baseline_path = Path(baseline_path)
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     metrics = json.loads((WORK / "metrics.json").read_text(encoding="utf-8"))
-    # roster info from this run (work/roster-report.json)
+    # roster info from this run (work/roster-report.json) — Core turnover
+    # drives the headline guard; all-tracked turnover is monitoring only
     turnover = None
     rp = WORK / "roster-report.json"
     if rp.exists():
         rr = json.loads(rp.read_text(encoding="utf-8"))
-        turnover = rr.get("turnover_rate")
+        turnover = rr.get("core_turnover_rate", rr.get("turnover_rate"))
     # previous matched panel from cross-run runtime state (not work/)
     from . import runtime_state
 
@@ -416,8 +540,11 @@ def cmd_audit(args) -> int:
 
 def cmd_collect(args) -> int:
     players = args.players.split(",") if args.players else None
-    obs, roster = step_collect(args.scheduled, args.offline, args.source, players)
+    obs, roster, manifest = step_collect(args.scheduled, args.offline, args.source, players)
     print(f"collected {len(obs)} observations; {len(roster)} teams in roster")
+    print(f"manifest: collection_complete={manifest['collection_complete']} "
+          f"core_teams={manifest['requested_core_teams']} "
+          f"players={manifest['successful_players']}/{manifest['expected_core_players']}")
     return 0
 
 
@@ -476,6 +603,25 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
     pending = runtime_state.load_state("roster-pending.json")
     current = {k: sorted(v) for k, v in roster_by_team.items()}
 
+    # Core-only roster: headline stability uses ONLY VRS Core team memberships
+    core_cfg = load_cohort_config().get("cohort", {}).get("core", {})
+    core_slugs_set = {t.get("settings_slug") for t in (core_cfg.get("teams") or [])
+                      if t.get("settings_slug")}
+    current_core = {k: v for k, v in current.items() if k in core_slugs_set}
+
+    def _core_turnover(prev_all: Optional[dict]) -> Optional[float]:
+        if prev_all is None:
+            return None
+        prev_core = {k: v for k, v in prev_all.items() if k in core_slugs_set}
+        prev_ids = {pid for v in prev_core.values() for pid in v}
+        cur_ids = {pid for v in current_core.values() for pid in v}
+        matched = len(prev_ids & cur_ids)
+        if not prev_ids:
+            return None
+        return round(1 - matched / len(prev_ids), 4)
+
+    core_turnover = _core_turnover(previous)
+
     if previous is None:
         # warm-up run: initialize, do not diff against an empty universe
         report_dict = {
@@ -484,6 +630,7 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
             "current_total": sum(len(v) for v in current.values()),
             "matched_total": None,
             "turnover_rate": None,
+            "core_turnover_rate": None,
             "has_changes": False,
             "has_comparable_previous": False,
             "fingerprint": None,
@@ -494,7 +641,7 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
         _write_work("roster-report.json", report_dict)
         return {"turnover_rate": None, "has_changes": False,
                 "pending_state": None, "status": "warmup",
-                "has_comparable_previous": False}
+                "has_comparable_previous": False, "core_turnover_rate": None}
 
     report = compute_roster_report(observed_at, previous, current)
     new_pending = update_pending_state(pending, report, observed_at)
@@ -504,6 +651,7 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
         "current_total": report.current_total,
         "matched_total": report.matched_total,
         "turnover_rate": report.turnover_rate,
+        "core_turnover_rate": core_turnover,
         "has_changes": report.has_changes,
         "has_comparable_previous": True,
         "fingerprint": report.fingerprint(),
@@ -513,6 +661,7 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
     })
     return {
         "turnover_rate": report.turnover_rate,
+        "core_turnover_rate": core_turnover,
         "has_changes": report.has_changes,
         "pending_state": new_pending,
         "status": "compared",
@@ -546,8 +695,6 @@ def _persist_runtime_state(roster_by_team: dict[str, list[str]], metrics: dict,
 
 
 def cmd_update(args) -> int:
-    from . import runtime_state
-
     status = step_audit(args.scheduled, args.offline)
     failed = [n for n, s in status.items() if not s.startswith("ok")]
     if failed:
@@ -555,7 +702,7 @@ def cmd_update(args) -> int:
         print("no collection attempted (fail closed)")
         return 1
     players = args.players.split(",") if args.players else None
-    obs, roster = step_collect(args.scheduled, args.offline, args.source, players)
+    obs, roster, manifest = step_collect(args.scheduled, args.offline, args.source, players)
     if not obs:
         print("no observations collected")
         return 1
@@ -568,11 +715,15 @@ def cmd_update(args) -> int:
     metrics = step_metrics(reconciled)
     report = step_drift(args.baseline)
     out = step_report(candidate=True)
-    # pipeline succeeded: advance cross-run runtime state
-    _persist_runtime_state(roster, metrics, roster_info.get("pending_state"))
     print(f"observations={len(obs)} players={len(reconciled)} conflicts={len(conflicts)}")
     print(f"drift level: {report.level}")
     print(f"candidate report: {out}")
+    if not manifest["collection_complete"]:
+        print("COLLECTION INCOMPLETE: state NOT advanced; no publish/update allowed")
+        print("incomplete reasons:", manifest["incomplete_reasons"])
+        return 0
+    # pipeline succeeded AND collection complete: advance cross-run state
+    _persist_runtime_state(roster, metrics, roster_info.get("pending_state"))
     return 0
 
 

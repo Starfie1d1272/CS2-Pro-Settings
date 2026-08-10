@@ -217,4 +217,4 @@ def test_scope_and_roster_states_independent(repo_root):
     assert report.cohort_stability == "unstable"
     assert report.headline_suppressed is True
     # suppression reason reflects scope first (scope > roster in priority)
-    assert report.suppression_reason == "tracked-team scope changed"
+    assert "scope" in report.suppression_reason

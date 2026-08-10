@@ -5,51 +5,47 @@
 
 ## Snapshot
 
-- snapshot date: **2026-08-10**
-- cohort size: 0 players / 0 teams
-- source: v2-core
-- tracked-team scope: top-tier-plus-selected-v1 (30 teams in universe, 0 in Core)
+- snapshot date: **2026-08-11**
+- cohort size: 109 players / 24 teams
+- source: v2-vrs-core
+- tracked-team scope: vrs-core-v2 (35 teams in universe, 30 in Core)
 
 ## Cohort
 
-- series: hltv-core-v2 (core_top30)
-- Core ranking snapshot: none accepted yet
-- Core teams: 0
-- Watchlist + Supplemental teams in universe: 30
+- series: vrs-core-v2 (core_top30)
+- Core ranking snapshot: 2026-08-10
+- Core teams: 30
+- Watchlist + Supplemental teams in universe: 5
 - Core feeds headline statistics; Watchlist/Supplemental are tracked as extended segments only (see segments below).
 
 ## Source status
 
 - cs2settings: ok
-- prosettings: ok
 
 ## Key metrics
 
-- eDPI: median None, mean None (n=0)
-- DPI: top None (n/a at 800, n=0)
-- Resolution: top None (n/a at 1280x960, n=0)
-- Aspect ratio: 4:3 n/a (n=0)
+- eDPI: median 800.0, mean 827.5 (n=109)
+- DPI: top 800 (54.1% at 800, n=109)
+- Resolution: top 1280x960 (67.9% at 1280x960, n=109)
+- Aspect ratio: 4:3 80.7% (n=109)
 - Refresh rate: 360Hz n/a, 540Hz+ n/a (n=0)
 - fps_max 0 (unlimited): n/a (n=0)
-- Crosshair: Dot+Outline off n/a (n=0); top color None
-- Viewmodel: FOV 68 n/a (n=0); dominant offset None
-- Radar: rotating n/a, centered n/a (n=0)
-- Polling: 4000Hz+ n/a (n=0)
+- Crosshair: Dot+Outline off 79.8% (n=109); top color Custom
+- Viewmodel: FOV 68 92.6% (n=108); dominant offset [2.5, 0.0, -1.5]
+- Radar: rotating n/a (n=0), centered 69.2% (n=104)
+- Polling: 4000Hz+ 15.6% (n=109)
 
 ## Comparison with previous accepted snapshot
 
-- baseline: None -> current: 2026-08-10
+- baseline: None -> current: 2026-08-11
 - drift level: **0** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)
-- **series incompatible**: baseline series None != current series 'hltv-core-v2'; baseline incompatible — the first accepted hltv-core-v2 snapshot will initialize the new longitudinal series
-- **scope changed**: tracked-team scope changed between baseline and current snapshot; overall cohort conclusion flips are NOT judged as Level 2 — scope change requires human review (matched-panel comparison only)
-- cohort stability: stable (roster turnover 0.0)
-- **headline suppressed**: tracked-team scope changed
+- **series incompatible**: baseline series None != current series 'vrs-core-v2'; baseline incompatible — the first accepted hltv-core-v2 snapshot will initialize the new longitudinal series
 - no conclusion-level changes
 
 ### Cohort change
 
-- baseline players: 0; current: 0
-- added: 0; removed: 0
+- baseline players: 0; current: 109
+- added: 109; removed: 0
 
 ### Matched panel
 
@@ -61,13 +57,13 @@
 
 ## Roster stability
 
-- status: compared (previous 3 / current 3 / matched 3)
-- turnover rate: 0.0 (operational threshold 15% in config/stability.yaml)
+- status: warmup (previous None / current 154 / matched None)
+- turnover rate: None (operational threshold 15% in config/stability.yaml)
 
 ## Extended tracking (non-Core segments)
 
-- core_plus_watchlist: 0 players / 0 teams (eDPI median None)
-- all_tracked: 3 players / 1 teams (eDPI median 800.0)
+- core_plus_watchlist: 123 players / 27 teams (eDPI median 800.0)
+- all_tracked: 154 players / 35 teams (eDPI median 800.0)
 
 ## Limitations
 

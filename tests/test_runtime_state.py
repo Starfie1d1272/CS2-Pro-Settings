@@ -125,4 +125,18 @@ def test_compare_panels_matched():
            "players": {"steam:1": {"dpi": 400.0}, "steam:3": {"dpi": 800.0}}}
     res = runtime_state.compare_panels(prev, cur)
     assert res["matched_count"] == 1
-    assert res["per_field"]["dpi"] == {"changed": 1, "compared": 1}
+    assert res["per_field"]["dpi"] == {
+        "changed": 1, "compared": 1, "missing_transition": 0}
+
+
+def test_compare_panels_missing_to_value_is_not_a_change():
+    """10: missing->value transition is a completeness change, not a settings change."""
+    prev = {"player_ids": ["steam:1", "steam:2"],
+            "players": {"steam:1": {"dpi": None}, "steam:2": {"dpi": 400.0}}}
+    cur = {"player_ids": ["steam:1", "steam:2"],
+           "players": {"steam:1": {"dpi": 800.0}, "steam:2": {"dpi": 400.0}}}
+    res = runtime_state.compare_panels(prev, cur)
+    dpi = res["per_field"]["dpi"]
+    assert dpi["compared"] == 1      # only steam:2 has both-time values
+    assert dpi["changed"] == 0       # None->800 is NOT a settings change
+    assert dpi["missing_transition"] == 1

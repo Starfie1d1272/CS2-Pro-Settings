@@ -158,20 +158,30 @@ def compute_drift(
         )
 
     # ---- tracked-team scope comparison --------------------------------
+    # Headline scope_changed means ONLY: the accepted VRS Core team set
+    # changed. Watchlist / HLTV-reference-only membership changes do NOT
+    # imply a Core scope change (they update reference/consensus metadata).
     base_scope = baseline_agg.get("scope") or {}
     cur_scope = current_agg.get("scope") or {}
     scope_changed = False
     scope_warning = ""
-    if base_scope.get("scope_id") != cur_scope.get("scope_id") or \
-            set(base_scope.get("tracked_teams") or []) != set(cur_scope.get("tracked_teams") or []):
+    base_core = base_scope.get("core_teams")
+    cur_core = cur_scope.get("core_teams")
+    if base_core is not None and cur_core is not None and sorted(base_core) != sorted(cur_core):
         scope_changed = True
         scope_warning = (
-            "tracked-team scope changed between baseline and current snapshot; "
-            "overall cohort conclusion flips are NOT judged as Level 2 — "
-            "scope change requires human review (matched-panel comparison only)"
-        )
+            f"accepted VRS Core team set changed: "
+            f"{len(base_core)} -> {len(cur_core)} teams; overall Core headline "
+            "Level 2 suppressed pending human review")
+    elif base_core is None or cur_core is None:
+        # legacy-style baseline without core_teams: fall back to universe hash
+        base_hash = base_scope.get("core_scope_hash") or base_scope.get("tracked_team_count")
+        cur_hash = cur_scope.get("core_scope_hash") or cur_scope.get("tracked_team_count")
+        if base_hash is not None and base_hash != cur_hash:
+            scope_changed = True
+            scope_warning = "scope metadata changed (legacy baseline); headline Level 2 suppressed"
 
-    # ---- roster stability ----------------------------------------------
+    # ---- roster stability (Core players only for the headline guard) ----
     from .roster import roster_stability
 
     cohort_stability = roster_stability(roster_turnover_rate, turnover_threshold)
@@ -179,10 +189,10 @@ def compute_drift(
     suppression_reason = ""
     if scope_changed:
         headline_suppressed = True
-        suppression_reason = "tracked-team scope changed"
+        suppression_reason = scope_warning or "tracked-team scope changed"
     elif cohort_stability == "unstable":
         headline_suppressed = True
-        suppression_reason = f"high roster turnover (>= {turnover_threshold:.0%})"
+        suppression_reason = f"high Core roster turnover (>= {turnover_threshold:.0%})"
 
     changed = [
         _evaluate_conclusion(name, conf, baseline_agg, current_agg)
@@ -228,21 +238,33 @@ def compute_drift(
         "baseline_count": len(baseline_ids),
         "current_count": len(current_ids),
     }
-    if matched:
-        # same-player settings change on the matched panel (work/ only data)
-        base_panel = (previous_panel or {}).get("panel") if isinstance(previous_panel, dict) else previous_panel
-        base_players = (base_panel or {}).get("players") or {}
+    # matched IDs for SETTINGS comparison = previous RUNTIME panel ∩ current
+    # (previous successful production observation, NOT the accepted
+    # aggregate — the accepted aggregate may carry different player ids)
+    runtime_panel = (previous_panel or {}).get("panel") if isinstance(previous_panel, dict) else previous_panel
+    runtime_base_ids = set((runtime_panel or {}).get("player_ids", [])) if runtime_panel else set()
+    runtime_matched = sorted(runtime_base_ids & current_ids)
+    if runtime_matched:
+        base_players = (runtime_panel or {}).get("players") or {}
         cur_players = current_panel.get("players") or {}
         if base_players and cur_players:
             per_field: dict[str, dict] = {}
             for fld in ("dpi", "edpi", "resolution", "polling_rate"):
-                changed_count = sum(
-                    1 for pid in matched
-                    if pid in base_players and pid in cur_players
-                    and base_players[pid].get(fld) != cur_players[pid].get(fld)
-                )
-                per_field[fld] = {"changed": changed_count, "compared": len(matched)}
+                compared = changed_count = missing_transition = 0
+                for pid in runtime_matched:
+                    bv = (base_players.get(pid) or {}).get(fld)
+                    cv = (cur_players.get(pid) or {}).get(fld)
+                    if bv is None or cv is None:
+                        if bv is None and cv is not None:
+                            missing_transition += 1
+                        continue
+                    compared += 1
+                    if bv != cv:
+                        changed_count += 1
+                per_field[fld] = {"changed": changed_count, "compared": compared,
+                                  "missing_transition": missing_transition}
             matched_change["per_field"] = per_field
+            matched_change["matched_count"] = len(runtime_matched)
         else:
             matched_change["per_field"] = None
             matched_change["note"] = "per-player baseline values unavailable"

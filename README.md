@@ -82,25 +82,31 @@ issues/commits/PRs.
 
 ## 5. Cohort and roster changes
 
-### Cohort model v3: Core / Watchlist / Supplemental
+### Cohort model v4: VRS Core + HLTV reference + ranked universe + Watchlist
 
-- **Core** — strictly defined by the last **accepted manual HLTV Top 30
-  snapshot** (`config/rankings/hltv/YYYY-MM-DD.yaml`). Core only feeds the
-  headline statistics. No snapshot has been accepted yet, so `cohort.core`
-  is empty until the first ranking import is reviewed and accepted.
-- **Watchlist** — near-top30 / rising teams under observation. Entries are
-  **manual candidates, not proof of current HLTV rank** (e.g. BC.Game,
-  100 Thieves; BC.Game has no resolvable cs2settings page and stays
-  unresolved rather than fabricated).
-- **Supplemental** — regional / notable / legacy-selected teams kept from
-  the v1 41-team universe where the source still resolves them.
+- **Core (primary)** — accepted **Valve Global Ranking (VRS) Top 30**
+  snapshot (`config/rankings/valve/2026-08-10.yaml`). VRS is the chosen
+  PRIMARY competitive scope for this project — a project methodology
+  decision, not a claim that any other ranking is useless.
+- **Reference** — accepted **HLTV World Ranking Top 30** snapshot
+  (`config/rankings/hltv/2026-08-03.yaml`), a sensitivity/reference panel.
+- **Consensus** = VRS ∩ HLTV (27 teams, first round) — robustness panel.
+- **Ranked union** = VRS ∪ HLTV (33 teams, first round) — scheduled
+  tracking universe.
+- **Watchlist** — manual observation choices (BC.Game, 100 Thieves, M80,
+  Lynn Vision). They imply nothing about current VRS/HLTV membership;
+  BC.Game has no resolvable settings page and stays `coverage=unresolved`
+  rather than fabricated.
 
-Tracked universe = Core ∪ Watchlist ∪ Supplemental. Headline metrics use
-**Core only**; `core_plus_watchlist` and `all_tracked` are reported as
-separate extended segments (`segments` in `work/metrics.json`), so
-extended-cohort drift can never pollute Core headline conclusions.
+Headline statistics use **Core only**; `consensus`, `ranked_union`,
+`core_plus_watchlist` and `all_tracked` are reported as separate segments.
 
-### Manual HLTV rankings (no scraping)
+**Ranking truth and source coverage are independent** (hard invariant):
+an unresolved settings source mapping lowers collection coverage only — it
+never invalidates a ranking. Ranking rosters (player names on ranking
+pages) are never imported and never treated as current roster truth.
+
+### Manual HLTV/VRS rankings (no scraping)
 
 HLTV ranking is **not scraped** (anti-bot / access limitation; bypassing is
 out of scope by policy). Ranking snapshots are:

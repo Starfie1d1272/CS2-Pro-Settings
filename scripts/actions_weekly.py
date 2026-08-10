@@ -14,6 +14,7 @@ from __future__ import annotations
 import sys
 from datetime import date
 from pathlib import Path
+from typing import Optional
 
 import yaml
 
@@ -54,17 +55,36 @@ def ranking_status() -> dict:
     return status
 
 
-def watchlist_review_due() -> list[str]:
+def watchlist_review_due(today: Optional[date] = None) -> list[str]:
+    """Watchlist items whose review timer expired.
+
+    reference_date = last_reviewed OR added_at (never 'missing' alone).
+    review_due only when today - reference_date >= maintenance window
+    (default 180 days). Items added yesterday must NOT be due.
+    """
+    from datetime import timedelta  # noqa: F401
+
+    today = today or date.today()
     cohort_path = ROOT / "config" / "cohort.yaml"
     if not cohort_path.exists():
         return []
     cohort = yaml.safe_load(cohort_path.read_text(encoding="utf-8")) or {}
     items = cohort.get("cohort", {}).get("watchlist") or []
+    freshness = cohort.get("ranking_freshness") or {}
+    window = int(freshness.get("maintenance_days", 180))
     due = []
     for item in items:
         status = (item.get("status") or "").lower()
-        last_reviewed = item.get("last_reviewed")
-        if status not in ("retired",) and not last_reviewed:
+        if status == "retired":
+            continue
+        ref = item.get("last_reviewed") or item.get("added_at")
+        if not ref:
+            continue  # no reference date -> not due (conservative)
+        try:
+            ref_date = date.fromisoformat(str(ref)[:10])
+        except ValueError:
+            continue
+        if (today - ref_date).days >= window:
             due.append(item.get("team_id", "?"))
     return due
 
@@ -130,6 +150,14 @@ def main() -> int:
     if turnover is not None and turnover >= 0.15:
         problems.append(f"roster turnover >= 15%: {turnover}")
 
+    # monthly snapshot publishability: Core initialized + collection
+    # complete + core players present (no 0-player / incomplete snapshot)
+    manifest = load("collection-manifest.json")
+    collection_complete = bool(manifest.get("collection_complete", False)) if manifest else False
+    core_player_count = metrics.get("aggregate", {}).get("player_count", 0)
+    core_initialized = bool((metrics.get("aggregate", {}).get("scope") or {}).get("core_snapshot"))
+    collection_publishable = (core_initialized and collection_complete and core_player_count > 0)
+
     month_file = AGG / f"{date.today().strftime('%Y-%m')}.json"
     monthly_due = not month_file.exists()
 
@@ -138,6 +166,7 @@ def main() -> int:
     print(f"ranking: {rank}")
     print(f"watchlist review due: {watch_due}")
     print(f"monthly snapshot due: {monthly_due}")
+    print(f"collection_publishable: {collection_publishable}")
     print("problems:", problems or "none")
 
     if dr:
@@ -181,10 +210,32 @@ def main() -> int:
         print("maintenance issue created/updated")
 
     # monthly snapshot: REALLY create/update the candidate PR (Level 0 ok)
+    # but ONLY when the collection is publishable (Core initialized,
+    # complete, players present) — never a 0-player / incomplete snapshot
     if monthly_due:
-        print("monthly snapshot due -> candidate PR")
-        create_or_update_candidate_pr(drift, roster_report, metrics, monthly=True)
-        print("monthly snapshot candidate PR created/updated")
+        if collection_publishable:
+            print("monthly snapshot due + publishable -> candidate PR")
+            create_or_update_candidate_pr(drift, roster_report, metrics, monthly=True)
+            print("monthly snapshot candidate PR created/updated")
+        else:
+            print("monthly snapshot due but NOT publishable "
+                  f"(core_initialized={core_initialized}, "
+                  f"collection_complete={collection_complete}, "
+                  f"core_player_count={core_player_count}); no candidate")
+            if not problems:
+                upsert_issue(
+                    ISSUE_QUALITY,
+                    "\n".join([
+                        "## Monthly snapshot blocked",
+                        f"- checked: {date.today().isoformat()}",
+                        f"- collection_publishable: false "
+                        f"(core_initialized={core_initialized}, "
+                        f"collection_complete={collection_complete}, "
+                        f"core_player_count={core_player_count})",
+                        "No monthly snapshot candidate was created.",
+                    ]),
+                )
+                print("monthly-blocked quality issue created/updated")
 
     return 0
 

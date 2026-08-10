@@ -104,7 +104,8 @@ def render_report(
     vm = agg["viewmodel"]
     lines.append(f"- Viewmodel: FOV 68 {_fmt_share(vm['fov68_share'])} (n={vm['valid_n']}); dominant offset {vm['dominant_offset']}")
     radar = agg["radar"]
-    lines.append(f"- Radar: rotating {_fmt_share(radar['rotating_share'])}, centered {_fmt_share(radar['centered_share'])} (n={radar['valid_n']})")
+    lines.append(f"- Radar: rotating {_fmt_share(radar['rotating_share'])} (n={radar.get('rotating_valid_n', radar.get('valid_n', 0))}), "
+                 f"centered {_fmt_share(radar['centered_share'])} (n={radar.get('centered_valid_n', radar.get('valid_n', 0))})")
     poll = agg["mouse_polling"]
     lines.append(f"- Polling: 4000Hz+ {_fmt_share(poll['share_4000_plus'])} (n={poll['valid_n']})")
     lines.append("")

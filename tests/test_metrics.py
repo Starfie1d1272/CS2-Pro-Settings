@@ -69,8 +69,11 @@ def test_public_aggregate_strips_per_player_values():
     players = [p("steam:1", dpi=800.0)]
     m = compute_metrics(players, "2026-08-01")
     pub = public_aggregate(m)
+    # no player-level identity list in the PUBLIC aggregate (aggregate-only)
     assert "players" not in pub["panel"]
-    assert pub["panel"]["player_ids"] == ["steam:1"]
+    assert "player_ids" not in pub["panel"]
+    assert pub["panel"]["player_count"] == 1
+    assert pub["panel"]["stable_identity_count"] == 1
 
 
 # ---------------------------------------------------------------------------

@@ -41,9 +41,14 @@ def main() -> int:
     roster_report = load("roster-report.json")
     source_status = load("source-status.json")
     metrics = load("metrics.json")
+    manifest = load("collection-manifest.json")
 
     pipeline_failed = outcome != "success"
     primary_ok = str(source_status.get("cs2settings", "missing")).startswith("ok")
+
+    # ---- collection completeness (fail closed on partial Core) ----------
+    collection_complete = bool(manifest.get("collection_complete", False)) if manifest else True
+    incomplete_reasons = manifest.get("incomplete_reasons") or []
 
     # ---- source health / pipeline failure -------------------------------
     if (pipeline_failed or not primary_ok):
@@ -65,6 +70,33 @@ def main() -> int:
         else:
             print("(dry-run: no issue)")
         return 1  # workflow stays red
+
+    if not collection_complete:
+        # partial Core collection: no state advance, no publish, no headline
+        # drift; raise a quality issue instead
+        print("collection incomplete: no state advance / publish / headline drift")
+        if not dr:
+            upsert_issue(
+                ISSUE_SOURCE,
+                "\n".join([
+                    "## Collection incomplete (Core)",
+                    f"- observed: {__import__('datetime').date.today().isoformat()}",
+                    f"- core teams requested: {manifest.get('requested_core_teams')}",
+                    f"- resolved: {manifest.get('resolved_core_teams')}",
+                    f"- unresolved source teams: {manifest.get('unresolved_source_teams')}",
+                    f"- failed core rosters: {manifest.get('failed_core_team_rosters')}",
+                    f"- expected core players: {manifest.get('expected_core_players')}",
+                    f"- successful players: {manifest.get('successful_players')}",
+                    f"- failed players: {manifest.get('failed_players')}",
+                    "",
+                    "No roster/matched-panel baseline advancement, no headline "
+                    "drift, no monthly candidate, no accepted snapshot mutation.",
+                ]),
+            )
+            print("collection-incomplete issue created/updated")
+        else:
+            print("(dry-run: no issue)")
+        return 0
 
     # ---- roster confirmation ---------------------------------------------
     pending = roster_report.get("pending_state")

@@ -164,13 +164,14 @@ def create_or_update_candidate_pr(
 ) -> None:
     """Create or UPDATE the single candidate PR.
 
-    Dedup: if an open PR with head branch `automation/settings-update-*`
-    exists, its REAL head branch is reused (fetch + checkout + commit +
-    push WITHOUT force push); only when no PR exists is a new branch created.
-    No label is required (automated-data-update may not exist).
+    ORDER MATTERS (real git): resolve the target branch FIRST (existing open
+    automation PR's real head branch, or a new branch from origin/main), then
+    check out that branch, and only THEN write candidate files. Writing
+    files before checkout can fail (files written on the wrong branch /
+    dirty worktree). No label is required (automated-data-update may not
+    exist) and no force push is used.
     """
     ensure_git_identity()
-    changed_files = write_candidate_files(metrics, monthly=monthly)
     existing = open_automation_pr()
 
     if existing:
@@ -178,10 +179,12 @@ def create_or_update_candidate_pr(
         sh("git", "fetch", "origin", head)
         sh("git", "checkout", "-B", head, f"origin/{head}")
     else:
-        branch = f"{PR_BRANCH_PREFIX}{date.today().strftime('%Y%m%d')}"
+        head = f"{PR_BRANCH_PREFIX}{date.today().strftime('%Y%m%d')}"
         sh("git", "fetch", "origin", "main")
-        sh("git", "checkout", "-B", branch, "origin/main")
-        head = branch
+        sh("git", "checkout", "-B", head, "origin/main")
+
+    # NOW write candidate files on the correct branch
+    changed_files = write_candidate_files(metrics, monthly=monthly)
 
     sh("git", "add", "data/aggregate", "reports/latest.md", "figures/latest")
     # commit only if there are changes (no empty commits)

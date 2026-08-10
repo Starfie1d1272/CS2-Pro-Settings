@@ -1,21 +1,29 @@
-"""Cohort policy: role filters and Core/Watchlist/Supplemental tiers.
+"""Cohort policy: role filters, tiers, and ranked cohort sets.
 
-Cohort model v3:
-- CORE: strictly defined by the last accepted manual HLTV Top 30 snapshot
-  (config/rankings/hltv/YYYY-MM-DD.yaml). Core only feeds headline metrics.
-- WATCHLIST: near-top30 / rising teams worth observing (manual, not proof of
-  HLTV rank).
-- SUPPLEMENTAL: regional / notable / legacy-selected teams.
+Cohort model v4:
+- CORE: accepted Valve Global Ranking (VRS) Top 30 snapshot — PRIMARY scope.
+- REFERENCE: accepted HLTV World Ranking Top 30 — sensitivity panel.
+- CONSENSUS = VRS ∩ HLTV; RANKED UNION = VRS ∪ HLTV.
+- WATCHLIST: manual observation choices (never proof of ranking membership).
+- SUPPLEMENTAL: legacy/documented teams outside the first-round universe.
 
-Tracked universe = Core ∪ Watchlist ∪ Supplemental. Core headline statistics
-must never be polluted by extended-cohort drift.
+Ranking defines competitive scope; the settings source defines observability.
+An unresolved settings slug lowers collection coverage only — it never
+invalidates a ranking.
 """
 from __future__ import annotations
 
+import hashlib
+import json
 import re
+from pathlib import Path
 from typing import Optional
 
+from .rankings import compute_cohort_sets, load_snapshot
+
 TIERS = ("core", "watchlist", "supplemental")
+
+DEFAULT_COHORT_PATH = "config/cohort.yaml"
 
 
 def excluded_roles(cohort_config: dict) -> set[str]:
@@ -48,6 +56,54 @@ def _slug_of(item) -> Optional[str]:
     return None
 
 
+def _scope_hash(team_ids: list[str]) -> str:
+    return hashlib.sha256(
+        json.dumps(sorted(team_ids), sort_keys=True).encode()).hexdigest()[:16]
+
+
+def load_cohort_sets(cohort_config: Optional[dict] = None) -> dict:
+    """Compute ranked cohort sets from the accepted ranking snapshots.
+
+    Returns core/reference/consensus/ranked_union team_id lists (in ranking
+    order for core/reference), counts, and hashes. Snapshot files are
+    loaded from config/rankings/<provider>/<date>.yaml.
+    """
+    cfg = cohort_config or {}
+    if cfg is None:
+        cfg = {}
+    core_cfg = cfg.get("cohort", {}).get("core", {})
+    ref_cfg = cfg.get("cohort", {}).get("reference", {})
+    core_snap = core_cfg.get("snapshot")
+    ref_snap = ref_cfg.get("snapshot")
+    if not core_snap:
+        return {
+            "core_teams": [], "reference_teams": [],
+            "consensus_teams": [], "ranked_union_teams": [],
+            "hltv_only_teams": [], "vrs_only_teams": [],
+            "core_count": 0, "reference_count": 0,
+            "consensus_count": 0, "ranked_union_count": 0,
+            "core_scope_hash": None,
+            "unmapped_core_teams": [], "unmapped_reference_teams": [],
+        }
+    vrs = load_snapshot(core_cfg.get("provider", "valve"), core_snap)
+    ref = load_snapshot(ref_cfg.get("provider", "hltv"), ref_snap) if ref_snap else {}
+    sets = compute_cohort_sets(vrs, ref if ref else {"teams": []})
+    sets["core_scope_hash"] = _scope_hash(sets["core_teams"])
+    # team_id -> settings_slug map across both snapshots (None = unresolved)
+    slug_map: dict[str, Optional[str]] = {}
+    for snap in (vrs, ref):
+        for t in snap.get("teams", []):
+            if t.get("team_id") and not t.get("unresolved"):
+                slug_map[t["team_id"]] = t.get("settings_slug")
+    sets["slug_map"] = slug_map
+    return sets
+
+
+def team_ids_to_slugs(team_ids: list[str], slug_map: dict) -> list[str]:
+    """Map ranked team_ids to settings source slugs (resolved ones only)."""
+    return sorted(s for s in (slug_map.get(t) for t in team_ids) if s)
+
+
 def resolve_team_tier(team_slug: Optional[str], cohort_config: dict) -> Optional[str]:
     """Map a source team slug to its cohort tier (None = not tracked)."""
     if not team_slug:
@@ -67,11 +123,35 @@ def resolve_team_tier(team_slug: Optional[str], cohort_config: dict) -> Optional
     return None
 
 
+def watchlist_slugs(cohort_config: dict) -> list[str]:
+    slugs = []
+    for item in cohort_config.get("cohort", {}).get("watchlist") or []:
+        if item.get("settings_slug"):
+            slugs.append(str(item["settings_slug"]))
+    return sorted(slugs)
+
+
 def tracked_slugs(cohort_config: dict) -> list[str]:
-    """All source slugs in the tracked universe (deduplicated, sorted)."""
+    """Source slugs in the scheduled universe: ranked union ∪ watchlist.
+
+    Ranking teams WITHOUT a settings slug stay in membership truth but do
+    not add a source slug (coverage=unresolved, never fabricated).
+    HLTV-reference-only teams (union members outside VRS Core) are included
+    in the scheduled universe for monitoring. Core team slugs configured
+    directly (e.g. test fixtures without ranking snapshots) are honored too.
+    """
     slugs: set[str] = set()
-    core = cohort_config.get("cohort", {}).get("core", {})
-    slugs.update(s for s in (_slug_of(t) for t in (core.get("teams") or [])) if s)
+    # direct core team slugs (works without ranking snapshots)
+    for item in (cohort_config.get("cohort", {}).get("core", {}).get("teams") or []):
+        s = _slug_of(item)
+        if s:
+            slugs.add(s)
+    # ranked union slugs from the accepted snapshots (adds HLTV-only teams)
+    sets = load_cohort_sets(cohort_config)
+    for tid in sets["ranked_union_teams"]:
+        s = (sets.get("slug_map") or {}).get(tid)
+        if s:
+            slugs.add(s)
     for item in cohort_config.get("cohort", {}).get("watchlist") or []:
         if item.get("settings_slug"):
             slugs.add(str(item["settings_slug"]))

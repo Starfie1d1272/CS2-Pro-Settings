@@ -70,7 +70,17 @@ def build_previous_panel(metrics: dict) -> dict:
 
 
 def compare_panels(previous: dict, current: dict) -> dict:
-    """Matched-panel comparison across runs (stable player ids)."""
+    """Matched-panel comparison across runs (stable player ids).
+
+    Time semantics:
+    - matched IDs = previous runtime panel ∩ current panel (BOTH are
+      successful production observations; never the historical accepted
+      aggregate).
+    - per field: compared = players with NON-MISSING values at BOTH times;
+      changed = value differs among compared. A missing->value transition
+      is a data-completeness transition, NOT a settings change, and is
+      reported separately.
+    """
     prev_ids = set(previous.get("player_ids") or [])
     cur_ids = set(current.get("player_ids") or [])
     matched = sorted(prev_ids & cur_ids)
@@ -78,12 +88,22 @@ def compare_panels(previous: dict, current: dict) -> dict:
     cur_players = current.get("players") or {}
     per_field: dict[str, dict] = {}
     for fld in PANEL_FIELDS:
-        changed = sum(
-            1 for pid in matched
-            if pid in prev_players and pid in cur_players
-            and prev_players[pid].get(fld) != cur_players[pid].get(fld)
-        )
-        per_field[fld] = {"changed": changed, "compared": len(matched)}
+        compared, changed, missing_transition = 0, 0, 0
+        for pid in matched:
+            pv = (prev_players.get(pid) or {}).get(fld)
+            cv = (cur_players.get(pid) or {}).get(fld)
+            if pv is None or cv is None:
+                if pv is None and cv is not None:
+                    missing_transition += 1
+                continue  # not counted in compared
+            compared += 1
+            if pv != cv:
+                changed += 1
+        per_field[fld] = {
+            "compared": compared,
+            "changed": changed,
+            "missing_transition": missing_transition,
+        }
     return {
         "status": "available" if matched else "unavailable",
         "matched_count": len(matched),

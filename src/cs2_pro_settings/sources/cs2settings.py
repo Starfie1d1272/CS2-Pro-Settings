@@ -399,8 +399,13 @@ class CS2SettingsSource:
         try:
             blob = _extract_player_blob(html)
         except SourceError:
-            # fall back to semantic heading/label-value parsing
+            # semantic fallback: MUST establish a stable identity (steamId);
+            # otherwise fail closed — never return a near-empty ParsedPlayer
             blob = _parse_labels(html, source_id)
+            if not blob.get("steamId"):
+                raise SourceError(
+                    f"cs2settings: structured blob parse failed and semantic "
+                    f"fallback could not establish stable identity for {source_id}")
         return self._blob_to_parsed(source_id, url, blob)
 
     # -- parsing -----------------------------------------------------------
@@ -509,16 +514,59 @@ def _extract_players_blob(html: str) -> list[dict]:
     return []
 
 
+_LABEL_MOUSE_MAP = {
+    "dpi": "dpi",
+    "edpi": "edpi",
+    "sensitivity": "sensitivity",
+    "zoom sensitivity": "zoom_sensitivity",
+    "polling rate": "polling_rate",
+    "mouse acceleration": "mouse_acceleration",
+}
+_LABEL_CROSSHAIR_MAP = {
+    "style": "crosshair_style",
+    "size": "crosshair_size",
+    "gap": "crosshair_gap",
+    "thickness": "crosshair_thickness",
+    "outline": "crosshair_outline",
+    "dot": "crosshair_dot",
+    "color": "crosshair_color",
+}
+
+
 def _parse_labels(html: str, source_id: str) -> dict:
-    """Fallback: semantic heading/label-value parsing (no CSS classes)."""
+    """Semantic fallback: heading/label-value parsing (no CSS classes).
+
+    Requires a Steam profile link for a stable identity; without it the
+    caller fails closed (SourceError). Known labels are mapped back into
+    the grouped blob shape (_blob_to_parsed understands).
+    """
     soup = BeautifulSoup(html, "html.parser")
-    out: dict[str, Any] = {}
+    out: dict[str, Any] = {"source_id": source_id}
+    # stable identity: steam profile link (canonical player_id requirement)
+    for a in soup.find_all("a", href=True):
+        href = str(a.get("href") or "")
+        m = re.search(r"/profiles/(\d{15,17})", href)
+        if m:
+            out["steamId"] = m.group(1)
+            break
+    pairs: dict[str, str] = {}
     for label in soup.find_all(["h2", "h3", "dt", "th"]):
         text = label.get_text(" ", strip=True)
         if not text:
             continue
         value = label.find_next(["p", "dd", "td"])
         if value:
-            out[text.lower()] = value.get_text(" ", strip=True)
-    out["source_id"] = source_id
+            pairs[text.strip().lower()] = value.get_text(" ", strip=True)
+    mouse = {}
+    for label, mapped in _LABEL_MOUSE_MAP.items():
+        if label in pairs:
+            mouse[mapped] = pairs[label]
+    if mouse:
+        out["mouse"] = mouse
+    ch = {}
+    for label, mapped in _LABEL_CROSSHAIR_MAP.items():
+        if label in pairs:
+            ch[mapped] = pairs[label]
+    if ch:
+        out["crosshair"] = ch
     return out

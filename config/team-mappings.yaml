@@ -129,3 +129,18 @@ teams:
   - display_names: [NRG]
     team_id: nrg
     settings_slug: null          # unresolved
+  - display_names: ["Inner Circle"]
+    team_id: inner-circle
+    settings_slug: null          # unresolved: no cs2settings team page
+  - display_names: [HOTU]
+    team_id: hotu
+    settings_slug: null          # unresolved
+  - display_names: [DENDELE]
+    team_id: dendele
+    settings_slug: null          # unresolved
+  - display_names: [magic]
+    team_id: magic
+    settings_slug: null          # unresolved
+  - display_names: [Luminosity]
+    team_id: luminosity
+    settings_slug: null          # unresolved
