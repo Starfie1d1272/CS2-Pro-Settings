@@ -117,6 +117,26 @@ _ROSTER_ROLES = ("igl", "rifler", "awper", "entry fragger", "sniper", "lurker",
                  "captain", "coach", "support")
 
 
+def _robots_blocks_general(robots: str) -> bool:
+    """True when the `User-agent: *` section contains a Disallow rule.
+
+    Bot-specific sections (e.g. GPTBot) do not affect a normal UA.
+    """
+    section: list[str] = []
+    current_ua = None
+    for line in robots.splitlines():
+        line = line.strip()
+        if not line or line.startswith("#"):
+            continue
+        low = line.lower()
+        if low.startswith("user-agent:"):
+            current_ua = line.split(":", 1)[1].strip().lower()
+            continue
+        if current_ua == "*" and low.startswith("disallow:"):
+            return True
+    return False
+
+
 def _extract_player_blob(html: str) -> dict:
     """Extract the embedded `data:{player:{...}}` object (two-level strategy).
 
@@ -305,9 +325,9 @@ class CS2SettingsSource:
 
     def check_access_policy(self) -> AccessPolicy:
         robots = self._get_text(f"{self.base_url}/robots.txt")
-        if "disallow" in robots.lower():
+        if _robots_blocks_general(robots):
             return AccessPolicy(robots_allows=False, accessible=True,
-                                notes="robots.txt contains Disallow rules")
+                                notes="robots.txt: User-agent: * section contains Disallow rules")
         try:
             resp = self._session.get(f"{self.base_url}/", timeout=self.timeout)
             ok = resp.status_code == 200 and "cs2settings" in resp.text.lower()
@@ -317,7 +337,8 @@ class CS2SettingsSource:
             robots_allows=True,
             accessible=ok,
             terms_url=None,
-            notes="robots.txt: no Disallow (content signals: search=yes, ai-train=no); no dedicated terms page found",
+            notes="robots.txt: User-agent: * allows / (only AI crawlers GPTBot/"
+                  "meta-externalagent are disallowed); no dedicated terms page found",
         )
 
     # -- collection --------------------------------------------------------
@@ -389,12 +410,14 @@ class CS2SettingsSource:
         last_verified = blob.get("lastVerified")
         fields: dict[str, Any] = {}
 
-        mouse = blob.get("mouse") or {}
+        mouse = blob.get("mouse")
+        mouse = mouse if isinstance(mouse, dict) else {}
         for k, v in mouse.items():
             f = _MOUSE_MAP.get(k)
             if f:
                 fields[f] = v
-        ch = blob.get("crosshair") or {}
+        ch = blob.get("crosshair")
+        ch = ch if isinstance(ch, dict) else {}
         for k, v in ch.items():
             f = _CROSSHAIR_MAP.get(k)
             if not f:
@@ -403,17 +426,20 @@ class CS2SettingsSource:
                 fields["crosshair_color"] = _COLOR_CODES.get(int(v)) if isinstance(v, (int, float)) else v
             else:
                 fields[f] = v
-        vid = blob.get("videoSettings") or {}
+        vid = blob.get("videoSettings")
+        vid = vid if isinstance(vid, dict) else {}
         for k, v in vid.items():
             f = _VIDEO_MAP.get(k)
             if f:
                 fields[f] = v
-        vm = blob.get("viewmodel") or {}
+        vm = blob.get("viewmodel")
+        vm = vm if isinstance(vm, dict) else {}
         for k, v in vm.items():
             f = _VIEWMODEL_MAP.get(k)
             if f:
                 fields[f] = v
-        ms = blob.get("mapSettings") or {}
+        ms = blob.get("mapSettings")
+        ms = ms if isinstance(ms, dict) else {}
         for k, v in ms.items():
             f = _MAP_MAP.get(k)
             if f:

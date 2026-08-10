@@ -7,7 +7,8 @@
 
 ## Policy
 
-- robots.txt: HTTP 200; **no Disallow rules**. Cloudflare-managed content
+- robots.txt: HTTP 200. `User-agent: *` → `Allow: /`; only AI crawlers
+  (GPTBot, meta-externalagent) are Disallowed. Cloudflare-managed content
   signals: `search=yes, ai-train=no, use=reference`. Content signals address
   AI training/search use; they do not restrict the low-frequency, non-AI
   collection this project performs. This does NOT constitute a grant of
