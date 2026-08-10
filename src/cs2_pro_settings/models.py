@@ -119,3 +119,31 @@ class SourceHealth:
     message: str
     checked_at: str
     enabled: bool
+
+
+@dataclass
+class RosterSnapshot:
+    """One team's current active roster at an observation time.
+
+    players use stable player_ids (steam:<steamid> preferred); nicknames are
+    never the identity.
+    """
+
+    observed_at: str
+    team_id: str
+    team_name: str
+    players: list[str] = field(default_factory=list)
+    source: str = ""
+    source_url: str = ""
+
+
+@dataclass
+class CohortSnapshot:
+    """The tracked-team scope at an observation time (versioned + hashed)."""
+
+    observed_at: str
+    scope_id: str
+    scope_rule_version: str
+    teams: list[str] = field(default_factory=list)
+    source: str = ""
+    scope_hash: str = ""

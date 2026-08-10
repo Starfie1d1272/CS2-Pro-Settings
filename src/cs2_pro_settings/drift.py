@@ -33,6 +33,10 @@ class DriftReport:
     current_snapshot_date: Optional[str] = None
     scope_changed: bool = False
     scope_warning: str = ""
+    cohort_stability: str = "unavailable"  # stable | unstable | unavailable
+    roster_turnover_rate: Optional[float] = None
+    headline_suppressed: bool = False
+    suppression_reason: str = ""
 
 
 def load_conclusions(path: str = DEFAULT_CONCLUSIONS_PATH) -> dict:
@@ -120,8 +124,16 @@ def compute_drift(
     conclusions: Optional[dict] = None,
     conclusions_path: str = DEFAULT_CONCLUSIONS_PATH,
     previous_panel: Optional[dict] = None,
+    roster_turnover_rate: Optional[float] = None,
+    turnover_threshold: float = 0.15,
 ) -> DriftReport:
-    """Compare baseline vs current; deterministic levels 0/1/2."""
+    """Compare baseline vs current; deterministic levels 0/1/2.
+
+    Suppression rules (never auto Level 2 on the overall cohort):
+    - tracked-team scope changed (scope_changed=True);
+    - roster turnover >= turnover_threshold (cohort unstable).
+    The matched panel is always computed independently.
+    """
     if conclusions is None:
         conclusions = load_conclusions(conclusions_path)
 
@@ -143,17 +155,31 @@ def compute_drift(
             "scope change requires human review (matched-panel comparison only)"
         )
 
+    # ---- roster stability ----------------------------------------------
+    from .roster import roster_stability
+
+    cohort_stability = roster_stability(roster_turnover_rate, turnover_threshold)
+    headline_suppressed = False
+    suppression_reason = ""
+    if scope_changed:
+        headline_suppressed = True
+        suppression_reason = "tracked-team scope changed"
+    elif cohort_stability == "unstable":
+        headline_suppressed = True
+        suppression_reason = f"high roster turnover (>= {turnover_threshold:.0%})"
+
     changed = [
         _evaluate_conclusion(name, conf, baseline_agg, current_agg)
         for name, conf in conclusions.items()
     ]
     changed = [c for c in changed if c["level"] > 0]
-    if scope_changed:
-        # cap any conclusion-level change at Level 1 when scope changed
+    if headline_suppressed:
+        # cap any conclusion-level change at Level 1 when the headline is
+        # suppressed (scope changed or roster unstable)
         for c in changed:
             if c["level"] > 1:
                 c["level"] = 1
-                c["note"] = "capped to Level 1: tracked-team scope changed; human review required"
+                c["note"] = f"capped to Level 1: {suppression_reason}; human review required"
     level = max([c["level"] for c in changed], default=0)
 
     baseline_panel = baseline_aggregate.get("panel") if isinstance(baseline_aggregate, dict) else None
@@ -205,4 +231,8 @@ def compute_drift(
         current_snapshot_date=current_agg.get("snapshot_date"),
         scope_changed=scope_changed,
         scope_warning=scope_warning,
+        cohort_stability=cohort_stability,
+        roster_turnover_rate=roster_turnover_rate,
+        headline_suppressed=headline_suppressed,
+        suppression_reason=suppression_reason,
     )

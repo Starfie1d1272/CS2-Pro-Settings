@@ -1,0 +1,22 @@
+# Cohort stability guard.
+#
+# These are OPERATIONAL AUTOMATION THRESHOLDS, not statistical significance
+# thresholds. See README "Cohort and roster changes".
+
+roster:
+  # turnover = 1 - matched_players / previous_players
+  turnover_threshold: 0.15
+  note: >
+    If roster turnover >= 15%, overall cohort metrics are still computed and
+    displayed and may still notify at Level 1, but an overall cohort
+    dominant-category flip alone must NOT auto-produce a Level 2 headline PR
+    (headline_suppressed=true, reason: high roster turnover).
+
+settings:
+  # Level-2-style flip on the matched panel is reported separately as
+  # same-player material change and always requires human review.
+  matched_panel_material_change: level2_style
+  # A matched-panel driven candidate PR may be created when >= this share of
+  # matched players changed a headline field, even if the overall headline is
+  # suppressed (scope/roster unstable). PR is then labeled matched-panel driven.
+  matched_panel_material_share: 0.5

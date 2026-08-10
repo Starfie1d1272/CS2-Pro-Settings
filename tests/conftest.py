@@ -15,5 +15,10 @@ def cs2settings_fixture_dir() -> Path:
 
 
 @pytest.fixture
+def proconfig_fixture_dir() -> Path:
+    return FIXTURES / "proconfig"
+
+
+@pytest.fixture
 def repo_root() -> Path:
     return REPO

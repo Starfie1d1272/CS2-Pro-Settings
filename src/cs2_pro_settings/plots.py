@@ -127,9 +127,10 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     # FOV
     fig, ax = plt.subplots(figsize=(8, 5))
     vm = agg["viewmodel"]
-    ax.bar(["FOV 68", "Other"], [vm["fov68_share"] * vm["valid_n"], (1 - vm["fov68_share"]) * vm["valid_n"]],
+    fov68_share = vm.get("fov68_share") or 0.0
+    ax.bar(["FOV 68", "Other"], [fov68_share * vm["valid_n"], (1 - fov68_share) * vm["valid_n"]],
            color=[ACCENT, "#555555"], edgecolor="#121212")
-    ax.set_title(f"Viewmodel FOV (68 share {vm['fov68_share'] * 100:.1f}%, n={vm['valid_n']})",
+    ax.set_title(f"Viewmodel FOV (68 share {fov68_share * 100:.1f}%, n={vm['valid_n']})",
                  fontsize=13, fontweight="bold", color=ACCENT)
     ax.set_ylabel("Player Count")
     fig.tight_layout()
@@ -140,9 +141,11 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Radar
     radar = agg["radar"]
+    rot_share = radar.get("rotating_share") or 0.0
+    cent_share = radar.get("centered_share") or 0.0
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar(["Rotating", "Centered"],
-           [radar["rotating_share"] * radar["valid_n"], radar["centered_share"] * radar["valid_n"]],
+           [rot_share * radar["valid_n"], cent_share * radar["valid_n"]],
            color=[CYAN, ACCENT], edgecolor="#121212")
     ax.set_title(f"Radar preferences (n={radar['valid_n']})", fontsize=13, fontweight="bold", color=CYAN)
     ax.set_ylabel("Player Count")

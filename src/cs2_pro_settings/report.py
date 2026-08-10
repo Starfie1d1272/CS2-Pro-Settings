@@ -102,6 +102,12 @@ def render_report(
         lines.append(f"- drift level: **{_dg(drift, 'level')}** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)")
         if _dg(drift, "scope_changed", False):
             lines.append(f"- **scope changed**: {_dg(drift, 'scope_warning', '')}")
+        if _dg(drift, "cohort_stability", "unavailable") != "unavailable":
+            turnover = _dg(drift, "roster_turnover_rate")
+            lines.append(f"- cohort stability: {_dg(drift, 'cohort_stability')} "
+                         f"(roster turnover {turnover if turnover is not None else 'n/a'})")
+        if _dg(drift, "headline_suppressed", False):
+            lines.append(f"- **headline suppressed**: {_dg(drift, 'suppression_reason', '')}")
         if _dg(drift, "changed_metrics"):
             for c in _dg(drift, "changed_metrics") or []:
                 b, cur = c["baseline"], c["current"]

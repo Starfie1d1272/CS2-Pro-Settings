@@ -162,8 +162,9 @@ def step_collect(
     offline: bool,
     source_filter: Optional[str],
     players: Optional[list[str]],
-) -> list[SourceObservation]:
+) -> tuple[list[SourceObservation], dict[str, list[str]]]:
     observations: list[SourceObservation] = []
+    roster_by_team: dict[str, list[str]] = {}
     identity = IdentityIndex()
 
     for name, _sc in enabled_sources(scheduled_only):
@@ -213,6 +214,11 @@ def step_collect(
                 country=parsed.country,
                 role=parsed.role,
             )
+            # roster snapshot: stable player_id per team (slug from source)
+            if parsed.team:
+                roster_by_team.setdefault(parsed.team, [])
+                if ident.player_id not in roster_by_team[parsed.team]:
+                    roster_by_team[parsed.team].append(ident.player_id)
             for raw_field, raw_value in parsed.fields.items():
                 attr, value = normalize_field(raw_field, raw_value)
                 if attr is None:
@@ -235,7 +241,7 @@ def step_collect(
         "players": [p.__dict__ for p in identity.all()],
         "problems": identity.identity_problems,
     })
-    return observations
+    return observations, roster_by_team
 
 
 def step_normalize(observations: list[SourceObservation]) -> None:
@@ -261,9 +267,30 @@ def step_metrics(players: dict) -> dict:
 
 
 def step_drift(baseline_path: Path) -> DriftReport:
+    baseline_path = Path(baseline_path)
     baseline = json.loads(baseline_path.read_text(encoding="utf-8"))
     metrics = json.loads((WORK / "metrics.json").read_text(encoding="utf-8"))
-    report = compute_drift(baseline, metrics, conclusions=load_conclusions(str(CONFIG / "conclusions.yaml")))
+    # roster info from this run (work/roster-report.json)
+    turnover = None
+    prev_panel = None
+    rp = WORK / "roster-report.json"
+    if rp.exists():
+        rr = json.loads(rp.read_text(encoding="utf-8"))
+        turnover = rr.get("turnover_rate")
+    pp = WORK / "previous-metrics.json"
+    if pp.exists():
+        prev_panel = json.loads(pp.read_text(encoding="utf-8"))
+    with open(CONFIG / "stability.yaml", encoding="utf-8") as f:
+        stability_cfg = yaml.safe_load(f) or {}
+    threshold = (stability_cfg.get("roster") or {}).get("turnover_threshold", 0.15)
+    report = compute_drift(
+        baseline,
+        metrics,
+        conclusions=load_conclusions(str(CONFIG / "conclusions.yaml")),
+        previous_panel=prev_panel,
+        roster_turnover_rate=turnover,
+        turnover_threshold=threshold,
+    )
     _write_work("drift.json", {
         "level": report.level,
         "changed_metrics": report.changed_metrics,
@@ -273,6 +300,10 @@ def step_drift(baseline_path: Path) -> DriftReport:
         "current_snapshot_date": report.current_snapshot_date,
         "scope_changed": report.scope_changed,
         "scope_warning": report.scope_warning,
+        "cohort_stability": report.cohort_stability,
+        "roster_turnover_rate": report.roster_turnover_rate,
+        "headline_suppressed": report.headline_suppressed,
+        "suppression_reason": report.suppression_reason,
     })
     return report
 
@@ -315,8 +346,8 @@ def cmd_audit(args) -> int:
 
 def cmd_collect(args) -> int:
     players = args.players.split(",") if args.players else None
-    obs = step_collect(args.scheduled, args.offline, args.source, players)
-    print(f"collected {len(obs)} observations")
+    obs, roster = step_collect(args.scheduled, args.offline, args.source, players)
+    print(f"collected {len(obs)} observations; {len(roster)} teams in roster")
     return 0
 
 
@@ -356,6 +387,53 @@ def cmd_report(args) -> int:
     return 0
 
 
+def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
+    """Compare current roster vs previous run; maintain pending state.
+
+    Runtime state (gitignored):
+      work/roster-previous.json  — last successful run's roster
+      work/roster-pending.json   — confirmation window state
+      work/roster-report.json    — this run's RosterReport
+    """
+    from .roster import compute_roster_report, update_pending_state
+
+    prev_path = WORK / "roster-previous.json"
+    pending_path = WORK / "roster-pending.json"
+    previous: dict = {}
+    if prev_path.exists():
+        previous = json.loads(prev_path.read_text(encoding="utf-8"))
+    pending: dict = {}
+    if pending_path.exists():
+        pending = json.loads(pending_path.read_text(encoding="utf-8"))
+
+    current = {k: sorted(v) for k, v in roster_by_team.items()}
+    report = compute_roster_report(observed_at, previous, current)
+    new_pending = update_pending_state(pending, report, observed_at)
+
+    # advance the "previous" baseline every successful run
+    prev_path.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    if new_pending:
+        pending_path.write_text(json.dumps(new_pending, indent=2, sort_keys=True) + "\n", encoding="utf-8")
+    else:
+        pending_path.unlink(missing_ok=True)
+    _write_work("roster-report.json", {
+        "observed_at": report.observed_at,
+        "previous_total": report.previous_total,
+        "current_total": report.current_total,
+        "matched_total": report.matched_total,
+        "turnover_rate": report.turnover_rate,
+        "has_changes": report.has_changes,
+        "fingerprint": report.fingerprint(),
+        "team_drifts": [d.__dict__ for d in report.team_drifts],
+        "pending_state": new_pending,
+    })
+    return {
+        "turnover_rate": report.turnover_rate,
+        "has_changes": report.has_changes,
+        "pending_state": new_pending,
+    }
+
+
 def cmd_update(args) -> int:
     status = step_audit(args.scheduled, args.offline)
     failed = [n for n, s in status.items() if not s.startswith("ok")]
@@ -364,10 +442,13 @@ def cmd_update(args) -> int:
         print("no collection attempted (fail closed)")
         return 1
     players = args.players.split(",") if args.players else None
-    obs = step_collect(args.scheduled, args.offline, args.source, players)
+    obs, roster = step_collect(args.scheduled, args.offline, args.source, players)
     if not obs:
         print("no observations collected")
         return 1
+    roster_info = step_roster(roster, date.today().isoformat())
+    print(f"roster: turnover={roster_info['turnover_rate']} "
+          f"changes={roster_info['has_changes']} pending={roster_info['pending_state']}")
     step_normalize(obs)
     reconciled, conflicts = step_reconcile(obs)
     step_metrics(reconciled)
