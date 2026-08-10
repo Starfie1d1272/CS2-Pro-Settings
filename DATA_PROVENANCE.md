@@ -7,7 +7,7 @@ websites:
 
 - prosettings.net — player settings database (used by the original 2026-05 snapshot)
 - cs2settings.com — player settings database (v2 primary candidate source)
-- proconfig.gg — editorial cross-check source (v2 secondary, disabled by default)
+- proconfig.net — editorial cross-check source (v2 secondary, disabled by default)
 
 ## Ownership
 

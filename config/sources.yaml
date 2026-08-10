@@ -11,7 +11,8 @@
 #   docs/source-audit/cs2settings.md
 # - prosettings: enabled for user-triggered/local use only; NOT scheduled —
 #   see docs/source-audit/prosettings.md
-# - proconfig: disabled (domain not registered) — see
+# - proconfig: adapter implemented as secondary editorial cross-check;
+#   disabled until user explicitly enables it for reconciliation — see
 #   docs/source-audit/proconfig.md
 
 sources:
@@ -28,7 +29,7 @@ sources:
   proconfig:
     enabled: false
     enabled_for_schedule: false
-    base_url: https://proconfig.gg
+    base_url: https://proconfig.net
     timeout: 20
 
 field_priority:

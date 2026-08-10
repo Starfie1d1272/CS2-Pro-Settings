@@ -1,3 +1,6 @@
+# v2 root environment (canonical source: pyproject.toml).
+# Minimal: matches pyproject.toml [project.dependencies].
+# Historical v1 notebook reproduction deps live in notebooks/v1/environment.yml.
 name: cs2_data
 channels:
   - conda-forge
@@ -6,9 +9,8 @@ dependencies:
   - pandas>=2.0
   - numpy>=1.24
   - matplotlib>=3.7
-  - seaborn>=0.12
-  - scikit-learn>=1.3
   - requests>=2.31
   - beautifulsoup4>=4.12
-  - jupyter
+  - pyyaml>=6.0
+  - pytest>=7.0
   - pip

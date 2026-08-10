@@ -16,7 +16,7 @@ Full license: https://creativecommons.org/licenses/by/4.0/
 ## What is not covered
 
 Third-party source data (e.g. settings published on prosettings.net,
-cs2settings.com, prosettings.gg / proconfig.gg) is **not** relicensed by this
+cs2settings.com, proconfig.net) is **not** relicensed by this
 repository. See DATA_PROVENANCE.md. Aggregate statistics and generated
 analyses document their provenance but do not grant rights over the upstream
 data.
