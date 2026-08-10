@@ -1,0 +1,20 @@
+# v2 cohort definition.
+#
+# The cohort is NOT a hardcoded 200+ nickname whitelist (that was v1).
+# mode: tracked_active_players means: players listed by the primary source
+#       that pass the filters below.
+#
+# NOTE: active-roster quality depends on the primary source. The first v2
+# snapshots must be human-reviewed before they are treated as canonical.
+
+mode: tracked_active_players
+
+primary_source: cs2settings
+
+filters:
+  exclude:
+    - coach
+    - retired
+    - content_creator
+
+include_free_agents: false

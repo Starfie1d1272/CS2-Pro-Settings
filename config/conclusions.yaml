@@ -1,0 +1,88 @@
+# Deterministic conclusion definitions for drift detection.
+#
+# IMPORTANT: these thresholds are OPERATIONAL NOTIFICATION THRESHOLDS.
+# They are NOT statistical significance tests and do not imply causal effects.
+#
+# Each conclusion:
+#   metric: dotted path into the aggregate metrics JSON (metrics.py schema)
+#   kind:   share | numeric | categorical
+#   level1: rule that raises drift to level 1
+#   level2: rule that raises drift to level 2 (dominant conclusion change)
+#
+# Defaults:
+#   share metrics:      Level 1 = absolute change >= 5 percentage points
+#   numeric metrics:    Level 1 = absolute change >= level1.absolute_change
+#   categorical metrics:Level 2 = dominant category changes (no level 1)
+#
+# Level 2 rules:
+#   dominant_change     -> the dominant category changed
+#   median_band_change  -> numeric value left the previous dominant band
+#                          (applies to edpi_median; band = baseline eDPI
+#                           distribution bin containing the baseline median;
+#                           if the band is not definable, Level 1 only)
+
+edpi_median:
+  metric: edpi.median
+  kind: numeric
+  level1: { absolute_change: 50 }
+  level2: median_band_change
+
+dpi_dominant:
+  metric: dpi.top_category
+  kind: categorical
+  level2: dominant_change
+
+dpi_800_share:
+  metric: dpi.share_800
+  kind: share
+  level1: { absolute_pp: 5 }
+
+resolution_dominant:
+  metric: resolution.top_category
+  kind: categorical
+  level2: dominant_change
+
+aspect_4_3_share:
+  metric: aspect_ratio.share_4_3
+  kind: share
+  level1: { absolute_pp: 5 }
+
+refresh_540_plus_share:
+  metric: refresh_rate.share_540_plus
+  kind: share
+  level1: { absolute_pp: 5 }
+
+fps_unlimited_share:
+  metric: fps_max.unlimited_share
+  kind: share
+  level1: { absolute_pp: 5 }
+
+crosshair_minimal_share:
+  metric: crosshair.dot_outline_off_share
+  kind: share
+  level1: { absolute_pp: 5 }
+
+crosshair_dominant_color:
+  metric: crosshair.top_color
+  kind: categorical
+  level2: dominant_change
+
+fov68_share:
+  metric: viewmodel.fov68_share
+  kind: share
+  level1: { absolute_pp: 5 }
+
+radar_rotating_share:
+  metric: radar.rotating_share
+  kind: share
+  level1: { absolute_pp: 5 }
+
+radar_centered_share:
+  metric: radar.centered_share
+  kind: share
+  level1: { absolute_pp: 5 }
+
+polling_4000_plus_share:
+  metric: mouse_polling.share_4000_plus
+  kind: share
+  level1: { absolute_pp: 5 }

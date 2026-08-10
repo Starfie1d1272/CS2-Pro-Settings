@@ -1,0 +1,13 @@
+# Legacy 2026-05 cohort definition (v1) — documentation only.
+#
+# The old snapshot's cohort was NOT automatically generated. It was:
+#   - HLTV Top 30 teams (2026-05-04)
+#   - + additional selected teams (legacy powerhouses, regional
+#     representatives, star-player teams)
+#   - + a manually maintained active-player whitelist (202 players / 216
+#     name variants, incl. HLTV -> prosettings aliases)
+#
+# Final cohort after cleaning: 41 teams / 198 players.
+#
+# This file exists so the legacy definition is not misrepresented as
+# automatic. The v2 canonical cohort is defined in cohort.yaml.

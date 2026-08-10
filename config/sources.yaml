@@ -1,0 +1,58 @@
+# Source configuration.
+#
+# enabled:            adapter may be used at all
+# enabled_for_schedule: adapter may be called by scheduled workflows
+#
+# field_priority: per field group, ordered source preference used by
+# reconcile.py. Disabled sources are skipped automatically.
+#
+# Policy notes:
+# - cs2settings: enabled (robots.txt no Disallow; normal GET works) — see
+#   docs/source-audit/cs2settings.md
+# - prosettings: enabled for user-triggered/local use only; NOT scheduled —
+#   see docs/source-audit/prosettings.md
+# - proconfig: disabled (domain not registered) — see
+#   docs/source-audit/proconfig.md
+
+sources:
+  cs2settings:
+    enabled: true
+    enabled_for_schedule: true
+    base_url: https://cs2settings.com
+    timeout: 20
+  prosettings:
+    enabled: true
+    enabled_for_schedule: false
+    base_url: https://prosettings.net
+    timeout: 20
+  proconfig:
+    enabled: false
+    enabled_for_schedule: false
+    base_url: https://proconfig.gg
+    timeout: 20
+
+field_priority:
+  crosshair:
+    - cs2settings
+    - proconfig
+    - prosettings
+  dpi:
+    - cs2settings
+    - proconfig
+    - prosettings
+  gear:
+    - cs2settings
+    - prosettings
+    - proconfig
+  video:
+    - cs2settings
+    - prosettings
+    - proconfig
+  viewmodel:
+    - cs2settings
+    - proconfig
+    - prosettings
+  radar:
+    - cs2settings
+    - prosettings
+    - proconfig
