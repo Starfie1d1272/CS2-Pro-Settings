@@ -9,6 +9,7 @@ dependencies are left to chance.
 """
 from __future__ import annotations
 
+import statistics
 from typing import Any, Optional
 
 from .models import NormalizedPlayerSettings
@@ -37,6 +38,14 @@ def _valid_n(values: list[Any]) -> int:
     return sum(1 for v in values if v is not None)
 
 
+def _numeric_key(s: str) -> float:
+    """Parse a category key like '600' to a number (non-numeric -> -1)."""
+    try:
+        return float(s)
+    except (TypeError, ValueError):
+        return -1.0
+
+
 def _top(cats: dict[str, int]) -> Optional[str]:
     return next(iter(cats)) if cats else None
 
@@ -46,8 +55,15 @@ def compute_metrics(
     snapshot_date: str,
     source_note: str = "",
     scope: Optional[dict] = None,
+    series: Optional[dict] = None,
 ) -> dict:
-    """Compute the aggregate snapshot schema from normalized players."""
+    """Compute the aggregate snapshot schema from normalized players.
+
+    players should already be filtered to the desired segment; the caller
+    (CLI) computes core / core_plus_watchlist / all_tracked separately.
+    series identifies the longitudinal series (e.g. hltv-core-v2); different
+    series are NOT directly comparable for headline drift.
+    """
     n = len(players)
 
     edpi = [p.edpi for p in players]
@@ -92,7 +108,9 @@ def compute_metrics(
             assert x is not None and y is not None and z is not None
             key = (x, y, z)
             combo_counts[key] = combo_counts.get(key, 0) + 1
-        dom_offset = max(combo_counts, key=lambda k: (combo_counts[k], -k[0]))
+        # deterministic tie-break: highest count, then lexicographically
+        # smallest tuple (no insertion-order dependence)
+        dom_offset = max(combo_counts, key=lambda k: (combo_counts[k], tuple(-v for v in k)))
 
     bri = [p.brightness for p in players]
     bri_cats = _counts(bri)
@@ -100,7 +118,10 @@ def compute_metrics(
 
     radar_rot = [p.radar_rotating for p in players]
     radar_cent = [p.radar_centered for p in players]
-    radar_valid = _valid_n(radar_rot)
+    # radar denominators are computed separately: rotating and centered are
+    # independent fields with their own valid_n (they may differ)
+    radar_rot_valid = _valid_n(radar_rot)
+    radar_cent_valid = _valid_n(radar_cent)
     radar_rot_yes = sum(1 for v in radar_rot if v is True)
     radar_cent_yes = sum(1 for v in radar_cent if v is True)
 
@@ -117,9 +138,10 @@ def compute_metrics(
         "team_count": len({p.team for p in players if p.team}),
         "source": {"primary": source_note or "v2-pipeline"},
         "scope": scope or {"scope_id": None, "tracked_teams": [], "tracked_team_count": 0},
+        "series": series or {"series_id": "unknown", "cohort_semantics": "unknown"},
         "edpi": {
             "count": len(edpi_valid),
-            "median": round(float(sorted(edpi_valid)[len(edpi_valid) // 2]), 1) if edpi_valid else None,
+            "median": round(statistics.median(edpi_valid), 1) if edpi_valid else None,
             "mean": round(sum(edpi_valid) / len(edpi_valid), 1) if edpi_valid else None,
             "distribution": edpi_dist,
         },
@@ -146,7 +168,10 @@ def compute_metrics(
             "valid_n": rr_valid,
             "categories": rr_cats,
             "share_360": _share(rr_cats.get("360", 0), rr_valid),
-            "share_540_plus": _share(sum(int(k) >= 540 for k in rr_cats), rr_valid),
+            "share_540_plus": _share(
+                sum(count for k, count in rr_cats.items() if _numeric_key(k) >= 540),
+                rr_valid,
+            ),
         },
         "fps_max": {
             "valid_n": fps_valid,
@@ -169,9 +194,12 @@ def compute_metrics(
             "categories": bri_cats,
         },
         "radar": {
-            "valid_n": radar_valid,
-            "rotating_share": _share(radar_rot_yes, radar_valid),
-            "centered_share": _share(radar_cent_yes, radar_valid),
+            # legacy-compatible alias: rotating valid_n (2026-05 schema)
+            "valid_n": radar_rot_valid,
+            "rotating_valid_n": radar_rot_valid,
+            "centered_valid_n": radar_cent_valid,
+            "rotating_share": _share(radar_rot_yes, radar_rot_valid),
+            "centered_share": _share(radar_cent_yes, radar_cent_valid),
         },
         "mouse_polling": {
             "valid_n": hz_valid,

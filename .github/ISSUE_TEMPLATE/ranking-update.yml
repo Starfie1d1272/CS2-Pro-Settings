@@ -1,0 +1,38 @@
+name: Ranking update
+description: Submit a manual HLTV Top 30 snapshot for import and review.
+title: "ranking: HLTV Top 30 snapshot YYYY-MM-DD"
+labels: ["enhancement"]
+body:
+  - type: input
+    id: ranking_date
+    attributes:
+      label: Ranking date
+      description: The date the ranking was published (YYYY-MM-DD)
+      placeholder: "2026-08-10"
+    validations:
+      required: true
+  - type: input
+    id: source_url
+    attributes:
+      label: HLTV source URL
+      description: The ranking page you copied the Top 30 from
+      placeholder: "https://www.hltv.org/ranking/1"
+    validations:
+      required: true
+  - type: textarea
+    id: top30
+    attributes:
+      label: Top 30
+      description: One team per line, starting with the rank number (1 Vitality, 2 Spirit, ...)
+      placeholder: |
+        1 Vitality
+        2 Spirit
+        ...
+        30 GamerLegion
+    validations:
+      required: true
+  - type: textarea
+    id: notes
+    attributes:
+      label: Optional notes
+      description: Anything a reviewer should know (e.g. region of the ranking, roster notes)

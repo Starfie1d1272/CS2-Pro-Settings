@@ -12,7 +12,9 @@ on:
         default: true
 
 concurrency:
-  group: cs2-pro-settings-update
+  # shared with weekly-reconcile: never let two production workflows write
+  # the runtime state cache concurrently
+  group: cs2-pro-settings-production
   cancel-in-progress: true
 
 permissions:
@@ -36,11 +38,36 @@ jobs:
       - name: Install
         run: pip install -e ".[dev]"
 
+      - name: Restore runtime state cache
+        id: restore-state
+        uses: actions/cache/restore@v4
+        with:
+          path: .runtime-state
+          key: cs2-pro-settings-runtime-main-${{ github.run_id }}
+          restore-keys: cs2-pro-settings-runtime-main-
+
       - name: Run pipeline (live, scheduled sources only)
+        id: pipeline
+        continue-on-error: true
         run: python -m cs2_pro_settings update --scheduled
 
       - name: Decide and act (issues / candidate PR)
+        if: always()
         env:
           GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
           DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || github.event.inputs.dry_run }}
+          PIPELINE_OUTCOME: ${{ steps.pipeline.outcome }}
         run: python scripts/actions_daily.py
+
+      - name: Save runtime state cache (production success only)
+        if: steps.pipeline.outcome == 'success' && github.event_name == 'schedule'
+        uses: actions/cache/save@v4
+        with:
+          path: .runtime-state
+          key: cs2-pro-settings-runtime-main-${{ github.run_id }}
+
+      - name: Final status gate
+        if: steps.pipeline.outcome == 'failure'
+        run: |
+          echo "pipeline failed; source-health issue was raised; workflow stays red"
+          exit 1

@@ -1,0 +1,131 @@
+# Team mapping: ranking display name -> canonical team id -> source slug.
+#
+# Used by the HLTV ranking importer (python -m cs2_pro_settings ranking
+# import-hltv). The importer NEVER guesses: an unmapped display name is
+# reported as UNRESOLVED and the import fails (or is emitted with explicit
+# unresolved status and not activated).
+
+teams:
+  - display_names: [Vitality, "Team Vitality"]
+    team_id: vitality
+    settings_slug: vitality
+  - display_names: [Spirit, "Team Spirit"]
+    team_id: team-spirit
+    settings_slug: spirit
+  - display_names: [NAVI, "Natus Vincere"]
+    team_id: natus-vincere
+    settings_slug: navi
+  - display_names: [Falcons, "Team Falcons"]
+    team_id: falcons
+    settings_slug: falcons
+  - display_names: [FURIA]
+    team_id: furia
+    settings_slug: furia
+  - display_names: [The MongolZ, "The Mongolz"]
+    team_id: the-mongolz
+    settings_slug: the-mongolz
+  - display_names: [Astralis]
+    team_id: astralis
+    settings_slug: astralis
+  - display_names: [MOUZ]
+    team_id: mouz
+    settings_slug: mouz
+  - display_names: ["G2", "G2 Esports"]
+    team_id: g2
+    settings_slug: g2
+  - display_names: [FaZe, "FaZe Clan"]
+    team_id: faze
+    settings_slug: faze
+  - display_names: [GamerLegion]
+    team_id: gamerlegion
+    settings_slug: gamerlegion
+  - display_names: [3DMAX]
+    team_id: 3dmax
+    settings_slug: 3dmax
+  - display_names: [PARIVISION]
+    team_id: parivision
+    settings_slug: parivision
+  - display_names: [Heroic, HEROIC]
+    team_id: heroic
+    settings_slug: heroic
+  - display_names: ["Team Liquid", Liquid]
+    team_id: liquid
+    settings_slug: liquid
+  - display_names: [FUT]
+    team_id: fut
+    settings_slug: fut
+  - display_names: [Monte]
+    team_id: monte
+    settings_slug: monte
+  - display_names: [B8]
+    team_id: b8
+    settings_slug: b8
+  - display_names: [BetBoom]
+    team_id: betboom
+    settings_slug: betboom
+  - display_names: [MIBR]
+    team_id: mibr
+    settings_slug: mibr
+  - display_names: [9z]
+    team_id: 9z
+    settings_slug: 9z
+  - display_names: [Ninjas in Pyjamas, NIP]
+    team_id: ninjas-in-pyjamas
+    settings_slug: ninjas-in-pyjamas
+  - display_names: [Alliance]
+    team_id: alliance
+    settings_slug: alliance
+  - display_names: [paiN]
+    team_id: pain
+    settings_slug: pain
+  - display_names: [Lynn Vision]
+    team_id: lynn-vision
+    settings_slug: lynn-vision
+  - display_names: ["100 Thieves"]
+    team_id: 100-thieves
+    settings_slug: 100-thieves
+  - display_names: [TyLoo]
+    team_id: tyloo
+    settings_slug: tyloo
+  - display_names: [BC.Game]
+    team_id: bc-game
+    settings_slug: null          # unresolved: cs2settings has no BC.Game page
+  - display_names: [Legacy]
+    team_id: legacy
+    settings_slug: legacy
+  - display_names: [EYEBALLERS]
+    team_id: eyeballers
+    settings_slug: eyeballers
+  - display_names: [M80]
+    team_id: m80
+    settings_slug: m80
+  - display_names: [Rare Atom]
+    team_id: rare-atom
+    settings_slug: null          # unresolved: no cs2settings team page
+  - display_names: [FlyQuest]
+    team_id: flyquest
+    settings_slug: null          # unresolved
+  - display_names: [Aurora]
+    team_id: aurora
+    settings_slug: null          # unresolved
+  - display_names: [Fnatic]
+    team_id: fnatic
+    settings_slug: null          # unresolved
+  - display_names: [BIG]
+    team_id: big
+    settings_slug: null          # unresolved
+  - display_names: [OG]
+    team_id: og
+    settings_slug: null          # unresolved
+  - display_names: [Imperial]
+    team_id: imperial
+    settings_slug: null          # unresolved
+  - display_names: [Passion UA]
+    team_id: passion-ua
+    settings_slug: null          # unresolved
+  - display_names: [Gentle Mates]
+    team_id: gentle-mates
+    settings_slug: null          # unresolved
+  - display_names: [NRG]
+    team_id: nrg
+    settings_slug: null          # unresolved

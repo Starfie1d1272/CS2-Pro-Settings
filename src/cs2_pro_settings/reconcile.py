@@ -12,7 +12,7 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
-from .models import NormalizedPlayerSettings, SourceObservation
+from .models import NormalizedPlayerSettings, PlayerIdentity, SourceObservation
 
 
 @dataclass
@@ -35,13 +35,18 @@ def reconcile(
     observations: list[SourceObservation],
     field_priority: dict[str, list[str]],
     enabled_sources: set[str],
+    identities: Optional[dict[str, "PlayerIdentity"]] = None,
 ) -> ReconcileResult:
     """Merge observations into per-player normalized settings.
 
     field_priority maps a field group ('crosshair', 'dpi', 'gear', ...) to an
     ordered list of sources. A field belongs to a group by the first group that
     names any of its raw names; if no group matches, any enabled source wins.
+
+    identities (player_id -> PlayerIdentity) propagates canonical_name and
+    team so settings records never degrade to player_id-only stubs.
     """
+    identities = identities or {}
     # group -> set of normalized attributes
     group_attrs: dict[str, set[str]] = {}
     for group, attrs in _GROUP_ATTRS.items():
@@ -67,7 +72,12 @@ def reconcile(
 
     result = ReconcileResult()
     for player_id, field_obs in by_player.items():
-        settings = NormalizedPlayerSettings(player_id=player_id, canonical_name=player_id)
+        identity = identities.get(player_id)
+        settings = NormalizedPlayerSettings(
+            player_id=player_id,
+            canonical_name=identity.canonical_name if identity else player_id,
+            team=identity.team if identity else None,
+        )
         for attr, obs_list in field_obs.items():
             if not obs_list:
                 continue

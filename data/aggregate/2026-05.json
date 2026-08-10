@@ -188,5 +188,10 @@
     "tracked_team_count": 41,
     "mode": "legacy-2026-05",
     "note": "legacy cohort: HLTV Top 30 (2026-05-04) + additional selected teams + manual active-player whitelist; 41 canonical teams"
+  },
+  "series": {
+    "series_id": "legacy-top30-plus-selected-v1",
+    "cohort_semantics": "legacy_extended",
+    "note": "41-team legacy extended cohort (HLTV Top 30 2026-05-04 + selected teams + manual whitelist); NOT a strict HLTV Top 30-only baseline and NOT directly comparable with hltv-core-v2"
   }
 }

@@ -146,13 +146,20 @@ def step_audit(scheduled_only: bool, offline: bool) -> dict:
 
 
 def cohort_scope() -> dict:
-    """Build the scope block for metrics from config/cohort.yaml."""
+    """Build the scope block for metrics from config/cohort.yaml (v3)."""
+    from .cohort import core_slugs, tracked_slugs
+
     cfg = load_cohort_config()
-    teams = sorted(cfg.get("teams") or [])
+    universe = tracked_slugs(cfg)
+    core = core_slugs(cfg)
+    core_cfg = cfg.get("cohort", {}).get("core", {})
     return {
-        "scope_id": cfg.get("scope_id", "unknown"),
-        "tracked_teams": teams,
-        "tracked_team_count": len(teams),
+        "scope_id": "top-tier-plus-selected-v1",  # legacy-compatible id
+        "cohort_model": "core-watchlist-supplemental-v3",
+        "core_snapshot": core_cfg.get("snapshot"),
+        "tracked_teams": universe,
+        "tracked_team_count": len(universe),
+        "core_team_count": len(core),
         "mode": cfg.get("mode", "tracked_teams"),
     }
 
@@ -166,6 +173,7 @@ def step_collect(
     observations: list[SourceObservation] = []
     roster_by_team: dict[str, list[str]] = {}
     identity = IdentityIndex()
+    cohort_cfg = load_cohort_config()
 
     for name, _sc in enabled_sources(scheduled_only):
         if source_filter and name != source_filter:
@@ -179,13 +187,14 @@ def step_collect(
             elif offline:
                 roster = src.list_players()
             else:
-                # cohort mode: tracked-team rosters from the primary source
-                cohort = load_cohort_config()
+                # cohort v3: tracked universe = Core ∪ Watchlist ∪ Supplemental
+                from .cohort import tracked_slugs
+
                 roster_fn = getattr(src, "list_team_roster", None)
-                if cohort.get("mode") == "tracked_teams" and roster_fn is not None:
+                if roster_fn is not None:
                     roster = []
                     seen: set[str] = set()
-                    for slug in cohort.get("teams") or []:
+                    for slug in tracked_slugs(cohort_cfg):
                         try:
                             for entry in roster_fn(slug):
                                 if entry["source_id"] not in seen:
@@ -204,6 +213,13 @@ def step_collect(
                 parsed = src.fetch_player(source_id)
             except SourceError as exc:
                 print(f"  [!] {name}/{source_id}: {exc}")
+                continue
+            # cohort policy: role filter (coach/retired/content_creator excluded)
+            from .cohort import player_allowed
+
+            allowed, reason = player_allowed(parsed.role, cohort_cfg)
+            if not allowed:
+                print(f"  [-] {name}/{source_id}: {reason} (excluded)")
                 continue
             ident = identity.register(
                 source=name,
@@ -249,9 +265,21 @@ def step_normalize(observations: list[SourceObservation]) -> None:
 
 
 def step_reconcile(observations: list[SourceObservation]) -> tuple[dict, list[dict]]:
+    from .cohort import resolve_team_tier
+    from .models import PlayerIdentity
+
     cfg = load_sources_config()
     enabled = {name for name, _sc in enabled_sources(False)}
-    result = reconcile(observations, cfg.get("field_priority", {}), enabled)
+    identities: dict[str, PlayerIdentity] = {}
+    id_path = WORK / "identities.json"
+    if id_path.exists():
+        id_data = json.loads(id_path.read_text(encoding="utf-8"))
+        for d in id_data.get("players") or []:
+            identities[d["player_id"]] = PlayerIdentity(**d)
+    result = reconcile(observations, cfg.get("field_priority", {}), enabled, identities)
+    cohort_cfg = load_cohort_config()
+    for s in result.players.values():
+        s.cohort_tier = resolve_team_tier(s.team, cohort_cfg)
     players = {pid: s.as_dict() for pid, s in result.players.items()}
     _write_work("current-normalized.json", players)
     _write_work("conflicts.json", result.conflicts)
@@ -260,8 +288,43 @@ def step_reconcile(observations: list[SourceObservation]) -> tuple[dict, list[di
 
 def step_metrics(players: dict) -> dict:
     objs = [NormalizedPlayerSettings.from_dict(d) for d in players.values()]
-    metrics = compute_metrics(objs, snapshot_date=date.today().isoformat(),
-                              source_note="v2-pipeline", scope=cohort_scope())
+    today = date.today().isoformat()
+    scope = cohort_scope()
+
+    def seg(tiers):
+        return [p for p in objs if p.cohort_tier in tiers]
+
+    core_players = seg({"core"})
+    core_watch_players = seg({"core", "watchlist"})
+
+    core_agg = compute_metrics(
+        core_players, today, source_note="v2-core", scope=scope,
+        series={"series_id": "hltv-core-v2", "cohort_semantics": "core_top30"})["aggregate"]
+    metrics = {
+        "aggregate": core_agg,
+        "segments": {
+            "core": core_agg,
+            "core_plus_watchlist": compute_metrics(
+                core_watch_players, today, source_note="v2-core+watchlist", scope=scope,
+                series={"series_id": "hltv-core-v2", "cohort_semantics": "core_plus_watchlist"})["aggregate"],
+            "all_tracked": compute_metrics(
+                objs, today, source_note="v2-all-tracked", scope=scope,
+                series={"series_id": "hltv-core-v2", "cohort_semantics": "all_tracked"})["aggregate"],
+        },
+        "panel": {
+            "status": "available" if core_players else "empty",
+            "player_ids": sorted(p.player_id for p in core_players),
+            "players": {
+                p.player_id: {
+                    "dpi": p.dpi,
+                    "edpi": p.edpi,
+                    "resolution": p.resolution,
+                    "polling_rate": p.polling_rate,
+                }
+                for p in core_players
+            },
+        },
+    }
     _write_work("metrics.json", metrics)
     return metrics
 
@@ -272,14 +335,14 @@ def step_drift(baseline_path: Path) -> DriftReport:
     metrics = json.loads((WORK / "metrics.json").read_text(encoding="utf-8"))
     # roster info from this run (work/roster-report.json)
     turnover = None
-    prev_panel = None
     rp = WORK / "roster-report.json"
     if rp.exists():
         rr = json.loads(rp.read_text(encoding="utf-8"))
         turnover = rr.get("turnover_rate")
-    pp = WORK / "previous-metrics.json"
-    if pp.exists():
-        prev_panel = json.loads(pp.read_text(encoding="utf-8"))
+    # previous matched panel from cross-run runtime state (not work/)
+    from . import runtime_state
+
+    prev_panel = runtime_state.load_previous_panel_for_drift()
     with open(CONFIG / "stability.yaml", encoding="utf-8") as f:
         stability_cfg = yaml.safe_load(f) or {}
     threshold = (stability_cfg.get("roster") or {}).get("turnover_threshold", 0.15)
@@ -304,6 +367,8 @@ def step_drift(baseline_path: Path) -> DriftReport:
         "roster_turnover_rate": report.roster_turnover_rate,
         "headline_suppressed": report.headline_suppressed,
         "suppression_reason": report.suppression_reason,
+        "series_compatible": report.series_compatible,
+        "baseline_incompatible_reason": report.baseline_incompatible_reason,
     })
     return report
 
@@ -313,6 +378,10 @@ def step_report(candidate: bool) -> Path:
     conflicts = json.loads((WORK / "conflicts.json").read_text(encoding="utf-8"))
     drift = json.loads((WORK / "drift.json").read_text(encoding="utf-8"))
     status = json.loads((WORK / "source-status.json").read_text(encoding="utf-8"))
+    roster_report = None
+    rr_path = WORK / "roster-report.json"
+    if rr_path.exists():
+        roster_report = json.loads(rr_path.read_text(encoding="utf-8"))
     baseline = None
     bp = DATA_AGG / "latest.json"
     if bp.exists():
@@ -324,6 +393,7 @@ def step_report(candidate: bool) -> Path:
         source_status=status,
         conflicts=conflicts,
         baseline=baseline,
+        roster_report=roster_report,
     )
     if candidate:
         out = WORK / "report-candidate.md"
@@ -388,34 +458,46 @@ def cmd_report(args) -> int:
 
 
 def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
-    """Compare current roster vs previous run; maintain pending state.
+    """Compare current roster vs persisted previous state (cross-run).
 
-    Runtime state (gitignored):
-      work/roster-previous.json  — last successful run's roster
-      work/roster-pending.json   — confirmation window state
-      work/roster-report.json    — this run's RosterReport
+    State lives in .runtime-state/ (GitHub Actions cache, gitignored):
+      roster-previous.json — last SUCCESSFUL production run's roster
+      roster-pending.json  — confirmation window state
+
+    Warm-up semantics: if no previous state exists (cache miss / first run),
+    we do NOT treat every player as "added": status=warmup, turnover
+    unavailable, no roster-change signal. State is advanced only after the
+    whole pipeline succeeds (cmd_update).
     """
+    from . import runtime_state
     from .roster import compute_roster_report, update_pending_state
 
-    prev_path = WORK / "roster-previous.json"
-    pending_path = WORK / "roster-pending.json"
-    previous: dict = {}
-    if prev_path.exists():
-        previous = json.loads(prev_path.read_text(encoding="utf-8"))
-    pending: dict = {}
-    if pending_path.exists():
-        pending = json.loads(pending_path.read_text(encoding="utf-8"))
-
+    previous = runtime_state.load_state("roster-previous.json")
+    pending = runtime_state.load_state("roster-pending.json")
     current = {k: sorted(v) for k, v in roster_by_team.items()}
+
+    if previous is None:
+        # warm-up run: initialize, do not diff against an empty universe
+        report_dict = {
+            "observed_at": observed_at,
+            "previous_total": None,
+            "current_total": sum(len(v) for v in current.values()),
+            "matched_total": None,
+            "turnover_rate": None,
+            "has_changes": False,
+            "has_comparable_previous": False,
+            "fingerprint": None,
+            "team_drifts": [],
+            "pending_state": None,
+            "status": "warmup",
+        }
+        _write_work("roster-report.json", report_dict)
+        return {"turnover_rate": None, "has_changes": False,
+                "pending_state": None, "status": "warmup",
+                "has_comparable_previous": False}
+
     report = compute_roster_report(observed_at, previous, current)
     new_pending = update_pending_state(pending, report, observed_at)
-
-    # advance the "previous" baseline every successful run
-    prev_path.write_text(json.dumps(current, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    if new_pending:
-        pending_path.write_text(json.dumps(new_pending, indent=2, sort_keys=True) + "\n", encoding="utf-8")
-    else:
-        pending_path.unlink(missing_ok=True)
     _write_work("roster-report.json", {
         "observed_at": report.observed_at,
         "previous_total": report.previous_total,
@@ -423,18 +505,49 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
         "matched_total": report.matched_total,
         "turnover_rate": report.turnover_rate,
         "has_changes": report.has_changes,
+        "has_comparable_previous": True,
         "fingerprint": report.fingerprint(),
         "team_drifts": [d.__dict__ for d in report.team_drifts],
         "pending_state": new_pending,
+        "status": "compared",
     })
     return {
         "turnover_rate": report.turnover_rate,
         "has_changes": report.has_changes,
         "pending_state": new_pending,
+        "status": "compared",
+        "has_comparable_previous": True,
     }
 
 
+def _persist_runtime_state(roster_by_team: dict[str, list[str]], metrics: dict,
+                           roster_pending: Optional[dict]) -> None:
+    """Advance runtime state ONLY on a fully successful pipeline run.
+
+    The roster baseline advances only when the change is CONFIRMED (or when
+    there is no pending change). While a change is pending, the confirmed
+    baseline is kept so the next run can confirm the same fingerprint.
+    """
+    from . import runtime_state
+
+    if roster_pending is None or roster_pending.get("status") == "confirmed":
+        current = {k: sorted(v) for k, v in roster_by_team.items()}
+        runtime_state.save_state("roster-previous.json", current)
+        runtime_state.clear_state("roster-pending.json")
+    else:
+        # change still pending: keep baseline, persist the confirmation window
+        runtime_state.save_state("roster-pending.json", roster_pending)
+    prev_panel = runtime_state.build_previous_panel(metrics)
+    runtime_state.save_state("previous-panel.json", prev_panel)
+    runtime_state.save_state("state-meta.json", {
+        "last_successful_run": date.today().isoformat(),
+        "warmup": False,
+    })
+
+
 def cmd_update(args) -> int:
+    from . import runtime_state
+
     status = step_audit(args.scheduled, args.offline)
     failed = [n for n, s in status.items() if not s.startswith("ok")]
     if failed:
@@ -447,17 +560,71 @@ def cmd_update(args) -> int:
         print("no observations collected")
         return 1
     roster_info = step_roster(roster, date.today().isoformat())
-    print(f"roster: turnover={roster_info['turnover_rate']} "
+    print(f"roster: status={roster_info.get('status')} "
+          f"turnover={roster_info['turnover_rate']} "
           f"changes={roster_info['has_changes']} pending={roster_info['pending_state']}")
     step_normalize(obs)
     reconciled, conflicts = step_reconcile(obs)
-    step_metrics(reconciled)
+    metrics = step_metrics(reconciled)
     report = step_drift(args.baseline)
     out = step_report(candidate=True)
+    # pipeline succeeded: advance cross-run runtime state
+    _persist_runtime_state(roster, metrics, roster_info.get("pending_state"))
     print(f"observations={len(obs)} players={len(reconciled)} conflicts={len(conflicts)}")
     print(f"drift level: {report.level}")
     print(f"candidate report: {out}")
     return 0
+
+
+# ---------------------------------------------------------------------------
+# ranking commands (manual HLTV snapshots)
+# ---------------------------------------------------------------------------
+
+def cmd_ranking_import(args) -> int:
+    from .rankings import (
+        RankingError,
+        build_snapshot,
+        load_mappings,
+        parse_top30,
+        ranking_diff,
+        save_snapshot,
+    )
+
+    try:
+        if args.stdin:
+            text = sys.stdin.read()
+        elif args.file:
+            text = Path(args.file).read_text(encoding="utf-8")
+        else:
+            print("error: provide --stdin or --file")
+            return 2
+        entries = parse_top30(text)
+        mappings = load_mappings() if not args.no_mapping else None
+        snapshot = build_snapshot(
+            entries, args.source_url, args.date, mappings=mappings,
+            allow_unresolved=args.allow_unresolved,
+        )
+        # diff vs previously accepted ranking (if any)
+        out = save_snapshot(snapshot, args.rankings_dir)
+        print(f"validated: {len(entries)} teams (ranks 1-30, unique, continuous)")
+        print(f"written: {out}")
+        prev_snap = args.previous
+        if prev_snap and Path(prev_snap).exists():
+            import yaml as _yaml
+
+            prev = _yaml.safe_load(Path(prev_snap).read_text(encoding="utf-8")) or {}
+            diff = ranking_diff(prev, snapshot)
+            print("ENTERED CORE:", diff["entered_core"] or "(none)")
+            print("EXITED CORE:", diff["exited_core"] or "(none)")
+            print("RANK MOVEMENTS:", diff["rank_movements"] or "(none)")
+            for s in diff["review_suggestions"]:
+                print(f"  suggestion: {s['team_id']} -> {s['suggestion']}")
+        print("NOTE: snapshot is a candidate; activate by updating config/cohort.yaml "
+              "(cohort.core) after review (see config/rankings/hltv/README.md).")
+        return 0
+    except (RankingError, ValueError) as exc:
+        print(f"RANKING ERROR: {exc}")
+        return 1
 
 
 # ---------------------------------------------------------------------------
@@ -477,11 +644,27 @@ def main(argv: Optional[list[str]] = None) -> int:
         p.add_argument("--candidate", action="store_true", help="report -> work/report-candidate.md")
         p.add_argument("--baseline", default=str(DATA_AGG / "latest.json"), help="baseline aggregate JSON")
 
+    rank = sub.add_parser("ranking")
+    rsub = rank.add_subparsers(dest="ranking_command", required=True)
+    imp = rsub.add_parser("import-hltv")
+    imp.add_argument("--date", required=True, help="ranking snapshot date YYYY-MM-DD")
+    imp.add_argument("--source-url", required=True, help="HLTV ranking page URL")
+    imp.add_argument("--stdin", action="store_true", help="read Top 30 from stdin")
+    imp.add_argument("--file", default=None, help="read Top 30 from file")
+    imp.add_argument("--allow-unresolved", action="store_true",
+                     help="emit candidate with explicit unresolved status instead of failing")
+    imp.add_argument("--no-mapping", action="store_true", help="skip team mapping (testing)")
+    imp.add_argument("--rankings-dir", default="config/rankings/hltv")
+    imp.add_argument("--previous", default=None, help="previous accepted snapshot path for diff")
+
     args = parser.parse_args(argv)
+    if args.command == "ranking":
+        return cmd_ranking_import(args)
     dispatch = {
         "audit-sources": cmd_audit,
         "collect": cmd_collect,
         "normalize": cmd_normalize,
+        "reconcile": cmd_reconcile,
         "metrics": cmd_metrics,
         "drift": cmd_drift,
         "report": cmd_report,

@@ -82,36 +82,88 @@ issues/commits/PRs.
 
 ## 5. Cohort and roster changes
 
-- **Team scope**: the v2 cohort is the explicit, versioned tracked-team scope
-  (`config/cohort.yaml`): `mode: tracked_teams`,
-  `scope_id: top-tier-plus-selected-v1` — the same 41-team universe as the
-  2026-05 snapshot, expressed as stable source team IDs (slugs). Roster
-  membership is parsed from the primary source; there is **no 200+ nickname
-  whitelist**.
+### Cohort model v3: Core / Watchlist / Supplemental
+
+- **Core** — strictly defined by the last **accepted manual HLTV Top 30
+  snapshot** (`config/rankings/hltv/YYYY-MM-DD.yaml`). Core only feeds the
+  headline statistics. No snapshot has been accepted yet, so `cohort.core`
+  is empty until the first ranking import is reviewed and accepted.
+- **Watchlist** — near-top30 / rising teams under observation. Entries are
+  **manual candidates, not proof of current HLTV rank** (e.g. BC.Game,
+  100 Thieves; BC.Game has no resolvable cs2settings page and stays
+  unresolved rather than fabricated).
+- **Supplemental** — regional / notable / legacy-selected teams kept from
+  the v1 41-team universe where the source still resolves them.
+
+Tracked universe = Core ∪ Watchlist ∪ Supplemental. Headline metrics use
+**Core only**; `core_plus_watchlist` and `all_tracked` are reported as
+separate extended segments (`segments` in `work/metrics.json`), so
+extended-cohort drift can never pollute Core headline conclusions.
+
+### Manual HLTV rankings (no scraping)
+
+HLTV ranking is **not scraped** (anti-bot / access limitation; bypassing is
+out of scope by policy). Ranking snapshots are:
+
+- manually imported via `python -m cs2_pro_settings ranking import-hltv`
+  (validates ranks 1–30, no duplicates, continuous numbering, source URL,
+  and team mapping — unresolved teams fail or emit an explicit unresolved
+  candidate that cannot be activated),
+- versioned under `config/rankings/hltv/`,
+- community-contributable (CONTRIBUTING.md, `docs/ranking-updates.md`,
+  ranking-update issue template),
+- intentionally low-maintenance: a stale ranking never blocks the settings
+  pipeline; the report always names the accepted ranking date; only ≥180
+  days triggers a deduplicated `[maintenance]` issue (30/90-day bands are
+  status-only).
+
+### Roster drift, matched panel, stability guard
+
 - **Roster drift**: per-team added/removed/unchanged player diffs between
   runs, computed on stable player IDs. A change must be observed twice with
-  the same fingerprint before it is **confirmed** (`work/roster-pending.json`
-  — gitignored) and notified; transient site desyncs do not cause noise.
-- **Turnover**: `1 - matched / previous` players.
-- **Stability guard (15%)**: configured in `config/stability.yaml`
-  (`roster.turnover_threshold: 0.15`). This is an **operational automation
-  threshold, not a statistical significance threshold**. When turnover ≥ 15%
-  (or the tracked-team scope changed), overall cohort metrics are still
-  computed and may still notify at Level 1, but an overall dominant-category
-  flip alone must NOT auto-produce a Level 2 headline PR
+  the same fingerprint before it is **confirmed** (`.runtime-state/`, the
+  Actions cache — gitignored) and notified; transient site desyncs do not
+  cause noise.
+- **Turnover**: `1 - matched / previous` players (Core players only for the
+  headline guard; all-tracked turnover is recorded separately).
+- **Stability guard (15%)**: `config/stability.yaml`
+  (`roster.turnover_threshold: 0.15`) — an **operational automation
+  threshold, not a statistical significance threshold**. When Core turnover
+  ≥ 15% (or the Core scope changed), overall cohort metrics are still
+  computed and may still notify at Level 1, but an overall
+  dominant-category flip alone must NOT auto-produce a Level 2 headline PR
   (`headline_suppressed=true`).
 - **Matched panel**: always computed independently when stable identities
   exist; a same-player material change is reported separately
   (matched-panel driven PRs are labeled as such).
 - **Why this matters**: offseason roster changes can distort aggregate
   settings trends without any player actually changing their settings. The
-  matched panel exists precisely to separate "settings evolution" from
-  "roster composition change".
-- **Dynamic ranking-based scope** (e.g. auto-selecting the current Top 30) is
-  a **planned extension only**. No ranking website has been selected or
-  audited; it will not become a live dependency until it has its own
-  source/policy audit and explicit opt-in (`RankingBasedScopeProvider` is an
-  interface stub).
+  matched panel separates "settings evolution" from "roster composition
+  change".
+
+### Decision order
+
+source health → ranking/core scope → roster → settings:
+
+- source unhealthy: no baseline/state update, `[data-source]` issue;
+- Core scope changed: overall Core headline Level 2 suppressed pending review;
+- Core scope stable but roster turnover ≥15%: overall headline Level 2
+  suppressed;
+- Core scope stable and roster stable: normal Level 0/1/2;
+- Watchlist/Supplemental changes alone can never trigger Core headline Level 2.
+
+### Series compatibility
+
+- `legacy-top30-plus-selected-v1` (2026-05-05, 41 teams / 198 players) is a
+  legacy **extended** cohort — it is **not** a strict HLTV Top 30-only
+  baseline, and its historical numbers are preserved unchanged.
+- The v2 Core series is `hltv-core-v2`. Different series are **not directly
+  comparable** for automated headline Level 1/2 (`series_compatible=false`);
+  the first accepted hltv-core-v2 snapshot initializes the new longitudinal
+  series.
+- `RankingBasedScopeProvider` (auto-selecting a current ranking) remains a
+  **planned extension only**; no ranking website is a live dependency until
+  it has its own source/policy audit and explicit opt-in.
 
 ## 6. Sources and provenance
 
@@ -154,27 +206,37 @@ python -m pytest -v                                 # offline tests
 
 Commands: `audit-sources`, `collect`, `normalize`, `reconcile`, `metrics`,
 `drift`, `report`, `update` (chained: audit → collect → normalize →
-reconcile → metrics → drift → report candidate).
+reconcile → metrics → drift → report candidate), plus
+`ranking import-hltv` (manual HLTV Top 30 import).
 
-Runtime state is written to `work/` (gitignored); only `data/aggregate/`
+Runtime state is split: per-run artifacts go to `work/` (gitignored);
+cross-run operational state (roster baseline, confirmation window, previous
+matched panel) lives in `.runtime-state/` (gitignored) and is persisted
+between production runs via the GitHub Actions cache. Cache loss causes a
+safe warm-up run, never a false drift alert. Only `data/aggregate/`
 snapshots are committed (and only on accepted updates / monthly snapshots).
 
 ## 9. Repository structure
 
 ```
-src/cs2_pro_settings/       v2 canonical pipeline (models, identity, normalize,
-                            reconcile, metrics, drift, roster, scopes, report,
-                            plots, cli, sources/)
-config/                     cohort.yaml, sources.yaml, conclusions.yaml,
-                            stability.yaml, cohort-2026-05-legacy.yaml
+src/cs2_pro_settings/       v2 canonical pipeline (models, identity, cohort,
+                            normalize, reconcile, metrics, drift, roster,
+                            rankings, runtime_state, scopes, report, plots,
+                            cli, sources/)
+config/                     cohort.yaml (Core/Watchlist/Supplemental),
+                            sources.yaml, conclusions.yaml, stability.yaml,
+                            team-mappings.yaml, cohort-2026-05-legacy.yaml,
+                            rankings/hltv/ (manual snapshots)
 data/aggregate/             accepted snapshot aggregates (2026-05.json, latest.json)
 reports/                    2026-05.md (historical), latest.md (generated placeholder)
 docs/source-audit/          per-source policy audits
+docs/ranking-updates.md     how to contribute a ranking snapshot
 notebooks/v1/               archived 2026-05 notebook pipeline (historical only)
 tests/                      offline tests + fixtures (no live scraping in CI)
 social/2026-05/             historical publication drafts
 .github/workflows/          ci.yml, daily-update.yml, weekly-reconcile.yml
-scripts/                    actions_daily.py, actions_weekly.py
+.github/ISSUE_TEMPLATE/     ranking-update.yml, watchlist.yml
+scripts/                    actions_common.py, actions_daily.py, actions_weekly.py
 ```
 
 ## 10. Historical May 2026 analysis
@@ -200,10 +262,14 @@ regenerated only when a candidate snapshot is accepted.
   not imply causal performance benefit.
 - `valid_n` varies per field; a missing field never defaults to the full
   cohort size.
-- Automated collection is restricted to sources that allow normal HTTP
-  access; no anti-bot bypass is used.
+- Automated collection is limited to target paths that are accessible via
+  ordinary HTTP and are not disallowed for the configured user agent by the
+  source's robots policy; a robots allowance or absence of dedicated terms
+  is NOT affirmative legal permission. No anti-bot bypass is used.
 - Drift thresholds are operational, not statistical.
 - Roster stability guards are designed for pro-circuit reality (offseason
   moves); they are intentionally conservative.
+- Cross-run runtime state is best-effort operational state (GitHub Actions
+  cache), not a database; a cache miss yields a safe warm-up run.
 - Interpretive/conclusion text is written by humans; the pipeline produces
   deterministic data and reports only.

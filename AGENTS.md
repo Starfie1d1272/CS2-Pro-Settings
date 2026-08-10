@@ -33,19 +33,26 @@ Do NOT use machine-specific paths (e.g. `/opt/homebrew/Caskroom/...`).
 
 ## Pipeline order (also the decision order for automation)
 
-1. source health → 2. current team scope → 3. current roster → 4. settings
-   collect → 5. normalize → 6. reconcile → 7. metrics → 8. stability → 9. drift
-   → 10. report
+1. source health → 2. ranking/core scope → 3. current roster → 4. settings
+   collect → 5. normalize → 6. reconcile → 7. metrics → 8. stability →
+   9. drift → 10. report
 
 Automation rules:
 
 - CI is offline: pytest + offline fixture pipeline + deterministic check.
 - Scheduled workflows are online but only for enabled sources.
-- scope unstable OR roster unstable (turnover >= 15%) → overall Level 2
-  headline automation is suppressed (human review required); matched panel is
-  always computed independently.
-- Raw third-party source data / raw HTML is never committed; `work/` is
-  gitignored; only `data/aggregate/` snapshots are committed.
+- HLTV rankings are MANUAL (imported snapshots, never scraped).
+- Core scope unstable OR roster unstable (turnover >= 15%) → overall
+  headline Level 2 automation is suppressed (human review required); the
+  matched panel is always computed independently.
+- A baseline from a different cohort series (legacy 2026-05 vs hltv-core-v2)
+  is NOT comparable for headline Level 1/2 automation.
+- Cross-run runtime state (roster baseline, previous matched panel) lives in
+  `.runtime-state/` (gitignored) and persists via the GitHub Actions cache;
+  cache loss → safe warm-up run.
+- Raw third-party source data / raw HTML is never committed; `work/` and
+  `.runtime-state/` are gitignored; only `data/aggregate/` snapshots are
+  committed.
 - Issues and candidate PRs are deduplicated; nothing is auto-merged.
 - Report interpretation is written by humans; the pipeline is deterministic.
 - No anti-bot bypass, CAPTCHA solving, proxy rotation, or browser automation.

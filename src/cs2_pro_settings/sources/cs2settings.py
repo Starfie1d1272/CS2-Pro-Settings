@@ -46,14 +46,15 @@ def _iter_script_bodies(html: str):
 
 
 def _scan_balanced(text: str, start: int, open_ch: str, close_ch: str) -> int:
-    """String- and comment-aware balanced bracket scan.
+    r"""String- and comment-aware balanced bracket scan.
 
     States: code / string / line-comment / block-comment.
     - Only outside strings: `//` is a line comment, `/* */` a block comment.
     - Only outside comments: quotes toggle string state (", ', `).
     - Backslash escapes are honored character-by-character inside strings:
-      `\` escapes the NEXT character only (so `\\"` keeps the string open
-      through a backslash-escaped quote, and `\\` + `"` correctly closes).
+      a backslash escapes the NEXT character only (so backslash-quote keeps
+      the string open through an escaped quote, and a doubled backslash
+      followed by a quote correctly closes).
     Returns the index AFTER the matching close bracket, or -1.
     """
     depth = 0
@@ -115,26 +116,6 @@ _PLAYER_SENTINELS = ("steamId", "lastVerified", "crosshairSource", "skinsAsOf",
                      "mouse", "videoSettings", "viewmodel", "mapSettings")
 _ROSTER_ROLES = ("igl", "rifler", "awper", "entry fragger", "sniper", "lurker",
                  "captain", "coach", "support")
-
-
-def _robots_blocks_general(robots: str) -> bool:
-    """True when the `User-agent: *` section contains a Disallow rule.
-
-    Bot-specific sections (e.g. GPTBot) do not affect a normal UA.
-    """
-    section: list[str] = []
-    current_ua = None
-    for line in robots.splitlines():
-        line = line.strip()
-        if not line or line.startswith("#"):
-            continue
-        low = line.lower()
-        if low.startswith("user-agent:"):
-            current_ua = line.split(":", 1)[1].strip().lower()
-            continue
-        if current_ua == "*" and low.startswith("disallow:"):
-            return True
-    return False
 
 
 def _extract_player_blob(html: str) -> dict:
@@ -249,8 +230,11 @@ def _js_literal_to_json(literal: str) -> dict:
                 out.append('"' + m.group(2) + '":')
                 i = m.end()
                 continue
-        # JS shorthand decimal: .7 -> 0.7 (invalid JSON as-is)
-        if ch == "." and i + 1 < n and s[i + 1].isdigit() and (i == 0 or s[i - 1] not in "0123456789_.\w"):
+        # JS shorthand decimal: .7 -> 0.7 (invalid JSON as-is).
+        # Only when the '.' is not part of an identifier/number (explicit
+        # character check — no escape-sequence string).
+        if (ch == "." and i + 1 < n and s[i + 1].isdigit()
+                and (i == 0 or s[i - 1] not in "0123456789_." and not s[i - 1].isalnum())):
             out.append("0")
         out.append(ch)
         i += 1
@@ -290,7 +274,7 @@ _VIDEO_MAP = {
     "aspectRatio": "aspect_ratio",
     "scalingMode": "scaling_mode",
     "brightness": "brightness",
-    "boostPlayer": "reflex",
+    "boostPlayer": "boost_player",  # Boost Player Contrast — NOT NVIDIA Reflex
     "antialiasing": "display_mode",  # informational
 }
 _VIEWMODEL_MAP = {
@@ -324,10 +308,23 @@ class CS2SettingsSource:
     # -- policy ------------------------------------------------------------
 
     def check_access_policy(self) -> AccessPolicy:
-        robots = self._get_text(f"{self.base_url}/robots.txt")
-        if _robots_blocks_general(robots):
-            return AccessPolicy(robots_allows=False, accessible=True,
-                                notes="robots.txt: User-agent: * section contains Disallow rules")
+        from urllib.robotparser import RobotFileParser
+
+        robots_url = f"{self.base_url}/robots.txt"
+        robots = self._get_text(robots_url)
+        parser = RobotFileParser()
+        parser.set_url(robots_url)
+        parser.parse(robots.splitlines())
+        # path-specific check for the actual target paths
+        paths = ["/", "/players", "/players/zywoo", "/teams/vitality"]
+        blocked = [p for p in paths if not parser.can_fetch(UA.split()[0], p)]
+        if blocked:
+            return AccessPolicy(
+                robots_allows=False,
+                accessible=True,
+                terms_url=None,
+                notes=f"robots.txt disallows configured UA for: {blocked}",
+            )
         try:
             resp = self._session.get(f"{self.base_url}/", timeout=self.timeout)
             ok = resp.status_code == 200 and "cs2settings" in resp.text.lower()
@@ -337,8 +334,11 @@ class CS2SettingsSource:
             robots_allows=True,
             accessible=ok,
             terms_url=None,
-            notes="robots.txt: User-agent: * allows / (only AI crawlers GPTBot/"
-                  "meta-externalagent are disallowed); no dedicated terms page found",
+            notes="robots path policy: / /players /players/<id> /teams/<slug> "
+                  "allowed for a general UA (only AI crawlers GPTBot/"
+                  "meta-externalagent are disallowed); no dedicated terms page "
+                  "found. NOTE: robots allowance is NOT affirmative legal "
+                  "permission.",
         )
 
     # -- collection --------------------------------------------------------

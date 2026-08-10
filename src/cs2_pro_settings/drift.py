@@ -37,6 +37,8 @@ class DriftReport:
     roster_turnover_rate: Optional[float] = None
     headline_suppressed: bool = False
     suppression_reason: str = ""
+    series_compatible: bool = True
+    baseline_incompatible_reason: str = ""
 
 
 def load_conclusions(path: str = DEFAULT_CONCLUSIONS_PATH) -> dict:
@@ -141,6 +143,20 @@ def compute_drift(
     current_agg = current_metrics["aggregate"]
     current_panel = current_metrics.get("panel", {})
 
+    # ---- series compatibility --------------------------------------------
+    # A baseline from a different cohort series (e.g. the legacy 2026-05
+    # extended snapshot) must NOT be compared for headline Level 1/2.
+    base_series = (baseline_agg.get("series") or {}).get("series_id")
+    cur_series = (current_agg.get("series") or {}).get("series_id")
+    series_compatible = bool(base_series and base_series == cur_series)
+    baseline_incompatible_reason = ""
+    if not series_compatible:
+        baseline_incompatible_reason = (
+            f"baseline series {base_series!r} != current series {cur_series!r}; "
+            "baseline incompatible — the first accepted hltv-core-v2 snapshot "
+            "will initialize the new longitudinal series"
+        )
+
     # ---- tracked-team scope comparison --------------------------------
     base_scope = baseline_agg.get("scope") or {}
     cur_scope = current_agg.get("scope") or {}
@@ -173,14 +189,23 @@ def compute_drift(
         for name, conf in conclusions.items()
     ]
     changed = [c for c in changed if c["level"] > 0]
-    if headline_suppressed:
+    if not series_compatible:
+        # different cohort series: no headline Level 1/2 comparison at all
+        for c in changed:
+            c["level"] = 0
+            c["note"] = "series incompatible; headline comparison disabled"
+        changed = []
+        level = 0
+    elif headline_suppressed:
         # cap any conclusion-level change at Level 1 when the headline is
         # suppressed (scope changed or roster unstable)
         for c in changed:
             if c["level"] > 1:
                 c["level"] = 1
                 c["note"] = f"capped to Level 1: {suppression_reason}; human review required"
-    level = max([c["level"] for c in changed], default=0)
+        level = max([c["level"] for c in changed], default=0)
+    else:
+        level = max([c["level"] for c in changed], default=0)
 
     baseline_panel = baseline_aggregate.get("panel") if isinstance(baseline_aggregate, dict) else None
     if baseline_panel is None:
@@ -235,4 +260,6 @@ def compute_drift(
         roster_turnover_rate=roster_turnover_rate,
         headline_suppressed=headline_suppressed,
         suppression_reason=suppression_reason,
+        series_compatible=series_compatible,
+        baseline_incompatible_reason=baseline_incompatible_reason,
     )

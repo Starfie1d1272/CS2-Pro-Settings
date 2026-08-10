@@ -121,8 +121,8 @@ _PARSERS: dict[str, tuple[str, Any]] = {
     "refresh_rate": ("refresh_rate", to_hz),
     "brightness": ("brightness", to_float),
     "vsync": ("vsync", clean_string),
-    "reflex": ("reflex", clean_string),
-    "boost_player": ("boost_player", clean_string),  # informational
+    "boost_player": ("boost_player", to_bool),  # Boost Player Contrast (Enabled/Disabled)
+    "reflex": ("reflex", clean_string),  # NVIDIA Reflex — only from a real Reflex field
     "max_fps": ("max_fps", to_int),
     "display_mode": ("display_mode", clean_string),  # informational
     # crosshair
@@ -157,8 +157,8 @@ _PARSERS: dict[str, tuple[str, Any]] = {
     "radar_rotating": ("radar_rotating", to_bool),
 }
 
-# informational fields kept in observations but not used in metrics
-INFORMATIONAL = {"windows_sensitivity", "boost_player", "display_mode"}
+# informational fields kept in observations but not used in headline metrics
+INFORMATIONAL = {"windows_sensitivity", "display_mode"}
 
 
 def _snake_case(name: str) -> str:

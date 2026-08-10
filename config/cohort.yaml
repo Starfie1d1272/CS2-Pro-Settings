@@ -1,76 +1,133 @@
-# v2 cohort definition — tracked teams.
+# Cohort model v3 — manual HLTV Core + Watchlist + Supplemental.
 #
-# The cohort is the SET OF TEAMS tracked from the legacy 2026-05 snapshot
-# (41 canonical teams: HLTV Top 30 2026-05-04 + additional selected teams),
-# NOT a 200+ nickname player whitelist.
+# CORE: strictly defined by the last ACCEPTED manual HLTV Top 30 snapshot
+#       (config/rankings/hltv/YYYY-MM-DD.yaml). No snapshot accepted yet ->
+#       core.teams is empty; headline Core statistics are unavailable until
+#       the first ranking snapshot is imported, reviewed and accepted.
+#       HLTV itself is NEVER scraped (anti-bot; out of scope by policy).
+# WATCHLIST: near-top30 / rising teams under observation. Manual entries are
+#       candidates, NOT proof of current HLTV rank.
+# SUPPLEMENTAL: regional / notable / legacy-selected teams.
 #
-# Roster resolution: for each tracked team, the current active roster is
-# parsed from the primary source (cs2settings team page / structured data).
-# Roster changes over time are natural; the TEAM scope is what stays stable.
-#
-# Comparability rule (enforced in drift.py):
-# - if the tracked-team scope matches the baseline snapshot's scope, overall
-#   cohort comparisons are allowed (plus matched panel);
-# - if the scope itself changed, DriftReport.scope_changed = true and no
-#   overall cohort metric flip may be judged as a Level 2 conclusion change;
-#   only matched-panel comparison + scope-change warning are allowed.
+# Tracked universe = Core ∪ Watchlist ∪ Supplemental.
+# Headline metrics = Core only. Extended segments are reported separately.
 
-mode: tracked_teams
+cohort:
+  core:
+    provider: manual_hltv
+    # last accepted structured HLTV snapshot; None until first import
+    snapshot: null
+    top_n: 30
+    # populated only from accepted config/rankings/hltv/<date>.yaml
+    teams: []
 
-scope_id: top-tier-plus-selected-v1
+  watchlist:
+    - team_id: bc-game
+      settings_slug: null        # cs2settings has no BC.Game team page (unresolved)
+      reason: manual_watchlist
+      status: active
+      added_at: "2026-08-10"
+      note: manual watchlist candidate; not proof of current HLTV rank
+    - team_id: 100-thieves
+      settings_slug: "100-thieves"
+      reason: manual_watchlist
+      status: active
+      added_at: "2026-08-10"
+      note: manual watchlist candidate; not proof of current HLTV rank
 
-roster_source: cs2settings
+  supplemental:
+    - team_id: vitality
+      settings_slug: vitality
+      reason: legacy_selected
+    - team_id: natus-vincere
+      settings_slug: navi
+      reason: legacy_selected
+    - team_id: furia
+      settings_slug: furia
+      reason: legacy_selected
+    - team_id: falcons
+      settings_slug: falcons
+      reason: legacy_selected
+    - team_id: team-spirit
+      settings_slug: spirit
+      reason: legacy_selected
+    - team_id: parivision
+      settings_slug: parivision
+      reason: legacy_selected
+    - team_id: the-mongolz
+      settings_slug: the-mongolz
+      reason: legacy_selected
+    - team_id: astralis
+      settings_slug: astralis
+      reason: legacy_selected
+    - team_id: fut
+      settings_slug: fut
+      reason: legacy_selected
+    - team_id: mouz
+      settings_slug: mouz
+      reason: legacy_selected
+    - team_id: g2
+      settings_slug: g2
+      reason: legacy_selected
+    - team_id: faze
+      settings_slug: faze
+      reason: legacy_selected
+    - team_id: gamerlegion
+      settings_slug: gamerlegion
+      reason: legacy_selected
+    - team_id: 3dmax
+      settings_slug: 3dmax
+      reason: legacy_selected
+    - team_id: b8
+      settings_slug: b8
+      reason: legacy_selected
+    - team_id: legacy
+      settings_slug: legacy
+      reason: legacy_selected
+    - team_id: 9z
+      settings_slug: 9z
+      reason: legacy_selected
+    - team_id: monte
+      settings_slug: monte
+      reason: legacy_selected
+    - team_id: m80
+      settings_slug: m80
+      reason: legacy_selected
+    - team_id: alliance
+      settings_slug: alliance
+      reason: legacy_selected
+    - team_id: tyloo
+      settings_slug: tyloo
+      reason: legacy_selected
+    - team_id: betboom
+      settings_slug: betboom
+      reason: legacy_selected
+    - team_id: heroic
+      settings_slug: heroic
+      reason: legacy_selected
+    - team_id: liquid
+      settings_slug: liquid
+      reason: legacy_selected
+    - team_id: mibr
+      settings_slug: mibr
+      reason: legacy_selected
+    - team_id: eyeballers
+      settings_slug: eyeballers
+      reason: legacy_selected
+    - team_id: ninjas-in-pyjamas
+      settings_slug: ninjas-in-pyjamas
+      reason: legacy_selected
+    - team_id: lynn-vision
+      settings_slug: lynn-vision
+      reason: legacy_selected
+    - team_id: pain
+      settings_slug: pain
+      reason: legacy_selected
 
-# Stable source team IDs (cs2settings slugs) for the legacy tracked teams
-# that the source currently lists. Slug = source stable team ID, never a
-# display name.
-teams:
-  - vitality
-  - navi
-  - furia
-  - falcons
-  - spirit
-  - parivision
-  - the-mongolz
-  - astralis
-  - fut
-  - mouz
-  - g2
-  - faze
-  - gamerlegion
-  - 3dmax
-  - b8
-  - legacy
-  - 9z
-  - monte
-  - m80
-  - alliance
-  - tyloo
-  - betboom
-  - heroic
-  - liquid
-  - mibr
-  - eyeballers
-  - ninjas-in-pyjamas
-  - 100-thieves
-  - lynn-vision
-  - pain
-
-# Legacy 2026-05 tracked teams that the v2 primary source does not list.
-# They remain part of the historical scope definition but cannot contribute
-# an automatic roster from the current source (no fabrication).
-legacy_teams_not_in_source:
-  - Aurora
-  - NRG
-  - BIG
-  - Fnatic
-  - OG
-  - Imperial
-  - Rare Atom
-  - FlyQuest
-  - BC.Game
-  - Passion UA
-  - Gentle Mates
+ranking_freshness:
+  aging_days: 30
+  stale_days: 90
+  maintenance_days: 180
 
 filters:
   exclude:

@@ -38,9 +38,11 @@ def render_report(
     source_status: dict,
     conflicts: list[dict],
     baseline: Optional[dict] = None,
+    roster_report: Optional[dict] = None,
 ) -> str:
     agg = metrics["aggregate"]
     panel = metrics.get("panel", {})
+    segments = metrics.get("segments", {})
     lines: list[str] = []
 
     lines.append("# CS2 Pro Settings — Latest Snapshot (generated)")
@@ -57,7 +59,22 @@ def render_report(
     lines.append(f"- source: {agg.get('source', {}).get('primary', 'n/a')}")
     scope = agg.get("scope") or {}
     lines.append(f"- tracked-team scope: {scope.get('scope_id', 'n/a')} "
-                 f"({scope.get('tracked_team_count', 0)} teams in source)")
+                 f"({scope.get('tracked_team_count', 0)} teams in universe, "
+                 f"{scope.get('core_team_count', 0)} in Core)")
+    lines.append("")
+
+    # 1b. cohort (Core / Watchlist / Supplemental)
+    lines.append("## Cohort")
+    lines.append("")
+    series = agg.get("series") or {}
+    lines.append(f"- series: {series.get('series_id', 'n/a')} "
+                 f"({series.get('cohort_semantics', 'n/a')})")
+    lines.append(f"- Core ranking snapshot: {scope.get('core_snapshot') or 'none accepted yet'}")
+    lines.append(f"- Core teams: {scope.get('core_team_count', 0)}")
+    lines.append(f"- Watchlist + Supplemental teams in universe: "
+                 f"{max(scope.get('tracked_team_count', 0) - scope.get('core_team_count', 0), 0)}")
+    lines.append("- Core feeds headline statistics; Watchlist/Supplemental are "
+                 "tracked as extended segments only (see segments below).")
     lines.append("")
 
     # 2. source status + freshness
@@ -100,6 +117,8 @@ def render_report(
     else:
         lines.append(f"- baseline: {_dg(drift, 'baseline_snapshot_date')} -> current: {_dg(drift, 'current_snapshot_date')}")
         lines.append(f"- drift level: **{_dg(drift, 'level')}** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)")
+        if not _dg(drift, "series_compatible", True):
+            lines.append(f"- **series incompatible**: {_dg(drift, 'baseline_incompatible_reason', '')}")
         if _dg(drift, "scope_changed", False):
             lines.append(f"- **scope changed**: {_dg(drift, 'scope_warning', '')}")
         if _dg(drift, "cohort_stability", "unavailable") != "unavailable":
@@ -148,13 +167,41 @@ def render_report(
         lines.append(f"- ... and {len(conflicts) - 20} more")
     lines.append("")
 
+    # 5b. roster stability
+    lines.append("## Roster stability")
+    lines.append("")
+    rr = roster_report or {}
+    if rr:
+        lines.append(f"- status: {rr.get('status', 'n/a')} "
+                     f"(previous {rr.get('previous_total')} / current {rr.get('current_total')} / "
+                     f"matched {rr.get('matched_total')})")
+        lines.append(f"- turnover rate: {rr.get('turnover_rate')} "
+                     f"(operational threshold 15% in config/stability.yaml)")
+    else:
+        lines.append("- no roster report for this run")
+    lines.append("")
+
+    # 5c. extended segments
+    lines.append("## Extended tracking (non-Core segments)")
+    lines.append("")
+    if segments:
+        for name in ("core_plus_watchlist", "all_tracked"):
+            seg = segments.get(name) or {}
+            lines.append(f"- {name}: {seg.get('player_count', 'n/a')} players / "
+                         f"{seg.get('team_count', 'n/a')} teams "
+                         f"(eDPI median {((seg.get('edpi') or {}).get('median'))})")
+    else:
+        lines.append("- segments not computed for this run")
+    lines.append("")
+
     # 6. limitations
     lines.append("## Limitations")
     lines.append("")
     lines.append("- All statements describe the sampled cohort; prevalence does not imply causal performance benefit.")
     lines.append("- valid_n varies per field; a missing field never defaults to the full cohort size.")
-    lines.append("- Automated collection is restricted to sources that allow normal HTTP access (no anti-bot bypass).")
+    lines.append("- Automated collection is limited to target paths that are accessible via ordinary HTTP and are not disallowed for the configured user agent by the source's robots policy; a robots allowance or absence of dedicated terms is NOT affirmative legal permission.")
     lines.append("- Row-level third-party data is not distributed; only aggregates and generated analyses are published.")
+    lines.append("- Runtime state (roster/matched-panel) is best-effort operational state via the Actions cache; cache loss causes a safe warm-up run, not a false drift alert.")
     lines.append("")
 
     return "\n".join(lines)

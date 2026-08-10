@@ -37,7 +37,20 @@ retrieved_at, source_updated_at where available).
 
 ## Policy
 
-Automated collection is limited to sources that permit normal HTTP access and
-do not block automated requests. Adapters fail closed; no anti-bot bypass,
-CAPTCHA solving, proxy rotation, or browser automation is used. See
-`docs/source-audit/` for per-source policy audits.
+Automated collection is limited to target paths that are accessible via
+ordinary HTTP and are not disallowed for the configured user agent by the
+source's robots policy. A robots allowance or the absence of dedicated
+terms is NOT represented as affirmative legal permission. Adapters fail
+closed; no anti-bot bypass, CAPTCHA solving, proxy rotation, or browser
+automation is used. See `docs/source-audit/` for per-source policy audits.
+
+## Runtime state
+
+Cross-run operational state (roster baseline, roster confirmation window,
+previous matched panel) is stored in `.runtime-state/` and persisted between
+production runs through the GitHub Actions cache. It is **ephemeral
+operational state**: never committed to the public repository, never
+uploaded as a workflow artifact, and it holds only minimal derived
+matched-panel fields (player_id, dpi, edpi, resolution, polling_rate) —
+never raw HTML, bios, or other source content. Cache loss produces a safe
+warm-up run, not a false drift alert.

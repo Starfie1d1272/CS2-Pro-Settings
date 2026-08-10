@@ -1,0 +1,40 @@
+name: Watchlist nomination
+description: Nominate a team for the Watchlist (Core/Watchlist/Supplemental). Issues only nominate; they never auto-modify config.
+title: "watchlist: <Team>"
+labels: ["enhancement"]
+body:
+  - type: input
+    id: team
+    attributes:
+      label: Team
+      description: Team name / org
+      placeholder: "BC.Game"
+    validations:
+      required: true
+  - type: input
+    id: reason
+    attributes:
+      label: Reason
+      description: Why should this team be watched?
+      placeholder: "Near Top 30, rising roster"
+    validations:
+      required: true
+  - type: input
+    id: evidence
+    attributes:
+      label: Evidence / source
+      description: Link or reference supporting the nomination
+      placeholder: "https://..."
+    validations:
+      required: true
+  - type: dropdown
+    id: category
+    attributes:
+      label: Suggested category
+      options:
+        - near_top30
+        - rising_team
+        - regional_interest
+        - notable_team
+    validations:
+      required: true

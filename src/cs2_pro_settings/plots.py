@@ -71,15 +71,18 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     _theme()
 
     # eDPI distribution (histogram + median line)
-    edpi = agg["edpi"]
-    dist = edpi["distribution"]
+    edpi = agg.get("edpi") or {}
+    dist = edpi.get("distribution") or {}
     fig, ax = plt.subplots(figsize=(9, 5))
     labels = list(dist.keys())
     counts = list(dist.values())
     ax.bar(labels, counts, color=ACCENT, edgecolor="#121212")
-    med = edpi["median"]
-    ax.axvline(labels.index("800-1000") if "800-1000" in labels else 0, color=MAGENTA, linestyle="--", alpha=0.7)
-    ax.set_title(f"eDPI Distribution (median {med}, mean {edpi['mean']})", fontsize=13, fontweight="bold", color=ACCENT)
+    med = edpi.get("median")
+    if labels:
+        ax.axvline(labels.index("800-1000") if "800-1000" in labels else 0,
+                   color=MAGENTA, linestyle="--", alpha=0.7)
+    ax.set_title(f"eDPI Distribution (median {med}, mean {edpi.get('mean')})",
+                 fontsize=13, fontweight="bold", color=ACCENT)
     ax.set_ylabel("Player Count")
     fig.tight_layout()
     p = out_dir / "edpi.png"
@@ -89,7 +92,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # DPI
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in agg["dpi"]["categories"].items()},
+    _bar(ax, {k: v for k, v in (agg.get("dpi") or {}).get("categories") or {}.items()},
          "DPI Distribution", ACCENT)
     p = out_dir / "dpi.png"
     fig.tight_layout()
@@ -99,7 +102,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Resolution
     fig, ax = plt.subplots(figsize=(10, 5))
-    _bar(ax, dict(list(agg["resolution"]["categories"].items())[:10]), "Resolution (top 10)", CYAN)
+    _bar(ax, dict(list((agg.get("resolution") or {}).get("categories") or {}.items())[:10]), "Resolution (top 10)", CYAN)
     p = out_dir / "resolution.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
@@ -108,7 +111,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Refresh rate
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in agg["refresh_rate"]["categories"].items()}, "Monitor Refresh Rate", ORANGE)
+    _bar(ax, {k: v for k, v in (agg.get("refresh_rate") or {}).get("categories") or {}.items()}, "Monitor Refresh Rate", ORANGE)
     p = out_dir / "refresh_rate.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
@@ -117,7 +120,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Crosshair color
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, agg["crosshair"]["color_categories"], "Crosshair Color", MAGENTA)
+    _bar(ax, (agg.get("crosshair") or {}).get("color_categories") or {}, "Crosshair Color", MAGENTA)
     p = out_dir / "crosshair_color.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
@@ -126,11 +129,12 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # FOV
     fig, ax = plt.subplots(figsize=(8, 5))
-    vm = agg["viewmodel"]
+    vm = agg.get("viewmodel") or {}
     fov68_share = vm.get("fov68_share") or 0.0
-    ax.bar(["FOV 68", "Other"], [fov68_share * vm["valid_n"], (1 - fov68_share) * vm["valid_n"]],
+    ax.bar(["FOV 68", "Other"],
+           [fov68_share * vm.get("valid_n", 0), (1 - fov68_share) * vm.get("valid_n", 0)],
            color=[ACCENT, "#555555"], edgecolor="#121212")
-    ax.set_title(f"Viewmodel FOV (68 share {fov68_share * 100:.1f}%, n={vm['valid_n']})",
+    ax.set_title(f"Viewmodel FOV (68 share {fov68_share * 100:.1f}%, n={vm.get('valid_n', 0)})",
                  fontsize=13, fontweight="bold", color=ACCENT)
     ax.set_ylabel("Player Count")
     fig.tight_layout()
@@ -140,14 +144,14 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     written.append(p)
 
     # Radar
-    radar = agg["radar"]
+    radar = agg.get("radar") or {}
     rot_share = radar.get("rotating_share") or 0.0
     cent_share = radar.get("centered_share") or 0.0
     fig, ax = plt.subplots(figsize=(8, 5))
     ax.bar(["Rotating", "Centered"],
-           [rot_share * radar["valid_n"], cent_share * radar["valid_n"]],
+           [rot_share * radar.get("valid_n", 0), cent_share * radar.get("valid_n", 0)],
            color=[CYAN, ACCENT], edgecolor="#121212")
-    ax.set_title(f"Radar preferences (n={radar['valid_n']})", fontsize=13, fontweight="bold", color=CYAN)
+    ax.set_title(f"Radar preferences (n={radar.get('valid_n', 0)})", fontsize=13, fontweight="bold", color=CYAN)
     ax.set_ylabel("Player Count")
     fig.tight_layout()
     p = out_dir / "radar.png"
@@ -157,7 +161,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Polling rate
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in agg["mouse_polling"]["categories"].items()}, "Mouse Polling Rate", CYAN)
+    _bar(ax, {k: v for k, v in (agg.get("mouse_polling") or {}).get("categories") or {}.items()}, "Mouse Polling Rate", CYAN)
     p = out_dir / "polling_rate.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)

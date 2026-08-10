@@ -56,6 +56,7 @@ class NormalizedPlayerSettings:
     player_id: str
     canonical_name: str
     team: Optional[str] = None
+    cohort_tier: Optional[str] = None  # core | watchlist | supplemental
 
     # mouse
     dpi: Optional[float] = None
@@ -71,7 +72,8 @@ class NormalizedPlayerSettings:
     refresh_rate: Optional[int] = None
     brightness: Optional[float] = None
     vsync: Optional[str] = None  # "Enabled" | "Disabled"
-    reflex: Optional[str] = None
+    boost_player: Optional[bool] = None  # Boost Player Contrast (NOT Reflex)
+    reflex: Optional[str] = None  # NVIDIA Reflex; only from a real Reflex field
     max_fps: Optional[int] = None
 
     # crosshair
