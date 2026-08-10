@@ -13,10 +13,25 @@ import actions_daily  # noqa: E402
 
 
 @pytest.fixture(autouse=True)
-def _patch_sh(monkeypatch):
-    """Replace subprocess calls with an in-memory fake gh/git."""
+def _patch_sh(monkeypatch, tmp_path):
+    """Replace subprocess calls with an in-memory fake gh/git.
+
+    Also redirect actions_common file paths to a temp dir so candidate
+    writes NEVER touch the real repository (latest.json / reports / figures
+    are protected public artifacts).
+    """
     calls: list[list[str]] = []
     state = {"issues": [], "prs": []}
+    fake_root = tmp_path / "repo"
+    (fake_root / "data" / "aggregate").mkdir(parents=True)
+    (fake_root / "reports").mkdir()
+    (fake_root / "figures" / "latest").mkdir(parents=True)
+    (fake_root / "work").mkdir()
+    monkeypatch.setattr(actions_common, "ROOT", fake_root)
+    monkeypatch.setattr(actions_common, "WORK", fake_root / "work")
+    monkeypatch.setattr(actions_common, "AGG", fake_root / "data" / "aggregate")
+    monkeypatch.setattr(actions_common, "REPORTS", fake_root / "reports")
+    monkeypatch.setattr(actions_common, "FIGURES", fake_root / "figures" / "latest")
 
     def fake_sh(*args, check=True):
         calls.append(list(args))
@@ -52,7 +67,7 @@ def _patch_sh(monkeypatch):
 
 
 def _write_work(name: str, obj):
-    p = Path("work") / name
+    p = actions_common.WORK / name
     p.parent.mkdir(parents=True, exist_ok=True)
     p.write_text(json.dumps(obj), encoding="utf-8")
 
