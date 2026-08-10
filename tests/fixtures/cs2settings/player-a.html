@@ -1,0 +1,28 @@
+<!doctype html>
+<html>
+<head><title>Player A CS2 Settings</title></head>
+<body>
+<script>
+(() => {
+  kit.start(app, element, {
+    node_ids: [0, 30],
+    data: [{type:"data",data:{player:{
+      id:"player-a",displayName:"PlayerA",realName:"Alan \"PlayerA\" Example",
+      teamId:"examplefc",country:"Germany",lastVerified:"2026-07-01",role:"Rifler",
+      steamId:"76561198000000001",
+      mouse:{dpi:800,sensitivity:1.25,edpiCalculated:1000,zoomSensitivity:1,pollingRate:1000,windowsSensitivity:6},
+      crosshair:{style:4,color:5,size:1,gap:-3,thickness:1,outline:false,outlineThickness:1,dot:false,alpha:255,colorR:255,colorG:255,colorB:255},
+      mapSettings:{radarZoom:.7,radarSize:1,radarCentered:true,hudScale:1},
+      videoSettings:{resolution:"1280x960",aspectRatio:"4:3",scalingMode:"Stretched",displayMode:"Fullscreen",brightness:93,shadows:"High",textures:"High",effects:"High",shaders:"High",boostPlayer:"Enabled",antialiasing:"4x MSAA"},
+      viewmodel:{fov:68,offsetX:2.5,offsetY:0,offsetZ:-1.5,presetpos:2},
+      equipment:{mouse:{id:"m1",name:"Example Mouse",brand:"",affiliateUrl:void 0,imageUrl:"/images/m1.webp"}},
+      pcSpecs:{cpu:"Example CPU",gpu:"Example GPU"},
+      socialLinks:{steam:"https://steamcommunity.com/profiles/76561198000000001"},
+      content:"Example biography text.",
+      skins:[{slot:"Knife",weaponName:"Karambit",skinName:"Doppler",fullName:"Karambit | Doppler",imageUrl:"https://community.example.com/image1",rarityColor:"#eb4b4b",wear:.06991565227508545,conditionTier:"FN",nametag:void 0,streakMaps:2,marketPrice:262.32}]
+    }}},{type:"data",data:{team:{id:"examplefc",name:"Example FC",logo:"/images/examplefc.webp",region:"Europe",rank:4,points:681,content:"Team example text."}}},{type:"data",data:{crosshairSource:{eventName:"Example Event",opponent:"Other",date:"2026-07-01"},skinsAsOf:"2026-07-01"}}]
+  });
+})();
+</script>
+</body>
+</html>

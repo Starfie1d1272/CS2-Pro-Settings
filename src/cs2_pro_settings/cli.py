@@ -145,6 +145,18 @@ def step_audit(scheduled_only: bool, offline: bool) -> dict:
     return status
 
 
+def cohort_scope() -> dict:
+    """Build the scope block for metrics from config/cohort.yaml."""
+    cfg = load_cohort_config()
+    teams = sorted(cfg.get("teams") or [])
+    return {
+        "scope_id": cfg.get("scope_id", "unknown"),
+        "tracked_teams": teams,
+        "tracked_team_count": len(teams),
+        "mode": cfg.get("mode", "tracked_teams"),
+    }
+
+
 def step_collect(
     scheduled_only: bool,
     offline: bool,
@@ -163,10 +175,27 @@ def step_collect(
         try:
             if players:
                 roster = [{"source_id": p} for p in players]
-            else:
+            elif offline:
                 roster = src.list_players()
+            else:
+                # cohort mode: tracked-team rosters from the primary source
+                cohort = load_cohort_config()
+                roster_fn = getattr(src, "list_team_roster", None)
+                if cohort.get("mode") == "tracked_teams" and roster_fn is not None:
+                    roster = []
+                    seen: set[str] = set()
+                    for slug in cohort.get("teams") or []:
+                        try:
+                            for entry in roster_fn(slug):
+                                if entry["source_id"] not in seen:
+                                    seen.add(entry["source_id"])
+                                    roster.append(entry)
+                        except SourceError as exc:
+                            print(f"  [!] {name}/teams/{slug}: {exc}")
+                else:
+                    roster = src.list_players()
         except SourceError as exc:
-            raise SystemExit(f"collect: {name} list_players failed: {exc}") from exc
+            raise SystemExit(f"collect: {name} roster failed: {exc}") from exc
 
         for entry in roster:
             source_id = entry["source_id"]
@@ -226,7 +255,7 @@ def step_reconcile(observations: list[SourceObservation]) -> tuple[dict, list[di
 def step_metrics(players: dict) -> dict:
     objs = [NormalizedPlayerSettings.from_dict(d) for d in players.values()]
     metrics = compute_metrics(objs, snapshot_date=date.today().isoformat(),
-                              source_note="v2-pipeline")
+                              source_note="v2-pipeline", scope=cohort_scope())
     _write_work("metrics.json", metrics)
     return metrics
 
@@ -242,6 +271,8 @@ def step_drift(baseline_path: Path) -> DriftReport:
         "matched_panel_change": report.matched_panel_change,
         "baseline_snapshot_date": report.baseline_snapshot_date,
         "current_snapshot_date": report.current_snapshot_date,
+        "scope_changed": report.scope_changed,
+        "scope_warning": report.scope_warning,
     })
     return report
 

@@ -1,0 +1,31 @@
+<!doctype html>
+<html>
+<head><title>Player Tricky CS2 Settings</title></head>
+<body>
+<!-- page-level JS that used to break whole-page scanners -->
+<script>
+  var s = document.createElement('script');
+  s.src = 'https://www.example-analytics.com/gtag/js?id=G-EXAMPLE1';
+  gtag('config', 'G-EXAMPLE1');
+</script>
+<script>
+(() => {
+  kit.start(app, element, {
+    node_ids: [0, 30],
+    data: [{type:"data",data:{player:{
+      id:"player-tricky",displayName:"PlayerTricky",realName:"T. \"Tricky\" O'Neil",teamId:"examplefc",
+      country:"United States",lastVerified:"2026-05-30",role:"IGL",
+      steamId:"76561198000000003",
+      mouse:{dpi:1600,sensitivity:.5,edpiCalculated:800,zoomSensitivity:1.1,pollingRate:8000,windowsSensitivity:6},
+      crosshair:{style:1,color:5,size:2,gap:-5,thickness:0,outline:true,outlineThickness:1,dot:true,alpha:200,colorR:0,colorG:255,colorB:145},
+      mapSettings:{radarZoom:.65,radarSize:1.1,radarCentered:false,hudScale:.9},
+      videoSettings:{resolution:"1920x1080",aspectRatio:"16:9",scalingMode:"Native",displayMode:"Fullscreen",brightness:83},
+      viewmodel:{fov:54,offsetX:1.5,offsetY:2,offsetZ:-1},
+      equipment:{mouse:{id:"m3",name:"Tricky Mouse",brand:"",affiliateUrl:void 0,imageUrl:"/images/m3.webp"}},
+      content:"Apostrophes: it's tricky. Escaped quotes: he said \\\"hello\\\". URLs: https://example.com/players/tricky. Braces: {not really} but watch the scanner. Backslashes: C:\\temp\\config. Newlines: first line\\nsecond line."
+    }}},{type:"data",data:{team:{id:"examplefc",name:"Example FC",logo:"/images/examplefc.webp",content:"Team with apostrophe's and \\\"quotes\\\" and https://example.com links."}}},{type:"data",data:{crosshairSource:{eventName:"Example Major",opponent:"Rival",date:"2026-05-30"},skinsAsOf:"2026-05-30"}}]
+  });
+})();
+</script>
+</body>
+</html>

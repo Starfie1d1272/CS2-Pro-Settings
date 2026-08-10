@@ -31,6 +31,8 @@ class DriftReport:
     matched_panel_change: dict = field(default_factory=dict)
     baseline_snapshot_date: Optional[str] = None
     current_snapshot_date: Optional[str] = None
+    scope_changed: bool = False
+    scope_warning: str = ""
 
 
 def load_conclusions(path: str = DEFAULT_CONCLUSIONS_PATH) -> dict:
@@ -127,11 +129,31 @@ def compute_drift(
     current_agg = current_metrics["aggregate"]
     current_panel = current_metrics.get("panel", {})
 
+    # ---- tracked-team scope comparison --------------------------------
+    base_scope = baseline_agg.get("scope") or {}
+    cur_scope = current_agg.get("scope") or {}
+    scope_changed = False
+    scope_warning = ""
+    if base_scope.get("scope_id") != cur_scope.get("scope_id") or \
+            set(base_scope.get("tracked_teams") or []) != set(cur_scope.get("tracked_teams") or []):
+        scope_changed = True
+        scope_warning = (
+            "tracked-team scope changed between baseline and current snapshot; "
+            "overall cohort conclusion flips are NOT judged as Level 2 — "
+            "scope change requires human review (matched-panel comparison only)"
+        )
+
     changed = [
         _evaluate_conclusion(name, conf, baseline_agg, current_agg)
         for name, conf in conclusions.items()
     ]
     changed = [c for c in changed if c["level"] > 0]
+    if scope_changed:
+        # cap any conclusion-level change at Level 1 when scope changed
+        for c in changed:
+            if c["level"] > 1:
+                c["level"] = 1
+                c["note"] = "capped to Level 1: tracked-team scope changed; human review required"
     level = max([c["level"] for c in changed], default=0)
 
     baseline_panel = baseline_aggregate.get("panel") if isinstance(baseline_aggregate, dict) else None
@@ -157,7 +179,8 @@ def compute_drift(
     }
     if matched:
         # same-player settings change on the matched panel (work/ only data)
-        base_players = (previous_panel or {}).get("players") or {}
+        base_panel = (previous_panel or {}).get("panel") if isinstance(previous_panel, dict) else previous_panel
+        base_players = (base_panel or {}).get("players") or {}
         cur_players = current_panel.get("players") or {}
         if base_players and cur_players:
             per_field: dict[str, dict] = {}
@@ -180,4 +203,6 @@ def compute_drift(
         matched_panel_change=matched_change,
         baseline_snapshot_date=baseline_agg.get("snapshot_date"),
         current_snapshot_date=current_agg.get("snapshot_date"),
+        scope_changed=scope_changed,
+        scope_warning=scope_warning,
     )

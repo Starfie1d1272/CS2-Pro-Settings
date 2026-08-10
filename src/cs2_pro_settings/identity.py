@@ -76,6 +76,19 @@ class IdentityIndex:
             if steam_id and not pid.steam_id:
                 pid.steam_id = steam_id
                 self._by_steam[steam_id] = existing
+            elif steam_id and pid.steam_id != steam_id:
+                # same source identity claims a different SteamID: surface it,
+                # never silently split or merge
+                self.identity_problems.append(
+                    {
+                        "type": "steam_id_change",
+                        "source": source,
+                        "source_id": source_id,
+                        "player_id": existing,
+                        "previous_steam_id": pid.steam_id,
+                        "current_steam_id": steam_id,
+                    }
+                )
             return pid
 
         # 3. New identity.

@@ -36,63 +36,71 @@ HEADERS = {"User-Agent": UA, "Accept": "text/html,application/xhtml+xml"}
 _WS = re.compile(r"\s+")
 
 
-def _strip_js_comments(html: str) -> str:
-    """Remove // line comments and /* */ block comments outside strings.
+def _iter_script_bodies(html: str):
+    """Yield non-empty <script> bodies via BeautifulSoup (HTML-level only)."""
+    soup = BeautifulSoup(html, "html.parser")
+    for s in soup.find_all("script"):
+        body = s.string
+        if body and body.strip():
+            yield body
 
-    Handles both ' and " quoted strings with backslash escapes.
+
+def _scan_balanced(text: str, start: int, open_ch: str, close_ch: str) -> int:
+    """String- and comment-aware balanced bracket scan.
+
+    States: code / string / line-comment / block-comment.
+    - Only outside strings: `//` is a line comment, `/* */` a block comment.
+    - Only outside comments: quotes toggle string state (", ', `).
+    - Backslash escapes are honored character-by-character inside strings:
+      `\` escapes the NEXT character only (so `\\"` keeps the string open
+      through a backslash-escaped quote, and `\\` + `"` correctly closes).
+    Returns the index AFTER the matching close bracket, or -1.
     """
-    out: list[str] = []
-    i, n = 0, len(html)
-    in_str: str | None = None  # quote char when inside a string
-    while i < n:
-        ch = html[i]
-        if in_str is not None:
-            out.append(ch)
-            if ch == "\\":
-                i += 1
-                if i < n:
-                    out.append(html[i])
-            elif ch == in_str:
-                in_str = None
-            i += 1
-            continue
-        if ch in ("'", '"'):
-            in_str = ch
-            out.append(ch)
-            i += 1
-            continue
-        if html.startswith("//", i):
-            j = html.find("\n", i)
-            i = j if j != -1 else n
-            continue
-        if html.startswith("/*", i):
-            j = html.find("*/", i + 2)
-            i = j + 2 if j != -1 else n
-            continue
-        out.append(ch)
-        i += 1
-    return "".join(out)
-
-
-def _extract_balanced(text: str, start: int, open_ch: str, close_ch: str) -> int:
-    """String-aware scan for the matching close bracket; returns index after it."""
     depth = 0
-    i = start
-    n = len(text)
-    in_str: str | None = None
+    i, n = start, len(text)
+    state = "code"
+    quote = ""
+    escaped = False
     while i < n:
         ch = text[i]
-        if in_str is not None:
-            if ch == "\\":
-                i += 2
+        if state == "string":
+            if ch == "\\" and not escaped:
+                escaped = True
+                i += 1
                 continue
-            if ch == in_str:
-                in_str = None
+            if ch == quote and not escaped:
+                state = "code"
+            escaped = False
             i += 1
             continue
-        if ch in ("'", '"'):
-            in_str = ch
-        elif ch == open_ch:
+        if state == "line":
+            if ch == "\n":
+                state = "code"
+            i += 1
+            continue
+        if state == "block":
+            if ch == "*" and i + 1 < n and text[i + 1] == "/":
+                state = "code"
+                i += 2
+                continue
+            i += 1
+            continue
+        # code state
+        if ch in ('"', "'", "`"):
+            state = "string"
+            quote = ch
+            i += 1
+            continue
+        if ch == "/" and i + 1 < n:
+            if text[i + 1] == "/":
+                state = "line"
+                i += 2
+                continue
+            if text[i + 1] == "*":
+                state = "block"
+                i += 2
+                continue
+        if ch == open_ch:
             depth += 1
         elif ch == close_ch:
             depth -= 1
@@ -102,53 +110,110 @@ def _extract_balanced(text: str, start: int, open_ch: str, close_ch: str) -> int
     return -1
 
 
+_PLAYER_MARKER = "data:{player:{"
+_PLAYER_SENTINELS = ("steamId", "lastVerified", "crosshairSource", "skinsAsOf",
+                     "mouse", "videoSettings", "viewmodel", "mapSettings")
+_ROSTER_ROLES = ("igl", "rifler", "awper", "entry fragger", "sniper", "lurker",
+                 "captain", "coach", "support")
+
+
 def _extract_player_blob(html: str) -> dict:
-    """Extract and parse the embedded `data:{player:{...}}` object.
+    """Extract the embedded `data:{player:{...}}` object (two-level strategy).
+
+    Level 1: parse HTML with BeautifulSoup, consider each <script> body only.
+    Level 2: within a single script body, locate a high-specificity marker
+    (`data:{player:{`), or fall back to scanning backwards from `steamId:`
+    sentinel candidates, then run a string/comment-aware balanced-brace scan.
 
     Returns the player dict; raises SourceError if not found/parseable.
     """
-    cleaned = _strip_js_comments(html)
-    marker = 'data:{player:{'
-    idx = cleaned.find(marker)
-    if idx == -1:
-        raise SourceError("cs2settings: player data blob not found")
-    start = idx + len(marker) - 1  # position of '{' after 'player:'
-    end = _extract_balanced(cleaned, start, "{", "}")
-    if end == -1:
-        raise SourceError("cs2settings: unbalanced player data blob")
+    for body in _iter_script_bodies(html):
+        obj = _try_parse_player_body(body)
+        if obj is not None:
+            return obj
+    raise SourceError("cs2settings: player data blob not found")
 
-    literal = cleaned[start:end]
-    return _js_literal_to_json(literal)
+
+def _try_parse_player_body(body: str):
+    """Try to parse a player object from one script body; None if not present."""
+    # preferred: the SvelteKit data marker
+    idx = body.find(_PLAYER_MARKER)
+    if idx != -1:
+        start = idx + len(_PLAYER_MARKER) - 1  # the '{' after 'player:'
+        obj = _try_balanced(body, start, _PLAYER_MARKER)
+        if obj is not None:
+            return obj
+    # fallback: nearest '{' candidates before the steamId sentinel
+    sidx = body.find("steamId:")
+    if sidx != -1:
+        lo = max(0, sidx - 4000)
+        pos = body.rfind("{", lo, sidx)
+        tried = 0
+        while pos != -1 and tried < 6:
+            obj = _try_balanced(body, pos, f"sentinel@{pos}")
+            if obj is not None:
+                return obj
+            tried += 1
+            pos = body.rfind("{", lo, pos - 1)
+    return None
+
+
+def _try_balanced(body: str, start: int, tag: str):
+    """Balanced scan + parse + validation; None on any failure."""
+    end = _scan_balanced(body, start, "{", "}")
+    if end == -1:
+        return None
+    literal = body[start:end]
+    try:
+        obj = _js_literal_to_json(literal)
+    except SourceError:
+        return None
+    if isinstance(obj, dict) and "mouse" in obj and ("steamId" in obj or "videoSettings" in obj):
+        return obj
+    return None
+
+
+_KEY_RE = re.compile(r"([{,][ \t\n\r]*|^[ \t\n\r]*)([A-Za-z_$][\w$]*)[ \t\n\r]*:")
 
 
 def _js_literal_to_json(literal: str) -> dict:
-    """Convert a JS object literal to a Python dict (tolerant, string-aware)."""
+    """Convert a JS object literal to a Python dict (tolerant, string-aware).
+
+    The blob is SvelteKit JSON-serialized data, so strings use double quotes
+    only. Inside strings, backslash escapes are normalized: `\\'` -> `'`,
+    everything else is kept verbatim (so `\\"`, `\\\\`, `\\n` stay valid JSON).
+    """
     s = literal
     s = re.sub(r"void\s+0", "null", s)
     s = re.sub(r"\bundefined\b", "null", s)
     s = re.sub(r"NaN", "null", s)
-    # quote unquoted keys and drop trailing commas, but never inside strings
     out: list[str] = []
     i, n = 0, len(s)
-    in_str: str | None = None
+    in_str = False
     while i < n:
         ch = s[i]
-        if in_str is not None:
-            out.append(ch)
+        if in_str:
             if ch == "\\":
-                i += 1
-                if i < n:
-                    out.append(s[i])
-            elif ch == in_str:
-                in_str = None
-            i += 1
-            continue
-        if ch in ("'", '"'):
-            in_str = ch
+                # escape: normalize \' -> ' (valid JS, invalid JSON)
+                if i + 1 < n and s[i + 1] == "'":
+                    out.append("'")
+                else:
+                    out.append(ch)
+                    if i + 1 < n:
+                        out.append(s[i + 1])
+                i += 2
+                continue
+            if ch == '"':
+                in_str = False
             out.append(ch)
             i += 1
             continue
-        # trailing comma before } or ]
+        if ch == '"':
+            in_str = True
+            out.append(ch)
+            i += 1
+            continue
+        # trailing comma before } or ] -> drop it
         if ch == ",":
             j = i + 1
             while j < n and s[j] in " \t\n\r":
@@ -156,17 +221,17 @@ def _js_literal_to_json(literal: str) -> dict:
             if j < n and s[j] in "}]":
                 i = j
                 continue
-            out.append(ch)
-            i += 1
-            continue
         # unquoted key: ( { , whitespace ) ident ( whitespace ) :
         if ch in "{," or ch in " \t\n\r":
-            m = re.match(r"([{,][ \t\n\r]*|^[ \t\n\r]*)([A-Za-z_$][\w$]*)[ \t\n\r]*:", s[i:])
+            m = _KEY_RE.match(s, i)
             if m:
                 out.append(m.group(1))
                 out.append('"' + m.group(2) + '":')
-                i += m.end()
+                i = m.end()
                 continue
+        # JS shorthand decimal: .7 -> 0.7 (invalid JSON as-is)
+        if ch == "." and i + 1 < n and s[i + 1].isdigit() and (i == 0 or s[i - 1] not in "0123456789_.\w"):
+            out.append("0")
         out.append(ch)
         i += 1
     try:
@@ -277,6 +342,36 @@ class CS2SettingsSource:
                 break
         return list(players.values())
 
+    def list_team_roster(self, team_slug: str) -> list[dict]:
+        """Parse the current active roster of a team from its team page.
+
+        Semantic anchor: roster links contain a role marker (IGL / Rifler /
+        AWPer / Entry Fragger / Sniper / Lurker / Captain / Coach) as text;
+        CSS class names are NOT used as parser anchors. Footer/nav links to
+        players of other teams (no role marker) are excluded.
+        """
+        url = f"{self.base_url}/teams/{team_slug}"
+        html = self._get_text(url)
+        soup = BeautifulSoup(html, "html.parser")
+        roster: list[dict] = []
+        seen: set[str] = set()
+        for a in soup.find_all("a", href=True):
+            href = a["href"] or ""
+            if "/players/" not in href:
+                continue
+            pid = href.rstrip("/").split("/")[-1]
+            if not pid or pid in seen:
+                continue
+            text = a.get_text(" ", strip=True)
+            low = text.lower()
+            if not any(low.endswith(r) for r in _ROSTER_ROLES):
+                continue
+            role = next((r for r in _ROSTER_ROLES if low.endswith(r)), None)
+            name = text[: -len(role)].strip() if role else pid
+            seen.add(pid)
+            roster.append({"source_id": pid, "name": name or pid})
+        return roster
+
     def fetch_player(self, source_id: str) -> ParsedPlayer:
         url = f"{self.base_url}/players/{source_id}"
         html = self._get_text(url)
@@ -361,25 +456,31 @@ def _clean_steam_id(v: Any) -> Optional[str]:
 
 
 def _extract_players_blob(html: str) -> list[dict]:
-    """Parse the /players list blob: data:[{type:"data",data:{players:[...]}}]."""
-    cleaned = _strip_js_comments(html)
-    marker = 'data:{players:['
-    idx = cleaned.find(marker)
-    if idx == -1:
-        return []
-    start = cleaned.find("[", idx)
-    end = _extract_balanced(cleaned, start, "[", "]")
-    if end == -1:
-        return []
-    literal = cleaned[start:end]
-    s = re.sub(r"void\s+0", "null", literal)
-    s = re.sub(r"([{,]\s*)([A-Za-z_$][\w$]*)(\s*:)", r'\1"\2"\3', s)
-    s = re.sub(r",\s*([}\]])", r"\1", s)
-    try:
-        obj = json.loads(s)
-    except json.JSONDecodeError:
-        return []
-    return obj if isinstance(obj, list) else []
+    """Parse the /players list blob within a single script body.
+
+    Marker: data:[{type:"data",data:{players:[...]}}] — balanced-bracket scan
+    on the '[' after the marker, using the string/comment-aware scanner.
+    """
+    for body in _iter_script_bodies(html):
+        marker = "data:{players:["
+        idx = body.find(marker)
+        if idx == -1:
+            continue
+        start = body.find("[", idx)
+        if start == -1:
+            continue
+        end = _scan_balanced(body, start, "[", "]")
+        if end == -1:
+            continue
+        literal = body[start:end]
+        try:
+            obj = _js_literal_to_json('{"__list":' + literal + "}")
+            lst = obj.get("__list")
+        except SourceError:
+            continue
+        if isinstance(lst, list):
+            return lst
+    return []
 
 
 def _parse_labels(html: str, source_id: str) -> dict:

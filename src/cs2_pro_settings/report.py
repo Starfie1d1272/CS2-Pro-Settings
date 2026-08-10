@@ -25,6 +25,13 @@ def _fmt_cats(cats: Optional[dict], valid_n: Optional[int]) -> str:
     return ", ".join(parts)
 
 
+def _dg(drift: Any, key: str, default=None):
+    """Read a key from a DriftReport object or its dict form."""
+    if isinstance(drift, dict):
+        return drift.get(key, default)
+    return getattr(drift, key, default)
+
+
 def render_report(
     metrics: dict,
     drift: Any,
@@ -48,6 +55,9 @@ def render_report(
     lines.append(f"- snapshot date: **{agg.get('snapshot_date', 'n/a')}**")
     lines.append(f"- cohort size: {agg.get('player_count')} players / {agg.get('team_count')} teams")
     lines.append(f"- source: {agg.get('source', {}).get('primary', 'n/a')}")
+    scope = agg.get("scope") or {}
+    lines.append(f"- tracked-team scope: {scope.get('scope_id', 'n/a')} "
+                 f"({scope.get('tracked_team_count', 0)} teams in source)")
     lines.append("")
 
     # 2. source status + freshness
@@ -88,10 +98,12 @@ def render_report(
     if drift is None:
         lines.append("- no baseline available")
     else:
-        lines.append(f"- baseline: {drift.baseline_snapshot_date} -> current: {drift.current_snapshot_date}")
-        lines.append(f"- drift level: **{drift.level}** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)")
-        if drift.changed_metrics:
-            for c in drift.changed_metrics:
+        lines.append(f"- baseline: {_dg(drift, 'baseline_snapshot_date')} -> current: {_dg(drift, 'current_snapshot_date')}")
+        lines.append(f"- drift level: **{_dg(drift, 'level')}** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)")
+        if _dg(drift, "scope_changed", False):
+            lines.append(f"- **scope changed**: {_dg(drift, 'scope_warning', '')}")
+        if _dg(drift, "changed_metrics"):
+            for c in _dg(drift, "changed_metrics") or []:
                 b, cur = c["baseline"], c["current"]
                 if c.get("change_pp") is not None:
                     delta = f"{c['change_pp']:+.1f}pp"
@@ -105,14 +117,14 @@ def render_report(
         lines.append("")
         lines.append("### Cohort change")
         lines.append("")
-        cc = drift.cohort_change
-        lines.append(f"- baseline players: {cc['baseline_players']}; current: {cc['current_players']}")
-        lines.append(f"- added: {len(cc['added'])}; removed: {len(cc['removed'])}")
+        cc = _dg(drift, "cohort_change") or {}
+        lines.append(f"- baseline players: {cc.get('baseline_players')}; current: {cc.get('current_players')}")
+        lines.append(f"- added: {len(cc.get('added') or [])}; removed: {len(cc.get('removed') or [])}")
         lines.append("")
         lines.append("### Matched panel")
         lines.append("")
-        mp = drift.matched_panel_change
-        lines.append(f"- status: {mp['status']}; matched: {mp.get('matched_count', 0)}")
+        mp = _dg(drift, "matched_panel_change") or {}
+        lines.append(f"- status: {mp.get('status')}; matched: {mp.get('matched_count', 0)}")
         if mp.get("per_field"):
             for fld, info in mp["per_field"].items():
                 lines.append(f"- {fld}: {info['changed']}/{info['compared']} players changed")

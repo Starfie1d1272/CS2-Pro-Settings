@@ -181,5 +181,12 @@
       "500": 2
     },
     "share_4000_plus": 0.1818
+  },
+  "scope": {
+    "scope_id": "top-tier-plus-selected-v1",
+    "tracked_teams": [],
+    "tracked_team_count": 41,
+    "mode": "legacy-2026-05",
+    "note": "legacy cohort: HLTV Top 30 (2026-05-04) + additional selected teams + manual active-player whitelist; 41 canonical teams"
   }
 }

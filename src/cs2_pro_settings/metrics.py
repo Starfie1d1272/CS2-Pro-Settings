@@ -41,7 +41,12 @@ def _top(cats: dict[str, int]) -> Optional[str]:
     return next(iter(cats)) if cats else None
 
 
-def compute_metrics(players: list[NormalizedPlayerSettings], snapshot_date: str, source_note: str = "") -> dict:
+def compute_metrics(
+    players: list[NormalizedPlayerSettings],
+    snapshot_date: str,
+    source_note: str = "",
+    scope: Optional[dict] = None,
+) -> dict:
     """Compute the aggregate snapshot schema from normalized players."""
     n = len(players)
 
@@ -111,6 +116,7 @@ def compute_metrics(players: list[NormalizedPlayerSettings], snapshot_date: str,
         "player_count": n,
         "team_count": len({p.team for p in players if p.team}),
         "source": {"primary": source_note or "v2-pipeline"},
+        "scope": scope or {"scope_id": None, "tracked_teams": [], "tracked_team_count": 0},
         "edpi": {
             "count": len(edpi_valid),
             "median": round(float(sorted(edpi_valid)[len(edpi_valid) // 2]), 1) if edpi_valid else None,

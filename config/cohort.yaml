@@ -1,15 +1,76 @@
-# v2 cohort definition.
+# v2 cohort definition — tracked teams.
 #
-# The cohort is NOT a hardcoded 200+ nickname whitelist (that was v1).
-# mode: tracked_active_players means: players listed by the primary source
-#       that pass the filters below.
+# The cohort is the SET OF TEAMS tracked from the legacy 2026-05 snapshot
+# (41 canonical teams: HLTV Top 30 2026-05-04 + additional selected teams),
+# NOT a 200+ nickname player whitelist.
 #
-# NOTE: active-roster quality depends on the primary source. The first v2
-# snapshots must be human-reviewed before they are treated as canonical.
+# Roster resolution: for each tracked team, the current active roster is
+# parsed from the primary source (cs2settings team page / structured data).
+# Roster changes over time are natural; the TEAM scope is what stays stable.
+#
+# Comparability rule (enforced in drift.py):
+# - if the tracked-team scope matches the baseline snapshot's scope, overall
+#   cohort comparisons are allowed (plus matched panel);
+# - if the scope itself changed, DriftReport.scope_changed = true and no
+#   overall cohort metric flip may be judged as a Level 2 conclusion change;
+#   only matched-panel comparison + scope-change warning are allowed.
 
-mode: tracked_active_players
+mode: tracked_teams
 
-primary_source: cs2settings
+scope_id: top-tier-plus-selected-v1
+
+roster_source: cs2settings
+
+# Stable source team IDs (cs2settings slugs) for the legacy tracked teams
+# that the source currently lists. Slug = source stable team ID, never a
+# display name.
+teams:
+  - vitality
+  - navi
+  - furia
+  - falcons
+  - spirit
+  - parivision
+  - the-mongolz
+  - astralis
+  - fut
+  - mouz
+  - g2
+  - faze
+  - gamerlegion
+  - 3dmax
+  - b8
+  - legacy
+  - 9z
+  - monte
+  - m80
+  - alliance
+  - tyloo
+  - betboom
+  - heroic
+  - liquid
+  - mibr
+  - eyeballers
+  - ninjas-in-pyjamas
+  - 100-thieves
+  - lynn-vision
+  - pain
+
+# Legacy 2026-05 tracked teams that the v2 primary source does not list.
+# They remain part of the historical scope definition but cannot contribute
+# an automatic roster from the current source (no fabrication).
+legacy_teams_not_in_source:
+  - Aurora
+  - NRG
+  - BIG
+  - Fnatic
+  - OG
+  - Imperial
+  - Rare Atom
+  - FlyQuest
+  - BC.Game
+  - Passion UA
+  - Gentle Mates
 
 filters:
   exclude:

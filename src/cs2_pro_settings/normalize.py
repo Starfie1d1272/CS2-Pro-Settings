@@ -161,12 +161,18 @@ _PARSERS: dict[str, tuple[str, Any]] = {
 INFORMATIONAL = {"windows_sensitivity", "boost_player", "display_mode"}
 
 
+def _snake_case(name: str) -> str:
+    """camelCase -> snake_case: 'edpiCalculated' -> 'edpi_calculated'."""
+    return re.sub(r"(?<=[a-z0-9])([A-Z])", r"_\1", name).lower()
+
+
 def normalize_field(raw_name: str, value: Any) -> tuple[Optional[str], Any]:
     """Normalize one raw field.
 
+    Accepts snake_case and camelCase raw names (e.g. 'edpiCalculated').
     Returns (settings_attribute, normalized_value); unknown fields -> (None, None).
     """
-    entry = _PARSERS.get(raw_name.lower())
+    entry = _PARSERS.get(raw_name.lower()) or _PARSERS.get(_snake_case(raw_name))
     if not entry:
         return None, None
     attr, parser = entry
