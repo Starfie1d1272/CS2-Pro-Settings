@@ -1,0 +1,43 @@
+name: Weekly reconcile
+
+on:
+  schedule:
+    # Sunday 08:47 Asia/Shanghai (UTC+8) = 00:47 UTC Sunday
+    - cron: "47 0 * * 0"
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Dry run: pipeline + checks, no issues"
+        type: boolean
+        default: true
+
+concurrency:
+  group: cs2-pro-settings-weekly
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+  issues: write
+
+jobs:
+  weekly:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+          cache: pip
+
+      - name: Install
+        run: pip install -e ".[dev]"
+
+      - name: Run pipeline (live, scheduled sources only)
+        run: python -m cs2_pro_settings update --scheduled
+
+      - name: Reconcile checks
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DRY_RUN: ${{ github.event_name == 'schedule' && 'false' || github.event.inputs.dry_run }}
+        run: python scripts/actions_weekly.py
