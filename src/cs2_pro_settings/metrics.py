@@ -14,6 +14,14 @@ from typing import Any, Optional
 
 from .models import NormalizedPlayerSettings
 
+# Real normalized settings attributes (excludes identity metadata:
+# player_id / canonical_name / team / cohort_tier / provenance)
+_SETTINGS_FIELDS = tuple(
+    f.name for f in NormalizedPlayerSettings.__dataclass_fields__.values()
+    if f.name not in ("player_id", "canonical_name", "team", "cohort_tier",
+                      "provenance")
+)
+
 EDPI_BINS = [(0, 400, "0-400"), (400, 600, "400-600"), (600, 800, "600-800"),
              (800, 1000, "800-1000"), (1000, 1200, "1000-1200"), (1200, 1600, "1200-1600"),
              (1600, float("inf"), "1600+")]
@@ -132,10 +140,27 @@ def compute_metrics(
 
     dpi_1600_plus = sum(1 for v in [p.dpi for p in players] if v is not None and v >= 1600)
 
+    # SETTINGS AVAILABILITY: cohort membership (len(players)) is decided by
+    # roster + inclusion policy + stable identity; field availability is
+    # separate. players_with_any_setting counts cohort members with at
+    # least one real normalized settings attribute (excludes identity
+    # metadata: player_id/canonical_name/team/cohort_tier).
+    any_setting = 0
+    for p in players:
+        if any(getattr(p, f) is not None for f in _SETTINGS_FIELDS):
+            any_setting += 1
+    settings_availability = {
+        "cohort_players": n,
+        "players_with_any_setting": any_setting,
+        "players_with_zero_settings": n - any_setting,
+        "any_setting_share": round(any_setting / n, 4) if n else None,
+    }
+
     aggregate = {
         "snapshot_date": snapshot_date,
         "player_count": n,
         "team_count": len({p.team for p in players if p.team}),
+        "settings_availability": settings_availability,
         "source": {"primary": source_note or "v2-pipeline"},
         "scope": scope or {"scope_id": None, "tracked_teams": [], "tracked_team_count": 0},
         "series": series or {"series_id": "unknown", "cohort_semantics": "unknown"},
