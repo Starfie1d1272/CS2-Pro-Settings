@@ -70,15 +70,22 @@ def reconcile(
             continue
         by_player.setdefault(obs.player_id, {}).setdefault(obs.field, []).append(obs)
 
+    # COHORT PRESERVATION: the player universe is observation-driven ∪
+    # identity-driven. A player with a stable identity from this collection
+    # run (fetched + inclusion-allowed) stays a cohort member even with
+    # ZERO parseable settings observations — settings availability must not
+    # decide cohort membership.
+    player_ids = set(by_player) | set(identities)
+
     result = ReconcileResult()
-    for player_id, field_obs in by_player.items():
+    for player_id in sorted(player_ids):
         identity = identities.get(player_id)
         settings = NormalizedPlayerSettings(
             player_id=player_id,
             canonical_name=identity.canonical_name if identity else player_id,
             team=identity.team if identity else None,
         )
-        for attr, obs_list in field_obs.items():
+        for attr, obs_list in (by_player.get(player_id) or {}).items():
             if not obs_list:
                 continue
             # dedupe by (source): keep the most recent retrieval

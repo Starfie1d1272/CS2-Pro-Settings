@@ -68,6 +68,16 @@ def render_report(
     lines.append("")
     lines.append(f"- snapshot date: **{agg.get('snapshot_date', 'n/a')}**")
     lines.append(f"- cohort size: {agg.get('player_count')} players / {agg.get('team_count')} teams")
+    av = agg.get("settings_availability") or {}
+    if av:
+        n = av.get("cohort_players")
+        m = av.get("players_with_any_setting")
+        z = av.get("players_with_zero_settings")
+        share = av.get("any_setting_share")
+        share_txt = f"{share:.1%}" if isinstance(share, (int, float)) else "n/a"
+        lines.append(f"- settings availability: {m}/{n} with at least one usable setting "
+                     f"({share_txt}); {z} with zero usable settings")
+    lines.append("- field-level coverage varies: each metric reports its own valid_n")
     lines.append(f"- source: {agg.get('source', {}).get('primary', 'n/a')}")
     scope = agg.get("scope") or {}
     lines.append(f"- tracked-team scope: {scope.get('scope_id', 'n/a')} "
