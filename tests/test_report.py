@@ -1,4 +1,4 @@
-"""Report determinism."""
+"""Report determinism (English canonical format)."""
 from cs2_pro_settings.drift import compute_drift
 from cs2_pro_settings.metrics import compute_metrics
 from cs2_pro_settings.models import NormalizedPlayerSettings
@@ -34,14 +34,14 @@ def test_report_byte_for_byte_deterministic():
 def test_report_contains_key_sections():
     metrics, drift = make_inputs()
     text = render_report(metrics, drift, {"cs2settings": "ok"}, [])
-    for section in ("## Snapshot", "## Source status", "## Key metrics",
-                    "## Comparison with previous accepted snapshot",
-                    "## Source conflicts", "## Limitations"):
+    for section in ("## 1. Key numbers", "Mouse & sensitivity",
+                    "Data coverage", "Data & code"):
         assert section in text
-    assert "snapshot date" in text
+    assert "2026-08-01" in text
 
 
 def test_report_contains_valid_n():
     metrics, drift = make_inputs()
     text = render_report(metrics, drift, {"cs2settings": "ok"}, [])
-    assert "(n=" in text  # every share carries its valid_n
+    assert "valid_n" in text  # the coverage table carries valid_n per field
+    assert "| Field | valid_n / cohort |" in text

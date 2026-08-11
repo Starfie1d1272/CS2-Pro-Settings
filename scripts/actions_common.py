@@ -84,31 +84,79 @@ def ensure_git_identity() -> None:
     sh("git", "config", "user.email", "github-actions[bot]@users.noreply.github.com")
 
 
-def write_candidate_files(metrics: dict, monthly: bool = False) -> list[str]:
-    """Update public candidate artifacts; returns changed file descriptions."""
+def write_candidate_files(metrics: dict, monthly: bool = False,
+                          month: Optional[str] = None) -> list[str]:
+    """Update public candidate artifacts; returns changed file descriptions.
+
+    Report contract (bilingual, synchronized):
+      - reports/latest.md + latest.zh-CN.md      -> figures/latest/*
+      - monthly: reports/YYYY-MM.md + .zh-CN.md  -> figures/YYYY-MM/*
+    The monthly archives are written UNCONDITIONALLY so a correctness-fix
+    refresh of the same month propagates into both languages and BOTH figure
+    scopes (content is deterministic, so an unchanged run produces no git
+    diff / empty commit). A later month never touches an earlier month's
+    figures directory.
+    """
+    import re as _re
+
     from cs2_pro_settings.metrics import public_aggregate
     from cs2_pro_settings.plots import render_all
+    from cs2_pro_settings.report import (
+        CURRENT_SNAPSHOT_END,
+        CURRENT_SNAPSHOT_START,
+        render_current_snapshot_block,
+    )
 
     changed: list[str] = []
+    month = month or date.today().strftime("%Y-%m")
     pub = public_aggregate(metrics)
     (AGG / "latest.json").write_text(
         json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     changed.append("data/aggregate/latest.json")
+
+    def _copy_report(src_name: str, dst: Path) -> None:
+        src = WORK / src_name
+        if src.exists():
+            dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            changed.append(f"reports/{dst.name}")
+
+    _copy_report("report-candidate.md", REPORTS / "latest.md")
+    _copy_report("report-candidate.zh-CN.md", REPORTS / "latest.zh-CN.md")
+    render_all(metrics, FIGURES)
+    changed.append("figures/latest/*")
     if monthly:
-        # the monthly file must stay in sync with latest for the SAME
-        # candidate (data corrections propagate): write unconditionally —
-        # content is deterministic, so an unchanged run produces no git
-        # diff and no empty commit
-        month_file = AGG / f"{date.today().strftime('%Y-%m')}.json"
+        month_file = AGG / f"{month}.json"
         month_file.write_text(
             json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         changed.append(month_file.name)
-    rep = WORK / "report-candidate.md"
-    if rep.exists():
-        (REPORTS / "latest.md").write_text(rep.read_text(encoding="utf-8"), encoding="utf-8")
-        changed.append("reports/latest.md")
-    render_all(metrics, FIGURES)
-    changed.append("figures/latest/*")
+        _copy_report("report-candidate-monthly.md", REPORTS / f"{month}.md")
+        _copy_report("report-candidate-monthly.zh-CN.md", REPORTS / f"{month}.zh-CN.md")
+        # immutable per-month figure archive (never overwritten by a later month)
+        month_figs = FIGURES.parent / month
+        render_all(metrics, month_figs)
+        changed.append(f"figures/{month}/*")
+
+    # README current-snapshot blocks: ONLY the marked region is replaced;
+    # all other README prose is left untouched
+    drift = load("drift.json")
+    first = None
+    if drift:
+        bd = drift.get("baseline_snapshot_date")
+        cd = drift.get("current_snapshot_date")
+        first = bool(not drift.get("series_compatible", True) or (bd and bd == cd))
+    for readme, locale in ((ROOT / "README.md", "en"),
+                           (ROOT / "README.zh-CN.md", "zh-CN")):
+        if not readme.exists():
+            continue
+        text = readme.read_text(encoding="utf-8")
+        block = render_current_snapshot_block(metrics, locale=locale,
+                                              first_snapshot=first)
+        new_text, n = _re.subn(
+            rf"(?s){_re.escape(CURRENT_SNAPSHOT_START)}.*?{_re.escape(CURRENT_SNAPSHOT_END)}",
+            lambda _m: block, text, count=1)
+        if n and new_text != text:
+            readme.write_text(new_text, encoding="utf-8")
+            changed.append(readme.name)
     return changed
 
 
@@ -176,6 +224,7 @@ def create_or_update_candidate_pr(
     """
     ensure_git_identity()
     existing = open_automation_pr()
+    month = date.today().strftime("%Y-%m")
 
     if existing:
         head = existing["headRefName"]
@@ -198,13 +247,23 @@ def create_or_update_candidate_pr(
     # NOW write candidate files on the correct branch
     changed_files = write_candidate_files(metrics, monthly=monthly)
 
-    # git add only paths that actually exist (reports/latest.md is written
-    # only when the pipeline produced a candidate report)
+    # git add only paths that actually exist (report files are written only
+    # when the pipeline produced a candidate report)
     add_paths = ["data/aggregate"]
-    if (REPORTS / "latest.md").exists():
-        add_paths.append("reports/latest.md")
+    for rep_name in ("latest.md", "latest.zh-CN.md"):
+        if (REPORTS / rep_name).exists():
+            add_paths.append(f"reports/{rep_name}")
+    if monthly:
+        for rep_name in (f"{month}.md", f"{month}.zh-CN.md"):
+            if (REPORTS / rep_name).exists():
+                add_paths.append(f"reports/{rep_name}")
     if FIGURES.is_dir():
         add_paths.append("figures/latest")
+    if monthly and (FIGURES.parent / month).is_dir():
+        add_paths.append(f"figures/{month}")
+    for readme in ("README.md", "README.zh-CN.md"):
+        if (ROOT / readme).exists():
+            add_paths.append(readme)
     sh("git", "add", "--", *add_paths)
     # commit only if there are changes (no empty commits)
     status = sh("git", "status", "--porcelain")

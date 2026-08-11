@@ -37,7 +37,7 @@ from .metrics import compute_metrics, public_aggregate
 from .models import NormalizedPlayerSettings, SourceHealth, SourceObservation
 from .normalize import normalize_field
 from .reconcile import reconcile
-from .report import render_report
+from .report import read_legacy_metadata, render_report
 from .sources import get_source
 from .sources.base import AccessPolicy, ParsedPlayer, SourceError
 
@@ -646,25 +646,52 @@ def step_report(candidate: bool) -> Path:
     rr_path = WORK / "roster-report.json"
     if rr_path.exists():
         roster_report = json.loads(rr_path.read_text(encoding="utf-8"))
+    manifest = None
+    mf_path = WORK / "collection-manifest.json"
+    if mf_path.exists():
+        manifest = json.loads(mf_path.read_text(encoding="utf-8"))
     baseline = None
     bp = DATA_AGG / "latest.json"
     if bp.exists():
         baseline = json.loads(bp.read_text(encoding="utf-8"))
+    cur_series = (metrics.get("aggregate", {}).get("series") or {}).get("series_id")
+    legacy = read_legacy_metadata(DATA_AGG, cur_series)
 
-    text = render_report(
-        metrics=metrics,
-        drift=drift,
-        source_status=status,
-        conflicts=conflicts,
-        baseline=baseline,
-        roster_report=roster_report,
-    )
+    snapshot_date = (metrics.get("aggregate", {}) or {}).get("snapshot_date")
+    month = (snapshot_date or date.today().isoformat())[:7]
+    if len(month) != 7:
+        month = date.today().strftime("%Y-%m")
+
     if candidate:
-        out = WORK / "report-candidate.md"
+        out_en = WORK / "report-candidate.md"
+        out_zh = WORK / "report-candidate.zh-CN.md"
+        out_month_en = WORK / "report-candidate-monthly.md"
+        out_month_zh = WORK / "report-candidate-monthly.zh-CN.md"
     else:
-        out = ROOT / "reports" / "latest.md"
-    out.write_text(text, encoding="utf-8")
-    return out
+        out_en = ROOT / "reports" / "latest.md"
+        out_zh = ROOT / "reports" / "latest.zh-CN.md"
+        out_month_en = ROOT / "reports" / f"{month}.md"
+        out_month_zh = ROOT / "reports" / f"{month}.zh-CN.md"
+
+    common = dict(metrics=metrics, drift=drift, source_status=status,
+                  conflicts=conflicts, baseline=baseline,
+                  roster_report=roster_report, manifest=manifest,
+                  legacy_snapshot=legacy)
+    # latest pair: latest cross-links + mutable figures/latest scope
+    out_en.write_text(render_report(locale="en", figure_scope="latest",
+                                    cross_link_base="latest", **common),
+                      encoding="utf-8")
+    out_zh.write_text(render_report(locale="zh-CN", figure_scope="latest",
+                                    cross_link_base="latest", **common),
+                      encoding="utf-8")
+    # monthly pair: same-month cross-links + immutable figures/YYYY-MM scope
+    out_month_en.write_text(render_report(locale="en", figure_scope=month,
+                                          cross_link_base=month, **common),
+                            encoding="utf-8")
+    out_month_zh.write_text(render_report(locale="zh-CN", figure_scope=month,
+                                          cross_link_base=month, **common),
+                            encoding="utf-8")
+    return out_en
 
 
 # ---------------------------------------------------------------------------

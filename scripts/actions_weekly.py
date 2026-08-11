@@ -21,7 +21,9 @@ import yaml
 
 from actions_common import (
     AGG,
+    REPORTS,
     ROOT,
+    WORK,
     create_or_update_candidate_pr,
     dry_run,
     load,
@@ -196,12 +198,31 @@ def main() -> int:
     # monthly_due: file missing OR stale (differs from the current
     # candidate). A data correction (e.g. cohort-preservation fix) must
     # propagate into the monthly archive even when the file already exists.
+    # Report archives (both locales) are checked the same way: a report
+    # wording/correctness fix must refresh latest.md / latest.zh-CN.md AND
+    # YYYY-MM.md / YYYY-MM.zh-CN.md together — latest must never be newer
+    # than the same-month archive.
     from cs2_pro_settings.metrics import public_aggregate
 
+    month = date.today().strftime("%Y-%m")
     candidate_content = json.dumps(public_aggregate(metrics), indent=2,
                                    ensure_ascii=False) + "\n"
     monthly_due = (not month_file.exists()
                    or month_file.read_text(encoding="utf-8") != candidate_content)
+    if not monthly_due:
+        report_pairs = [
+            (REPORTS / "latest.md", WORK / "report-candidate.md"),
+            (REPORTS / "latest.zh-CN.md", WORK / "report-candidate.zh-CN.md"),
+            (REPORTS / f"{month}.md", WORK / "report-candidate-monthly.md"),
+            (REPORTS / f"{month}.zh-CN.md", WORK / "report-candidate-monthly.zh-CN.md"),
+        ]
+        for target, src in report_pairs:
+            if not src.exists():
+                continue  # no candidate report this run -> nothing to sync
+            if (not target.exists()
+                    or target.read_text(encoding="utf-8") != src.read_text(encoding="utf-8")):
+                monthly_due = True
+                break
 
     rank = ranking_status()
     watch_due = watchlist_review_due()
