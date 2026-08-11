@@ -20,7 +20,7 @@ from typing import Any, Optional
 # scalar parsers
 # ---------------------------------------------------------------------------
 
-_KNOWN_COLORS = ["Custom", "Cyan", "Green", "Yellow", "Blue", "Red", "White", "Pink", "Purple", "Orange"]
+_KNOWN_COLORS = ["Custom", "Cyan", "Green", "Yellow", "Blue", "Red", "White", "Pink", "Purple", "Orange", "Magenta"]
 
 
 def to_float(v: Any) -> Optional[float]:
@@ -136,6 +136,10 @@ _PARSERS: dict[str, tuple[str, Any]] = {
     "thickness": ("crosshair_thickness", to_float),
     "crosshair_color": ("crosshair_color", color_category),
     "color": ("crosshair_color", color_category),
+    "crosshair_color_code": ("crosshair_color_code", to_int),
+    "crosshair_color_r": ("crosshair_color_r", to_int),
+    "crosshair_color_g": ("crosshair_color_g", to_int),
+    "crosshair_color_b": ("crosshair_color_b", to_int),
     "crosshair_outline": ("crosshair_outline", to_bool),
     "outline": ("crosshair_outline", to_bool),
     "crosshair_dot": ("crosshair_dot", to_bool),

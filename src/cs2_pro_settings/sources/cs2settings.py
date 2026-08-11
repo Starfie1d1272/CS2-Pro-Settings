@@ -264,7 +264,10 @@ _CROSSHAIR_MAP = {
     "size": "crosshair_size",
     "gap": "crosshair_gap",
     "thickness": "crosshair_thickness",
-    "color": "crosshair_color_raw",
+    "color": "crosshair_color_code",
+    "colorR": "crosshair_color_r",
+    "colorG": "crosshair_color_g",
+    "colorB": "crosshair_color_b",
     "outline": "crosshair_outline",
     "dot": "crosshair_dot",
     "alpha": "crosshair_alpha",
@@ -288,11 +291,39 @@ _MAP_MAP = {
     "radarCentered": "radar_centered",
 }
 
-# cs2settings crosshair color code -> category (from their own schema)
+# cs2settings crosshair color code -> verified category.
+# Empirically verified 2026-08-11 against the site's own front-end:
+#  - preview palette (chunks/D1ajQskv.js) maps code -> color as
+#    1 #ff0000 Red, 2 #00ff00 Green, 3 #ffff00 Yellow, 4 #0000ff Blue,
+#    5 #00ffff (RGB-missing fallback only), 6 #ff00ff Magenta,
+#    7 #ffffff White, 8 #ff8000 Orange
+#  - the share-code codec (chunks/fAUr8sLQ.js) stores `color & 7` and
+#    emits `cl_crosshaircolor <color>` verbatim, so the field IS the
+#    game's cl_crosshaircolor (Valve semantics: 1 red / 2 green /
+#    3 yellow / 4 blue / 5 custom-RGB).
+# Code 5 therefore means Custom (RGB channels active); the cyan palette
+# entry is only what the preview falls back to when RGB is missing. The
+# old mapping (1 Green / 2 Yellow / 7 Red / 8 White) was wrong; live data
+# shows only codes 1/2/4/5.
 _COLOR_CODES = {
-    1: "Green", 2: "Yellow", 3: "Cyan", 4: "Blue",
-    5: "Custom", 6: "Pink", 7: "Red", 8: "White",
+    1: "Red", 2: "Green", 3: "Yellow", 4: "Blue",
+    5: "Custom", 6: "Magenta", 7: "White", 8: "Orange",
 }
+
+
+def _as_int_in_range(v: Any, lo: int, hi: int) -> Optional[int]:
+    """int(v) clamped to [lo, hi]; bools / malformed / out-of-range -> None.
+
+    Field-level fail-closed: a bad channel fails THAT field, never the
+    whole player page.
+    """
+    if isinstance(v, bool):
+        return None
+    try:
+        iv = int(v)
+    except (TypeError, ValueError):
+        return None
+    return iv if lo <= iv <= hi else None
 
 
 class CS2SettingsSource:
@@ -466,8 +497,22 @@ class CS2SettingsSource:
             f = _CROSSHAIR_MAP.get(k)
             if not f:
                 continue
-            if f == "crosshair_color_raw":
-                fields["crosshair_color"] = _COLOR_CODES.get(int(v)) if isinstance(v, (int, float)) else v
+            if f == "crosshair_color_code":
+                # raw mode/code (the game's cl_crosshaircolor value) is
+                # preserved AND mapped to a verified category label.
+                # Preset RGB channels stay latent (see models.py) and
+                # never override the category.
+                code = _as_int_in_range(v, 1, 8)
+                if code is not None:
+                    fields["crosshair_color_code"] = code
+                    fields["crosshair_color"] = _COLOR_CODES.get(code)
+            elif f in ("crosshair_color_r", "crosshair_color_g",
+                       "crosshair_color_b"):
+                # RGB channels: 0..255 integer range check; malformed or
+                # out-of-range fails THIS field closed, never the page.
+                rgb = _as_int_in_range(v, 0, 255)
+                if rgb is not None:
+                    fields[f] = rgb
             else:
                 fields[f] = v
         vid = blob.get("videoSettings")

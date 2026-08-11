@@ -82,6 +82,17 @@ class NormalizedPlayerSettings:
     crosshair_gap: Optional[float] = None
     crosshair_thickness: Optional[float] = None
     crosshair_color: Optional[str] = None
+    # RAW mode/code from the source (e.g. cs2settings `crosshair.color`,
+    # which is the game's cl_crosshaircolor value). Never interpreted as a
+    # color on its own: the verified label lives in crosshair_color.
+    crosshair_color_code: Optional[int] = None
+    # RAW stored RGB channels (cl_crosshaircolor_r/g/b). These are ACTIVE
+    # only when crosshair_color == "Custom": for preset modes the source
+    # keeps the values as latent state and they do NOT represent the
+    # current effective color. Never used to override a preset category.
+    crosshair_color_r: Optional[int] = None
+    crosshair_color_g: Optional[int] = None
+    crosshair_color_b: Optional[int] = None
     crosshair_outline: Optional[bool] = None
     crosshair_dot: Optional[bool] = None
     crosshair_alpha: Optional[int] = None

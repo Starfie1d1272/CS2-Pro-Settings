@@ -154,7 +154,9 @@ def _pick_primary(
 _GROUP_ATTRS: dict[str, set[str]] = {
     "crosshair": {
         "crosshair_style", "crosshair_size", "crosshair_gap", "crosshair_thickness",
-        "crosshair_color", "crosshair_outline", "crosshair_dot", "crosshair_alpha",
+        "crosshair_color", "crosshair_color_code", "crosshair_color_r",
+        "crosshair_color_g", "crosshair_color_b",
+        "crosshair_outline", "crosshair_dot", "crosshair_alpha",
     },
     "dpi": {"dpi", "sensitivity", "edpi", "zoom_sensitivity", "polling_rate"},
     "gear": {"resolution", "aspect_ratio", "scaling_mode", "refresh_rate", "max_fps"},

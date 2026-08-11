@@ -101,6 +101,33 @@ def compute_metrics(
     color_cats = _counts([p.crosshair_color for p in players])
     color_valid = _valid_n([p.crosshair_color for p in players])
 
+    # Custom RGB: interpreted ONLY for players whose crosshair is in
+    # Custom mode (crosshair_color == "Custom") AND whose R/G/B channels
+    # are all present. Preset-mode RGB is latent/inactive state (see
+    # models.py) and never enters this denominator; a missing channel
+    # makes the player Custom-RGB-missing, never defaulted to 255,255,255.
+    custom_players = sum(1 for p in players if p.crosshair_color == "Custom")
+    rgb_keys = [
+        f"{p.crosshair_color_r},{p.crosshair_color_g},{p.crosshair_color_b}"
+        for p in players
+        if p.crosshair_color == "Custom"
+        and p.crosshair_color_r is not None
+        and p.crosshair_color_g is not None
+        and p.crosshair_color_b is not None
+    ]
+    rgb_cats = _counts(rgb_keys)
+    rgb_valid = len(rgb_keys)
+    top_rgb = _top(rgb_cats)
+    custom_rgb = {
+        "valid_n": rgb_valid,
+        "custom_players": custom_players,
+        "coverage": _share(rgb_valid, custom_players),
+        "categories": rgb_cats,
+        "unique_colors": len(rgb_cats),
+        "top_rgb": top_rgb,
+        "top_rgb_share": _share(rgb_cats.get(top_rgb, 0), rgb_valid) if top_rgb else None,
+    }
+
     fov = [p.viewmodel_fov for p in players]
     fov_valid = _valid_n(fov)
     fov68 = sum(1 for v in fov if v == 68)
@@ -208,6 +235,7 @@ def compute_metrics(
             "dot_outline_off_share": _share(both_off, ch_valid),
             "color_categories": color_cats,
             "top_color": _top(color_cats),
+            "custom_rgb": custom_rgb,
         },
         "viewmodel": {
             "valid_n": fov_valid,
