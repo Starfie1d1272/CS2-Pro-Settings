@@ -15,6 +15,7 @@ Fail closed: any HTTP or parse failure raises SourceError.
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import date
 from typing import Any, Optional
@@ -292,60 +293,74 @@ _MAP_MAP = {
 }
 
 # cs2settings crosshair color code -> verified game semantic.
-# Verified 2026-08-11 (round 2):
+# Verified 2026-08-11 (final):
 #  - blob `crosshair.color` IS the game's cl_crosshaircolor cvar value:
 #    the share-code codec (chunks/fAUr8sLQ.js) stores `color & 7` and the
 #    Copy Commands generator emits `cl_crosshaircolor <color>` verbatim;
-#  - authoritative game semantics from the Valve CSGO source
-#    (Kisak-Strike weapon_csbase.cpp, cl_crosshaircolor switch):
-#      0 Red (250,50,50), 1 Green (50,250,50), 2 Yellow (250,250,50),
-#      3 Blue (50,50,250), 4 Cyan (50,250,250), 5 Custom (RGB channels);
-#    CS2 keeps the same 0-5 values (game_options.consoles.txt dumps:
-#    "0-4 preset, 5 custom") and the share-code format is unchanged;
-#  - values 6+ are NOT valid cvar states (the game falls back to green);
-#    the site's preview palette keeps extra swatches at index 6-8
-#    (magenta/white/orange) but those are UI fallback colors, NOT presets,
-#    so they are never mapped;
+#  - the 0-4 preset mapping (Red/Green/Yellow/Blue/Cyan) comes from the
+#    historical CS:GO implementation preserved by Kisak-Strike
+#    (weapon_csbase.cpp, cl_crosshaircolor switch: 0 Red / 1 Green /
+#    2 Yellow / 3 Blue / 4 Cyan), cross-checked against current CS2 game
+#    data: the in-game RGB sliders set cl_crosshaircolor to 5, so Custom
+#    mode = 5 (custom-RGB channels active);
+#  - codes 6+ have unverified / unsupported semantics: the raw code is
+#    preserved but NO label is attached (the site's preview palette keeps
+#    extra swatches at index 6-8, but they are UI fallback colors, not
+#    presets);
 #  - live data shows only codes 1/2/4/5, matching pro habits (green/cyan/
 #    custom dominate; pure red/blue rare).
-# NOTE: this is 0-based (CSGO heritage), NOT the old 1 Green / 2 Yellow /
+# NOTE: this is 0-based (CS:GO heritage), NOT the old 1 Green / 2 Yellow /
 # 3 Cyan / 4 Blue / 5 Custom / 6 Pink / 7 Red / 8 White table.
 _COLOR_CODES = {
     0: "Red", 1: "Green", 2: "Yellow", 3: "Blue", 4: "Cyan", 5: "Custom",
 }
 
 
-def _parse_color_code(v: Any) -> Optional[int]:
-    """Raw cl_crosshaircolor value: ANY non-negative integer is preserved.
+def _exact_int(v: Any) -> Optional[int]:
+    """Exact integer parsing: int, integral float (4.0), integer string.
 
-    The share-code codec stores `color & 7`, so 0..7 round-trip and 8+
-    collapse modulo 8 (8 & 7 == 0). The raw value is therefore kept
-    verbatim; semantics are only attached by _COLOR_CODES for codes with
-    confirmed game meaning. Bools / malformed -> None (field-level
-    fail-closed, never a page failure).
+    Rejects non-integral floats (4.2 -> NOT 4), bools, NaN/inf and other
+    malformed values -> None. Field-level fail-closed: a bad value fails
+    THAT field, never the whole player page.
     """
     if isinstance(v, bool):
         return None
-    try:
-        iv = int(v)
-    except (TypeError, ValueError):
-        return None
-    return iv if iv >= 0 else None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        if not math.isfinite(v) or not v.is_integer():
+            return None
+        return int(v)
+    if isinstance(v, str):
+        s = v.strip()
+        try:
+            f = float(s)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(f) or not f.is_integer():
+            return None
+        return int(f)
+    return None
+
+
+def _parse_color_code(v: Any) -> Optional[int]:
+    """Raw cl_crosshaircolor value: ANY non-negative exact integer is
+    preserved (code 0 included; the share-code codec stores `color & 7`,
+    so 0..7 round-trip and 8+ collapse modulo 8 — the raw value is kept
+    verbatim). Semantics are only attached by _COLOR_CODES for codes with
+    confirmed game meaning; 6+ stay raw with no label.
+    """
+    iv = _exact_int(v)
+    return iv if iv is not None and iv >= 0 else None
 
 
 def _as_int_in_range(v: Any, lo: int, hi: int) -> Optional[int]:
-    """int(v) clamped to [lo, hi]; bools / malformed / out-of-range -> None.
-
-    Field-level fail-closed: a bad channel fails THAT field, never the
-    whole player page.
+    """Exact integer in [lo, hi]; bools / non-integral / NaN / inf /
+    out-of-range -> None. Field-level fail-closed: a bad channel fails
+    THAT field, never the whole player page.
     """
-    if isinstance(v, bool):
-        return None
-    try:
-        iv = int(v)
-    except (TypeError, ValueError):
-        return None
-    return iv if lo <= iv <= hi else None
+    iv = _exact_int(v)
+    return iv if iv is not None and lo <= iv <= hi else None
 
 
 class CS2SettingsSource:

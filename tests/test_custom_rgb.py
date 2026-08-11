@@ -1,14 +1,19 @@
 """Custom crosshair RGB analysis tests.
 
-Semantic contract (empirically verified 2026-08-11):
+Semantic contract (verified 2026-08-11, final 0-based):
 - cs2settings `crosshair.color` IS the game's cl_crosshaircolor value
   (share-code codec emits `cl_crosshaircolor <color>` verbatim, `color & 7`
-  on encode); verified labels are 1 Red / 2 Green / 3 Yellow / 4 Blue /
-  5 Custom / 6 Magenta / 7 White / 8 Orange (front-end preview palette).
+  on encode). Verified labels:
+    0 Red / 1 Green / 2 Yellow / 3 Blue / 4 Cyan / 5 Custom
+  (historical CS:GO implementation preserved by Kisak-Strike,
+  cross-checked against current CS2 game data: the in-game RGB sliders
+  set cl_crosshaircolor to 5, so Custom mode = 5).
+- codes 6+: unverified / unsupported semantic — raw code preserved,
+  NO label.
 - colorR/G/B are the raw cl_crosshaircolor_r/g/b channels. They are ACTIVE
-  only in Custom mode (code 5). In preset modes they are latent state and
-  never override the preset category and never enter the Custom RGB
-  aggregate.
+  only in Custom mode (crosshair_color_code == CUSTOM_COLOR_CODE == 5). In
+  preset modes they are latent state and never override the preset
+  category and never enter the Custom RGB aggregate.
 - custom_rgb.valid_n = Custom-mode players with ALL THREE channels.
 """
 import sys
@@ -127,15 +132,59 @@ def test_rgb_malformed_and_out_of_range():
 
 
 # ---------------------------------------------------------------------------
+# 4b. source: exact-integer parsing (no silent float truncation)
+# ---------------------------------------------------------------------------
+
+def test_color_code_non_integral_float_rejected():
+    """4.7 must NOT silently truncate to 4 (raw code contract: exact
+    integer >= 0, fail closed)."""
+    parsed = _parsed({"color": 4.7})
+    assert "crosshair_color_code" not in parsed.fields
+    assert "crosshair_color" not in parsed.fields
+
+
+def test_rgb_non_integral_float_rejected():
+    """254.9 must NOT silently truncate to 254 (RGB contract: exact
+    integer in 0..255, fail closed)."""
+    parsed = _parsed({"color": 5, "colorR": 254.9, "colorG": 0, "colorB": 255})
+    assert "crosshair_color_r" not in parsed.fields
+    assert parsed.fields["crosshair_color_g"] == 0
+    assert parsed.fields["crosshair_color_b"] == 255
+
+
+def test_integral_floats_and_strings_accepted():
+    """4.0 / 255.0 / '4' / '255.0' are exact integers and must parse."""
+    parsed = _parsed({"color": 4.0, "colorR": 255.0, "colorG": "0", "colorB": "255.0"})
+    assert parsed.fields["crosshair_color_code"] == 4
+    assert parsed.fields["crosshair_color_r"] == 255
+    assert parsed.fields["crosshair_color_g"] == 0
+    assert parsed.fields["crosshair_color_b"] == 255
+
+
+def test_bool_rejected_for_code_and_rgb():
+    parsed = _parsed({"color": True, "colorR": False, "colorG": 0, "colorB": 0})
+    assert "crosshair_color_code" not in parsed.fields
+    assert "crosshair_color_r" not in parsed.fields
+
+
+def test_nan_inf_rejected():
+    parsed = _parsed({"color": float("nan"), "colorR": float("inf"),
+                      "colorG": 0, "colorB": 0})
+    assert "crosshair_color_code" not in parsed.fields
+    assert "crosshair_color_r" not in parsed.fields
+
+
+# ---------------------------------------------------------------------------
 # 5. source: verified color-code mapping (0-based game semantics)
 # ---------------------------------------------------------------------------
 
 def test_verified_color_code_mapping():
-    """Only codes with confirmed game semantics are mapped. Verified
-    against the Valve CSGO source (weapon_csbase.cpp cl_crosshaircolor
-    switch: 0 Red / 1 Green / 2 Yellow / 3 Blue / 4 Cyan / 5 Custom);
-    CS2 keeps the same 0-5 values. 6/7/8 are NOT valid cvar states (the
-    game falls back to green) and are NOT mapped to color labels."""
+    """Only codes with confirmed game semantics are mapped. The 0-4 preset
+    mapping comes from the historical CS:GO implementation preserved by
+    Kisak-Strike (weapon_csbase.cpp cl_crosshaircolor switch), cross-
+    checked against current CS2 game data (in-game RGB sliders set
+    cl_crosshaircolor to 5 = Custom). 6/7/8 have unverified semantics and
+    are NOT mapped to color labels."""
     assert _COLOR_CODES == {
         0: "Red", 1: "Green", 2: "Yellow", 3: "Blue", 4: "Cyan", 5: "Custom",
     }
