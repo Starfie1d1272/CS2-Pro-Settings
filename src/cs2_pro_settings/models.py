@@ -10,6 +10,12 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+# The game's custom-RGB crosshair mode: cl_crosshaircolor 5 (verified
+# against Valve CSGO source; CS2 keeps the same 0-5 values). The RAW mode
+# code is the authoritative switch for Custom-mode RGB interpretation;
+# the string label ("Custom") is derived from it.
+CUSTOM_COLOR_CODE = 5
+
 
 @dataclass
 class PlayerIdentity:

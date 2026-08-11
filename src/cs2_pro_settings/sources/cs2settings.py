@@ -291,24 +291,46 @@ _MAP_MAP = {
     "radarCentered": "radar_centered",
 }
 
-# cs2settings crosshair color code -> verified category.
-# Empirically verified 2026-08-11 against the site's own front-end:
-#  - preview palette (chunks/D1ajQskv.js) maps code -> color as
-#    1 #ff0000 Red, 2 #00ff00 Green, 3 #ffff00 Yellow, 4 #0000ff Blue,
-#    5 #00ffff (RGB-missing fallback only), 6 #ff00ff Magenta,
-#    7 #ffffff White, 8 #ff8000 Orange
-#  - the share-code codec (chunks/fAUr8sLQ.js) stores `color & 7` and
-#    emits `cl_crosshaircolor <color>` verbatim, so the field IS the
-#    game's cl_crosshaircolor (Valve semantics: 1 red / 2 green /
-#    3 yellow / 4 blue / 5 custom-RGB).
-# Code 5 therefore means Custom (RGB channels active); the cyan palette
-# entry is only what the preview falls back to when RGB is missing. The
-# old mapping (1 Green / 2 Yellow / 7 Red / 8 White) was wrong; live data
-# shows only codes 1/2/4/5.
+# cs2settings crosshair color code -> verified game semantic.
+# Verified 2026-08-11 (round 2):
+#  - blob `crosshair.color` IS the game's cl_crosshaircolor cvar value:
+#    the share-code codec (chunks/fAUr8sLQ.js) stores `color & 7` and the
+#    Copy Commands generator emits `cl_crosshaircolor <color>` verbatim;
+#  - authoritative game semantics from the Valve CSGO source
+#    (Kisak-Strike weapon_csbase.cpp, cl_crosshaircolor switch):
+#      0 Red (250,50,50), 1 Green (50,250,50), 2 Yellow (250,250,50),
+#      3 Blue (50,50,250), 4 Cyan (50,250,250), 5 Custom (RGB channels);
+#    CS2 keeps the same 0-5 values (game_options.consoles.txt dumps:
+#    "0-4 preset, 5 custom") and the share-code format is unchanged;
+#  - values 6+ are NOT valid cvar states (the game falls back to green);
+#    the site's preview palette keeps extra swatches at index 6-8
+#    (magenta/white/orange) but those are UI fallback colors, NOT presets,
+#    so they are never mapped;
+#  - live data shows only codes 1/2/4/5, matching pro habits (green/cyan/
+#    custom dominate; pure red/blue rare).
+# NOTE: this is 0-based (CSGO heritage), NOT the old 1 Green / 2 Yellow /
+# 3 Cyan / 4 Blue / 5 Custom / 6 Pink / 7 Red / 8 White table.
 _COLOR_CODES = {
-    1: "Red", 2: "Green", 3: "Yellow", 4: "Blue",
-    5: "Custom", 6: "Magenta", 7: "White", 8: "Orange",
+    0: "Red", 1: "Green", 2: "Yellow", 3: "Blue", 4: "Cyan", 5: "Custom",
 }
+
+
+def _parse_color_code(v: Any) -> Optional[int]:
+    """Raw cl_crosshaircolor value: ANY non-negative integer is preserved.
+
+    The share-code codec stores `color & 7`, so 0..7 round-trip and 8+
+    collapse modulo 8 (8 & 7 == 0). The raw value is therefore kept
+    verbatim; semantics are only attached by _COLOR_CODES for codes with
+    confirmed game meaning. Bools / malformed -> None (field-level
+    fail-closed, never a page failure).
+    """
+    if isinstance(v, bool):
+        return None
+    try:
+        iv = int(v)
+    except (TypeError, ValueError):
+        return None
+    return iv if iv >= 0 else None
 
 
 def _as_int_in_range(v: Any, lo: int, hi: int) -> Optional[int]:
@@ -499,13 +521,16 @@ class CS2SettingsSource:
                 continue
             if f == "crosshair_color_code":
                 # raw mode/code (the game's cl_crosshaircolor value) is
-                # preserved AND mapped to a verified category label.
-                # Preset RGB channels stay latent (see models.py) and
-                # never override the category.
-                code = _as_int_in_range(v, 1, 8)
+                # ALWAYS preserved verbatim; a verified label is attached
+                # only for codes with confirmed game semantics. Preset RGB
+                # channels stay latent (see models.py) and never override
+                # the category.
+                code = _parse_color_code(v)
                 if code is not None:
                     fields["crosshair_color_code"] = code
-                    fields["crosshair_color"] = _COLOR_CODES.get(code)
+                    label = _COLOR_CODES.get(code)
+                    if label is not None:
+                        fields["crosshair_color"] = label
             elif f in ("crosshair_color_r", "crosshair_color_g",
                        "crosshair_color_b"):
                 # RGB channels: 0..255 integer range check; malformed or

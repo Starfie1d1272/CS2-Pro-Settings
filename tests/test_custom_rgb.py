@@ -39,12 +39,14 @@ def _parsed(crosshair: dict):
     return src._blob_to_parsed("p1", "https://cs2settings.com/players/p1", blob)
 
 
-def _player(pid, *, color=None, rgb=None):
-    """NormalizedPlayerSettings with optional crosshair color/RGB."""
+def _player(pid, *, color=None, code=None, rgb=None):
+    """NormalizedPlayerSettings with optional crosshair color/code/RGB."""
     base = dict(player_id=pid, canonical_name=pid, team="vitality",
                 crosshair_dot=False, crosshair_outline=False)
     if color is not None:
         base["crosshair_color"] = color
+    if code is not None:
+        base["crosshair_color_code"] = code
     if rgb is not None:
         base["crosshair_color_r"], base["crosshair_color_g"], base["crosshair_color_b"] = rgb
     return NormalizedPlayerSettings(**base)  # type: ignore[arg-type]
@@ -89,10 +91,11 @@ def test_custom_code_parses_rgb():
 # ---------------------------------------------------------------------------
 
 def test_preset_code_with_stale_mismatching_rgb():
-    """code 2 = Green (verified); RGB 255,0,255 is a latent stale value from
-    a previous Custom mode. Category stays Green; RGB is preserved as raw."""
+    """code 2 = Yellow (verified 0-based game semantics); RGB 255,0,255 is
+    a latent stale value from a previous Custom mode. Category stays
+    Yellow; RGB is preserved as raw."""
     parsed = _parsed({"color": 2, "colorR": 255, "colorG": 0, "colorB": 255})
-    assert parsed.fields["crosshair_color"] == "Green"
+    assert parsed.fields["crosshair_color"] == "Yellow"
     assert parsed.fields["crosshair_color_code"] == 2
     assert parsed.fields["crosshair_color_r"] == 255
     assert parsed.fields["crosshair_color_g"] == 0
@@ -124,25 +127,50 @@ def test_rgb_malformed_and_out_of_range():
 
 
 # ---------------------------------------------------------------------------
-# 5. source: verified color-code mapping (empirical, not guessed)
+# 5. source: verified color-code mapping (0-based game semantics)
 # ---------------------------------------------------------------------------
 
 def test_verified_color_code_mapping():
+    """Only codes with confirmed game semantics are mapped. Verified
+    against the Valve CSGO source (weapon_csbase.cpp cl_crosshaircolor
+    switch: 0 Red / 1 Green / 2 Yellow / 3 Blue / 4 Cyan / 5 Custom);
+    CS2 keeps the same 0-5 values. 6/7/8 are NOT valid cvar states (the
+    game falls back to green) and are NOT mapped to color labels."""
     assert _COLOR_CODES == {
-        1: "Red", 2: "Green", 3: "Yellow", 4: "Blue",
-        5: "Custom", 6: "Magenta", 7: "White", 8: "Orange",
+        0: "Red", 1: "Green", 2: "Yellow", 3: "Blue", 4: "Cyan", 5: "Custom",
     }
-    assert _parsed({"color": 1}) .fields["crosshair_color"] == "Red"
-    assert _parsed({"color": 4}) .fields["crosshair_color"] == "Blue"
-    assert _parsed({"color": 7}) .fields["crosshair_color"] == "White"
+    for code, label in ((0, "Red"), (1, "Green"), (2, "Yellow"),
+                        (3, "Blue"), (4, "Cyan"), (5, "Custom")):
+        parsed = _parsed({"color": code})
+        assert parsed.fields["crosshair_color_code"] == code
+        assert parsed.fields["crosshair_color"] == label
 
 
-def test_color_code_out_of_schema_range_dropped():
-    """A code outside 1..8 cannot be encoded by the site's own share-code
-    codec (`color & 7`); treat it as missing rather than guessing a label."""
-    parsed = _parsed({"color": 99, "colorR": 1, "colorG": 2, "colorB": 3})
-    assert "crosshair_color" not in parsed.fields
-    assert "crosshair_color_code" not in parsed.fields
+def test_unverified_codes_preserve_raw_but_no_label():
+    """Codes 6+ are not valid cl_crosshaircolor states (the game falls
+    back to green); the site's palette swatches at index 6-8 are UI
+    fallback colors, not presets. Raw code is preserved, label is NOT
+    guessed (no Magenta / White / Orange locks)."""
+    for code in (6, 7, 8):
+        parsed = _parsed({"color": code})
+        assert parsed.fields["crosshair_color_code"] == code, f"code {code} dropped"
+        assert "crosshair_color" not in parsed.fields, f"code {code} got a guessed label"
+
+
+def test_raw_color_code_zero_preserved():
+    """code 0 is a valid raw state (0 Red; share-code codec `color & 7`
+    can represent it). It must never be dropped."""
+    parsed = _parsed({"color": 0, "colorR": 250, "colorG": 50, "colorB": 50})
+    assert parsed.fields["crosshair_color_code"] == 0
+    assert parsed.fields["crosshair_color"] == "Red"
+
+
+def test_share_code_7_bit_boundary_documented():
+    """The codec stores `color & 7`: 8 & 7 == 0, so 8 is NOT a distinct
+    representable state even though the raw value is preserved."""
+    parsed = _parsed({"color": 8})
+    assert parsed.fields["crosshair_color_code"] == 8  # raw kept
+    assert "crosshair_color" not in parsed.fields      # but 8 != a preset
 
 
 # ---------------------------------------------------------------------------
@@ -150,11 +178,12 @@ def test_color_code_out_of_schema_range_dropped():
 # ---------------------------------------------------------------------------
 
 def test_model_rgb_round_trip():
-    p = _player("steam:1", color="Custom", rgb=(0, 255, 145))
+    p = _player("steam:1", color="Custom", code=5, rgb=(0, 255, 145))
     d = p.as_dict()
     d.pop("provenance", None)
     p2 = NormalizedPlayerSettings.from_dict(d)
     assert p2.crosshair_color == "Custom"
+    assert p2.crosshair_color_code == 5
     assert (p2.crosshair_color_r, p2.crosshair_color_g, p2.crosshair_color_b) == (0, 255, 145)
 
 
@@ -195,10 +224,10 @@ def test_reconcile_provenance_for_rgb_fields():
 
 def _custom_rgb_fixture_players():
     return [
-        _player("steam:1", color="Custom", rgb=(0, 255, 145)),   # in
-        _player("steam:2", color="Custom", rgb=(255, 255, 255)),  # in
-        _player("steam:3", color="Green", rgb=(255, 0, 255)),    # preset stale: OUT
-        _player("steam:4", color="Custom", rgb=(0, 255, None)),  # missing channel: OUT
+        _player("steam:1", color="Custom", code=5, rgb=(0, 255, 145)),   # in
+        _player("steam:2", color="Custom", code=5, rgb=(255, 255, 255)),  # in
+        _player("steam:3", color="Yellow", code=2, rgb=(255, 0, 255)),   # preset stale: OUT
+        _player("steam:4", color="Custom", code=5, rgb=(0, 255, None)),  # missing channel: OUT
     ]
 
 
@@ -222,11 +251,11 @@ def test_custom_rgb_coverage():
 
 def test_custom_rgb_exact_categories_deterministic():
     players = [
-        _player(f"steam:{i}", color="Custom", rgb=(0, 255, 145)) for i in range(3)
+        _player(f"steam:{i}", color="Custom", code=5, rgb=(0, 255, 145)) for i in range(3)
     ] + [
-        _player(f"steam:{i}", color="Custom", rgb=(255, 255, 255)) for i in range(3, 5)
+        _player(f"steam:{i}", color="Custom", code=5, rgb=(255, 255, 255)) for i in range(3, 5)
     ] + [
-        _player(f"steam:{i}", color="Custom", rgb=(0, 255, 0)) for i in range(5, 7)
+        _player(f"steam:{i}", color="Custom", code=5, rgb=(0, 255, 0)) for i in range(5, 7)
     ]
     m1 = _metrics_with(players)
     m2 = _metrics_with(list(reversed(players)))
@@ -244,6 +273,20 @@ def test_no_custom_players_means_empty_rgb_block():
     assert crgb["coverage"] is None
     assert crgb["categories"] == {}
     assert crgb["unique_colors"] == 0
+
+
+def test_custom_detection_uses_mode_code_not_label():
+    """The raw mode code is the authoritative switch: a player carrying the
+    Custom LABEL but a preset code (e.g. label from another source path)
+    is NOT Custom-mode and its RGB never enters the aggregate."""
+    m = _metrics_with([
+        _player("steam:1", color="Custom", code=2, rgb=(0, 255, 145)),
+        _player("steam:2", color="Custom", code=5, rgb=(0, 255, 145)),
+    ])
+    crgb = m["aggregate"]["crosshair"]["custom_rgb"]
+    assert crgb["custom_players"] == 1      # only code 5 counts
+    assert crgb["valid_n"] == 1
+    assert crgb["categories"] == {"0,255,145": 1}
 
 
 # ---------------------------------------------------------------------------

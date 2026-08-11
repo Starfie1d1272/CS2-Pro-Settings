@@ -12,7 +12,7 @@ from __future__ import annotations
 import statistics
 from typing import Any, Optional
 
-from .models import NormalizedPlayerSettings
+from .models import CUSTOM_COLOR_CODE, NormalizedPlayerSettings
 
 # Real normalized settings attributes (excludes identity metadata:
 # player_id / canonical_name / team / cohort_tier / provenance)
@@ -101,16 +101,18 @@ def compute_metrics(
     color_cats = _counts([p.crosshair_color for p in players])
     color_valid = _valid_n([p.crosshair_color for p in players])
 
-    # Custom RGB: interpreted ONLY for players whose crosshair is in
-    # Custom mode (crosshair_color == "Custom") AND whose R/G/B channels
-    # are all present. Preset-mode RGB is latent/inactive state (see
-    # models.py) and never enters this denominator; a missing channel
-    # makes the player Custom-RGB-missing, never defaulted to 255,255,255.
-    custom_players = sum(1 for p in players if p.crosshair_color == "Custom")
+    # Custom RGB: interpreted ONLY when the raw crosshair mode code is the
+    # game's custom-RGB value (cl_crosshaircolor 5, CUSTOM_COLOR_CODE) AND
+    # the R/G/B channels are all present. Preset-mode RGB is latent/
+    # inactive state (see models.py) and never enters this denominator;
+    # a missing channel makes the player Custom-RGB-missing, never
+    # defaulted to 255,255,255. The mode code is the authoritative switch.
+    custom_players = sum(1 for p in players
+                         if p.crosshair_color_code == CUSTOM_COLOR_CODE)
     rgb_keys = [
         f"{p.crosshair_color_r},{p.crosshair_color_g},{p.crosshair_color_b}"
         for p in players
-        if p.crosshair_color == "Custom"
+        if p.crosshair_color_code == CUSTOM_COLOR_CODE
         and p.crosshair_color_r is not None
         and p.crosshair_color_g is not None
         and p.crosshair_color_b is not None
