@@ -31,6 +31,7 @@ explained.
 """
 from __future__ import annotations
 
+import re
 from dataclasses import dataclass, field
 from pathlib import Path
 from typing import Any, Optional
@@ -977,6 +978,12 @@ def render_current_snapshot_block(
     aggregate. English and Chinese share the same data logic (raw category
     counts); only wording differs. `first_snapshot=None` omits the
     "first baseline" phrasing entirely.
+
+    The WHOLE region between the markers is generated: the header + data
+    bullets, the snapshot-specific takeaway sentence (built from the same
+    top categories, never hard-coded) and the report links including the
+    CURRENT month's archive link (derived from the snapshot date). Nothing
+    snapshot-specific may live outside this block.
     """
     agg = metrics.get("aggregate", metrics) if isinstance(metrics, dict) else {}
     series = (agg.get("series") or {}).get("series_id", "n/a")
@@ -990,43 +997,71 @@ def render_current_snapshot_block(
     avail_txt = f"{m}/{n}" if m is not None and n is not None else "n/a"
     avail_pct = _pct(share if isinstance(share, (int, float)) else None)
 
+    # shared data logic: one computation, both locales
+    edpi = agg.get("edpi") or {}
+    edpi_median = edpi.get("median")
+    dpi_cats = (agg.get("dpi") or {}).get("categories") or {}
+    dpi_combo = _cats_combined_share(dpi_cats, ["400", "800"])
+    aspect_rows = _cats_top_rows((agg.get("aspect_ratio") or {}).get("categories") or {})
+    res_rows = _cats_top_rows((agg.get("resolution") or {}).get("categories") or {})
+    poll_cats = (agg.get("mouse_polling") or {}).get("categories") or {}
+    p1000 = _cats_combined_share(poll_cats, ["1000"])
+    p4000 = _cats_ge_share(poll_cats, 4000)
+    vm = agg.get("viewmodel") or {}
+    fov68 = vm.get("fov68_share")
+    month = (snapshot_date or "")[:7]
+
+    # takeaway parts are the same top categories the bullets show; when the
+    # data changes next month the sentence changes with it
+    takeaway_parts = []
+    if edpi_median is not None:
+        takeaway_parts.append(f"{_num(edpi_median)} eDPI")
+    if aspect_rows:
+        takeaway_parts.append(aspect_rows[0][0])
+    if res_rows:
+        takeaway_parts.append(res_rows[0][0])
+    if fov68 is not None:
+        takeaway_parts.append("FOV 68")
+
     lines = [CURRENT_SNAPSHOT_START]
     if locale == "zh-CN":
         header = f"**{snapshot_date} · VRS Top 30 · {team_count} 支战队 · {player_count} 名选手**"
         if first_snapshot is True:
-            header += f" —— 第一份正式接受的 `{series}` baseline。"
+            header += f" —— `{series}` 系列的首个正式基线。"
         elif first_snapshot is False:
             header += f" · `{series}`"
         lines.append(header)
         lines.append("")
         if avail_txt != "n/a":
             lines.append(f"- {avail_txt} 名选手有可用设置数据（{avail_pct}）")
-        edpi = agg.get("edpi") or {}
-        if edpi.get("count"):
-            lines.append(f"- 中位 eDPI {_num(edpi.get('median'))}")
-        dpi_cats = (agg.get("dpi") or {}).get("categories") or {}
-        combo = _cats_combined_share(dpi_cats, ["400", "800"])
-        if combo:
-            c, t = combo
+        if edpi_median is not None:
+            lines.append(f"- 中位 eDPI {_num(edpi_median)}")
+        if dpi_combo:
+            c, t = dpi_combo
             lines.append(f"- 400 + 800 DPI 合计 {c / t * 100:.1f}%")
-        aspect_rank = _cats_top_rows((agg.get("aspect_ratio") or {}).get("categories") or {})
-        if aspect_rank:
-            lines.append(f"- {aspect_rank[0][0]} 占 {_cats_pct_from_row(aspect_rank[0])}")
-        res_rank = _cats_top_rows((agg.get("resolution") or {}).get("categories") or {})
-        if res_rank:
-            lines.append(f"- {res_rank[0][0]} 占 {_cats_pct_from_row(res_rank[0])}")
-        poll_cats = (agg.get("mouse_polling") or {}).get("categories") or {}
-        p1000 = _cats_combined_share(poll_cats, ["1000"])
+        if aspect_rows:
+            lines.append(f"- {aspect_rows[0][0]} 占 {_cats_pct_from_row(aspect_rows[0])}")
+        if res_rows:
+            lines.append(f"- {res_rows[0][0]} 占 {_cats_pct_from_row(res_rows[0])}")
         if p1000:
             c, t = p1000
             lines.append(f"- 1000 Hz 占 {c / t * 100:.1f}%")
-        p4000 = _cats_ge_share(poll_cats, 4000)
         if p4000:
             c, t = p4000
             lines.append(f"- 4000 Hz+ 占 {c / t * 100:.1f}%")
-        vm = agg.get("viewmodel") or {}
-        if vm.get("fov68_share") is not None:
-            lines.append(f"- viewmodel_fov 68 占 {_pct(vm.get('fov68_share'))}")
+        if fov68 is not None:
+            lines.append(f"- viewmodel_fov 68 占 {_pct(fov68)}")
+        if takeaway_parts:
+            joined = "、".join(takeaway_parts[:-1]) + (
+                f" 和 {takeaway_parts[-1]}" if len(takeaway_parts) > 1
+                else takeaway_parts[0])
+            lines.append("")
+            lines.append(f"从当前快照来看，{joined} 依然构成非常稳定的职业赛场主流画像。")
+        links = "[最新中文报告](./reports/latest.zh-CN.md) · [English report](./reports/latest.md)"
+        if re.fullmatch(r"\d{4}-\d{2}", month):
+            links += f" · [月度存档](./reports/{month}.zh-CN.md)"
+        lines.append("")
+        lines.append(f"→ {links}")
     else:
         header = f"**{snapshot_date} · VRS Top 30 · {team_count} teams · {player_count} players**"
         if first_snapshot is True:
@@ -1037,32 +1072,36 @@ def render_current_snapshot_block(
         lines.append("")
         if avail_txt != "n/a":
             lines.append(f"- {avail_txt} players with usable settings ({avail_pct})")
-        edpi = agg.get("edpi") or {}
-        if edpi.get("count"):
-            lines.append(f"- median eDPI {_num(edpi.get('median'))}")
-        dpi_cats = (agg.get("dpi") or {}).get("categories") or {}
-        combo = _cats_combined_share(dpi_cats, ["400", "800"])
-        if combo:
-            c, t = combo
+        if edpi_median is not None:
+            lines.append(f"- median eDPI {_num(edpi_median)}")
+        if dpi_combo:
+            c, t = dpi_combo
             lines.append(f"- 400 + 800 DPI = {c / t * 100:.1f}%")
-        aspect_rank = _cats_top_rows((agg.get("aspect_ratio") or {}).get("categories") or {})
-        if aspect_rank:
-            lines.append(f"- {aspect_rank[0][0]} = {_cats_pct_from_row(aspect_rank[0])}")
-        res_rank = _cats_top_rows((agg.get("resolution") or {}).get("categories") or {})
-        if res_rank:
-            lines.append(f"- {res_rank[0][0]} = {_cats_pct_from_row(res_rank[0])}")
-        poll_cats = (agg.get("mouse_polling") or {}).get("categories") or {}
-        p1000 = _cats_combined_share(poll_cats, ["1000"])
+        if aspect_rows:
+            lines.append(f"- {aspect_rows[0][0]} = {_cats_pct_from_row(aspect_rows[0])}")
+        if res_rows:
+            lines.append(f"- {res_rows[0][0]} = {_cats_pct_from_row(res_rows[0])}")
         if p1000:
             c, t = p1000
             lines.append(f"- 1000 Hz = {c / t * 100:.1f}%")
-        p4000 = _cats_ge_share(poll_cats, 4000)
         if p4000:
             c, t = p4000
             lines.append(f"- 4000 Hz+ = {c / t * 100:.1f}%")
-        vm = agg.get("viewmodel") or {}
-        if vm.get("fov68_share") is not None:
-            lines.append(f"- viewmodel_fov 68 = {_pct(vm.get('fov68_share'))}")
+        if fov68 is not None:
+            lines.append(f"- viewmodel_fov 68 = {_pct(fov68)}")
+        if takeaway_parts:
+            joined = ", ".join(takeaway_parts[:-1]) + (
+                f" and {takeaway_parts[-1]}" if len(takeaway_parts) > 1
+                else takeaway_parts[0])
+            verb = "forms" if len(takeaway_parts) == 1 else "form"
+            lines.append("")
+            lines.append(f"From the current snapshot, {joined} still {verb} a "
+                         "remarkably stable picture of the pro-scene mainstream.")
+        links = "[Latest report](./reports/latest.md) · [中文报告](./reports/latest.zh-CN.md)"
+        if re.fullmatch(r"\d{4}-\d{2}", month):
+            links += f" · [Monthly archive](./reports/{month}.md)"
+        lines.append("")
+        lines.append(f"→ {links}")
     lines.append(CURRENT_SNAPSHOT_END)
     return "\n".join(lines)
 

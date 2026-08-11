@@ -694,8 +694,13 @@ def test_readme_snapshot_block_matches_aggregate():
     zh = render_current_snapshot_block(metrics, locale="zh-CN", first_snapshot=True)
     for fact in ("2026-08-11", "30 支战队", "149 名选手", "133/149",
                  "89.3%", "800", "95.5%", "82.0%", "68.4%", "62.4%",
-                 "18.0%", "91.2%", "第一份正式接受"):
+                 "18.0%", "91.2%", "系列的首个正式基线"):
         assert fact in zh, f"missing in ZH block: {fact}"
+    # takeaway + current-month archive link live INSIDE the generated block
+    assert "From the current snapshot, 800 eDPI, 4:3, 1280x960 and FOV 68" in en
+    assert "Monthly archive](./reports/2026-08.md)" in en
+    assert "从当前快照来看，800 eDPI、4:3、1280x960 和 FOV 68" in zh
+    assert "月度存档](./reports/2026-08.zh-CN.md)" in zh
     # block is fully delimited by the markers
     assert en.startswith(CURRENT_SNAPSHOT_START)
     assert en.endswith(CURRENT_SNAPSHOT_END)
@@ -736,6 +741,49 @@ def test_readme_without_block_is_untouched(_candidate_env):
     assert (fake_root / "README.md").read_text(encoding="utf-8") == "no block here\n"
 
 
+def test_readme_next_month_leaves_no_stale_snapshot_content(_candidate_env):
+    """Simulating the 2026-09 update: the READMEs must contain NO residual
+    `reports/2026-08` archive link and NO old snapshot-specific takeaway —
+    the whole current-snapshot region (numbers, takeaway, links) is
+    regenerated from the new aggregate."""
+    actions_common, work, fake_root = _candidate_env
+    # seed with the CURRENT committed READMEs (they contain the 2026-08
+    # archive link and the old takeaway, exactly like the pre-update state)
+    en_seed = (REPO / "README.md").read_text(encoding="utf-8")
+    zh_seed = (REPO / "README.zh-CN.md").read_text(encoding="utf-8")
+    assert "reports/2026-08.md" in en_seed and "reports/2026-08.zh-CN.md" in zh_seed
+    (fake_root / "README.md").write_text(en_seed, encoding="utf-8")
+    (fake_root / "README.zh-CN.md").write_text(zh_seed, encoding="utf-8")
+    for name in ("report-candidate.md", "report-candidate.zh-CN.md",
+                 "report-candidate-monthly.md", "report-candidate-monthly.zh-CN.md"):
+        (work / name).write_text("x\n", encoding="utf-8")
+    # 2026-09 data with DIFFERENT top categories / median
+    metrics = _accepted_shaped_metrics(date_="2026-09-10")
+    agg = metrics["aggregate"]
+    agg["edpi"]["median"] = 900.0
+    agg["dpi"]["categories"] = {"1600": 80, "800": 40, "400": 10}
+    agg["aspect_ratio"]["categories"] = {"16:9": 100, "4:3": 30}
+    agg["resolution"]["categories"] = {"1920x1080": 100, "1280x960": 30}
+    agg["mouse_polling"]["categories"] = {"2000": 80, "1000": 40, "4000": 10}
+    actions_common.write_candidate_files(metrics, monthly=True, month="2026-09")
+    en = (fake_root / "README.md").read_text(encoding="utf-8")
+    zh = (fake_root / "README.zh-CN.md").read_text(encoding="utf-8")
+    # no stale month link anywhere in either README
+    assert "reports/2026-08" not in en, "stale 2026-08 archive link in EN"
+    assert "reports/2026-08" not in zh, "stale 2026-08 archive link in ZH"
+    # the new month's archive link is generated
+    assert "./reports/2026-09.md" in en
+    assert "./reports/2026-09.zh-CN.md" in zh
+    # old snapshot-specific takeaway (named 800 eDPI / 4:3 / 1280x960) gone
+    for stale in ("800 eDPI, 4:3, 1280x960", "800 eDPI、4:3、1280×960",
+                  "800 eDPI、4:3、1280x960"):
+        assert stale not in en and stale not in zh, f"stale takeaway: {stale}"
+    # the new takeaway reflects the 2026-09 top categories
+    assert "900 eDPI, 16:9, 1920x1080" in en
+    assert "900 eDPI、16:9、1920x1080" in zh
+    assert "2026-09-10" in en and "2026-09-10" in zh
+
+
 # ---------------------------------------------------------------------------
 # 16. render_accepted.py backfill guards
 # ---------------------------------------------------------------------------
@@ -753,6 +801,26 @@ def test_render_accepted_refuses_legacy_month(tmp_path, monkeypatch):
         render_accepted.main(["--month", "2026-05"])
 
 
+def test_render_accepted_bare_invocation_rejected(tmp_path, monkeypatch):
+    """No --month: the one-time backfill tool must refuse to do anything
+    (it must never re-render latest.* from a self-baseline)."""
+    render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit):
+        render_accepted.main([])
+    assert not (tmp_path / "reports" / "latest.md").exists()
+    assert not (tmp_path / "reports" / "latest.zh-CN.md").exists()
+
+
+def test_render_accepted_rejects_future_month(tmp_path, monkeypatch):
+    """Any month other than the first-baseline month is rejected, so the
+    tool can never be (mis)used for a future report."""
+    render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit):
+        render_accepted.main(["--month", "2026-09"])
+    assert not (tmp_path / "reports" / "2026-09.md").exists()
+    assert not (tmp_path / "reports" / "2026-09.zh-CN.md").exists()
+
+
 def test_render_accepted_month_writes_archive_only(tmp_path, monkeypatch):
     render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
     assert render_accepted.main(["--month", "2026-08"]) == 0
@@ -763,10 +831,15 @@ def test_render_accepted_month_writes_archive_only(tmp_path, monkeypatch):
     assert not (tmp_path / "reports" / "latest.zh-CN.md").exists()
 
 
-def test_render_accepted_latest_only(tmp_path, monkeypatch):
+def test_render_accepted_never_overwrites_future_latest(tmp_path, monkeypatch):
+    """A committed future latest.* must survive a backfill run untouched."""
     render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
-    assert render_accepted.main([]) == 0
-    assert (tmp_path / "reports" / "latest.md").exists()
-    assert (tmp_path / "reports" / "latest.zh-CN.md").exists()
-    # latest-only render never writes monthly archives
-    assert not (tmp_path / "reports" / "2026-08.md").exists()
+    (tmp_path / "reports" / "latest.md").write_text(
+        "FUTURE LATEST CONTENT\n", encoding="utf-8")
+    (tmp_path / "reports" / "latest.zh-CN.md").write_text(
+        "未来最新报告内容\n", encoding="utf-8")
+    assert render_accepted.main(["--month", "2026-08"]) == 0
+    assert (tmp_path / "reports" / "latest.md").read_text(
+        encoding="utf-8") == "FUTURE LATEST CONTENT\n"
+    assert (tmp_path / "reports" / "latest.zh-CN.md").read_text(
+        encoding="utf-8") == "未来最新报告内容\n"

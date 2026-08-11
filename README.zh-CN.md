@@ -15,7 +15,7 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 ## 最新一期
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-08-11 · VRS Top 30 · 30 支战队 · 149 名选手** —— 第一份正式接受的 `vrs-core-v2` baseline。
+**2026-08-11 · VRS Top 30 · 30 支战队 · 149 名选手** —— `vrs-core-v2` 系列的首个正式基线。
 
 - 133/149 名选手有可用设置数据（89.3%）
 - 中位 eDPI 800
@@ -25,11 +25,11 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 - 1000 Hz 占 62.4%
 - 4000 Hz+ 占 18.0%
 - viewmodel_fov 68 占 91.2%
-<!-- CURRENT_SNAPSHOT:END -->
 
-从当前快照来看，800 eDPI、4:3、1280×960 和 FOV 68 依然构成非常稳定的职业赛场主流画像。
+从当前快照来看，800 eDPI、4:3、1280x960 和 FOV 68 依然构成非常稳定的职业赛场主流画像。
 
 → [最新中文报告](./reports/latest.zh-CN.md) · [English report](./reports/latest.md) · [月度存档](./reports/2026-08.zh-CN.md)
+<!-- CURRENT_SNAPSHOT:END -->
 
 ## 为什么要做这个项目？
 
@@ -39,8 +39,8 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 
 - 800 DPI 是否继续替代 400 DPI？
 - 4:3 会不会真正退出职业赛场？
-- 4K / 8K polling rate 会不会成为新标准？
-- 数据变化来自 roster change，还是同一名选手真的改设置？
+- 4K / 8K 鼠标回报率会不会成为新标准？
+- 数据变化来自阵容更替，还是同一名选手真的改了设置？
 - 同一选手几个月后修改了哪些参数？
 
 一次性静态表不能回答这些问题。所以项目从 2026-05 的一次数据分析，演化成了现在的长期追踪管线。
@@ -53,7 +53,7 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 - 4408 收藏
 - 402 评论
 
-第一期反馈促使项目从一次性分析继续演化成现在的自动化追踪。记录：[`social/2026-05/publication.md`](./social/2026-05/publication.md)
+第一期反馈促使项目从一次性分析继续演化成现在的自动化追踪。记录：[`social/2026-05/publication.md`](./social/2026-05/publication.md) · [阅读第一期小黑盒原文](https://www.xiaoheihe.cn/app/bbs/link/182571dc6a63)
 
 ## 这个项目有什么不同？
 
@@ -61,7 +61,7 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 选手以 SteamID（`steam:<id>`）为永久身份，绝不用裸昵称，因此同一名选手可以跨时间、跨来源被持续追踪。
 
 ### 阵容变化感知
-Core 样本是已接受的 VRS Top 30。阵容按战队、按稳定身份逐期追踪，roster 更替与设置变化分开处理。
+Core 样本是已接受的 VRS Top 30。阵容按战队、按稳定身份逐期追踪，阵容更替与设置变化分开处理。
 
 ### 同选手纵向追踪
 同一名选手出现在两个快照中时，其字段会被直接比较。`missing → value` 与 `value → missing` 视为数据完整性变化，而不是选手修改设置。
@@ -87,7 +87,7 @@ VRS Top 30（已接受的排名快照）
   ↓
 月度快照（已接受 aggregate + 双语报告）
   ↓
-当前 cohort + 同选手 matched 分析
+当前 cohort + 同选手纵向追踪分析
   ↓
 报告 / 社区文章
 ```
@@ -130,7 +130,6 @@ pip install -e ".[dev]"
 python -m pytest -v                          # 离线测试
 python -m cs2_pro_settings update --offline  # fixture 全流程
 python -m cs2_pro_settings update --scheduled  # 定时源 live 流程
-python scripts/render_accepted.py            # backfill 首期 baseline / 重渲染 latest pair
 ```
 
 ## 仓库结构

@@ -21,11 +21,11 @@ Instead of publishing another static settings table, the project tracks the curr
 - 1000 Hz = 62.4%
 - 4000 Hz+ = 18.0%
 - viewmodel_fov 68 = 91.2%
-<!-- CURRENT_SNAPSHOT:END -->
 
-From the current snapshot, 800 eDPI, 4:3, 1280×960 and FOV 68 still form a remarkably stable picture of the pro-scene mainstream.
+From the current snapshot, 800 eDPI, 4:3, 1280x960 and FOV 68 still form a remarkably stable picture of the pro-scene mainstream.
 
 → [Latest report](./reports/latest.md) · [中文报告](./reports/latest.zh-CN.md) · [Monthly archive](./reports/2026-08.md)
+<!-- CURRENT_SNAPSHOT:END -->
 
 ## Why this project exists
 
@@ -47,7 +47,7 @@ The first community article (小黑盒, published 2026-05-05) analyzed 41 teams 
 - 4408 favorites
 - 402 comments
 
-The feedback pushed the project from a one-off analysis into the automated tracker you see here. Record: [`social/2026-05/publication.md`](./social/2026-05/publication.md)
+The feedback pushed the project from a one-off analysis into the automated tracker you see here. Record: [`social/2026-05/publication.md`](./social/2026-05/publication.md) · [Read the original Heybox article](https://www.xiaoheihe.cn/app/bbs/link/182571dc6a63)
 
 ## What makes the tracker different?
 
@@ -124,7 +124,6 @@ pip install -e ".[dev]"
 python -m pytest -v                          # offline tests
 python -m cs2_pro_settings update --offline  # full pipeline on fixtures
 python -m cs2_pro_settings update --scheduled  # live pipeline, scheduled sources
-python scripts/render_accepted.py            # backfill first-baseline / re-render latest pair
 ```
 
 ## Repository structure
