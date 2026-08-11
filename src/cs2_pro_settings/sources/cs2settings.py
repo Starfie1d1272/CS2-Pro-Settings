@@ -366,33 +366,64 @@ class CS2SettingsSource:
     def list_team_roster(self, team_slug: str) -> list[dict]:
         """Parse the current active roster of a team from its team page.
 
-        Semantic anchor: roster links contain a role marker (IGL / Rifler /
-        AWPer / Entry Fragger / Sniper / Lurker / Captain / Coach) as text;
-        CSS class names are NOT used as parser anchors. Footer/nav links to
-        players of other teams (no role marker) are excluded.
+        Membership anchor: the ROSTER SECTION of the team page, located
+        semantically via the roster heading ("Roster" / "Players" / "Team
+        Members" / "Current Roster") and its containing element. Role
+        labels are OPTIONAL metadata — a roster player without a role
+        label is still a roster member (HOTU pages list role-less
+        players). Fallback: when no roster heading exists, collect all
+        /players/ links and exclude nav/footer sections ("Browse",
+        "Top Teams", "Popular Players", ...). CSS class names are NOT
+        used as parser anchors.
 
-        Fail closed: a reachable team page that yields ZERO roster entries
-        raises SourceError (never an empty success — an empty result would
-        silently look like 'no active players').
+        Fail closed: a reachable team page with ZERO roster entries
+        raises SourceError (never an empty success).
         """
         url = f"{self.base_url}/teams/{team_slug}"
         html = self._get_text(url)
         soup = BeautifulSoup(html, "html.parser")
+
+        roster_anchors = soup.find_all(
+            ["h1", "h2", "h3"],
+            string=lambda s: s and str(s).strip().lower() in
+            {"roster", "players", "team members", "current roster", "active roster"})
+        if roster_anchors:
+            # heading -> its section container (2 levels up covers the
+            # card/section wrapper that holds the player list)
+            container = roster_anchors[0].parent
+            for _ in range(2):
+                container = container.parent
+            anchor_links = [
+                a for a in container.find_all("a", href=True)
+                if "/players/" in str(a.get("href") or "")]
+        else:
+            # fallback: exclude footer/nav sections by their semantic headings
+            nav_titles = {"browse", "top teams", "popular players",
+                          "related", "other teams"}
+            excluded = []
+            for h in soup.find_all(["h1", "h2", "h3", "h4"]):
+                if str(h.get_text(" ", strip=True)).strip().lower() in nav_titles:
+                    excluded.append(h.parent)
+            anchor_links = []
+            for a in soup.find_all("a", href=True):
+                href = str(a.get("href") or "")
+                if "/players/" not in href:
+                    continue
+                if any(ex in a.parents for ex in excluded):
+                    continue
+                anchor_links.append(a)
+
         roster: list[dict] = []
         seen: set[str] = set()
-        for a in soup.find_all("a", href=True):
-            href = a["href"] or ""
-            if "/players/" not in href:
-                continue
+        for a in anchor_links:
+            href = str(a.get("href") or "")
             pid = href.rstrip("/").split("/")[-1]
             if not pid or pid in seen:
                 continue
             text = a.get_text(" ", strip=True)
             low = text.lower()
-            if not any(low.endswith(r) for r in _ROSTER_ROLES):
-                continue
             role = next((r for r in _ROSTER_ROLES if low.endswith(r)), None)
-            name = text[: -len(role)].strip() if role else pid
+            name = text[: -len(role)].strip() if role else (text or pid)
             seen.add(pid)
             roster.append({"source_id": pid, "name": name or pid, "role": role})
         if not roster:

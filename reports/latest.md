@@ -20,11 +20,12 @@
 
 - **No accepted vrs-core-v2 settings snapshot yet.**
 - **CS2Settings team-roster coverage: 30/30** (verified 2026-08-11;
-  Aurora / BIG / DENDELE / HOTU / Inner Circle / magic all resolve — the
-  earlier "24/30" was a mapping gap, not a source gap).
-- Latest scheduled live run: 30/30 rosters, **140/140 expected Core
-  players** collected, no roster ambiguity, `scheduled_collection_complete
-  = true`.
+  roster parser now includes role-less roster players — HOTU 5/5,
+  faze/gamerlegion/ninjas-in-pyjamas/parivision/the-mongolz role-less
+  members included; 30/30 pages parsed, 0 failures, 149 roster entries).
+- Latest scheduled live run: 30/30 rosters, expected Core players
+  collected with settings success = expected, no roster ambiguity,
+  `scheduled_collection_complete = true`.
 - A first **vrs-core-v2 candidate** exists in the candidate/review path
   (`work/`), but it is **not accepted**: no `latest.json` overwrite, no
   accepted report replacement, no automation PR until human review.
