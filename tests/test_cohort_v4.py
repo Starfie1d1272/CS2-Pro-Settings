@@ -105,20 +105,87 @@ def test_tracked_universe_is_union_plus_watchlist():
 # 3. unresolved source mapping
 # ---------------------------------------------------------------------------
 
-def test_unresolved_core_mapping_does_not_invalidate_ranking(tmp_path, monkeypatch):
+def _manifest(**kw):
+    """Build a manifest with explicit defaults (new 4-layer signature)."""
     from cs2_pro_settings.cli import build_collection_manifest
-    # structurally valid snapshot with a slug-less core team
-    manifest = build_collection_manifest(
-        core_slugs_requested=["spirit", "vitality"],
-        core_roster_failures=[],
-        core_players_requested=["steam:1", "steam:2"],
-        core_player_failures=[],
-        unresolved_source_teams=["bc-game"],
-        all_tracked_requested=["spirit", "vitality", "bc-game"],
-        all_tracked_failures=[],
+
+    base = dict(
+        requested_core_teams=30,
+        source_resolved_core_teams=[f"t{i}" for i in range(30)],
+        source_unresolved_core_teams=[],       # default: fully resolved
+        successful_core_team_rosters=[f"t{i}" for i in range(30)],
+        failed_core_team_rosters=[],
+        expected_core_players=5,
+        successful_core_players=5,
+        failed_core_players=[],
+        all_tracked_requested=35,
+        all_tracked_roster_failures=[],
+        all_tracked_player_failures=[],
+        reference_player_failures=[],
+        watchlist_player_failures=[],
     )
-    assert manifest["collection_complete"] is False  # coverage blocked
-    assert "bc-game" in manifest["unresolved_source_teams"]
+    base.update(kw)
+    return build_collection_manifest(**base)
+
+
+def test_manifest_denominator_30_resolved_24():
+    """A: ranking Core 30, resolved 24, unresolved 6, roster success 24.
+
+    requested_core_teams == 30 (never 24); resolution rate == 0.8;
+    collection_complete == false (unresolved blocks).
+    """
+    m = _manifest(source_resolved_core_teams=[f"t{i}" for i in range(24)],
+                  source_unresolved_core_teams=[f"u{i}" for i in range(6)],
+                  successful_core_team_rosters=[f"t{i}" for i in range(24)])
+    assert m["requested_core_teams"] == 30
+    assert m["source_resolved_core_teams"] == 24
+    assert len(m["source_unresolved_core_teams"]) == 6
+    assert m["core_source_resolution_rate"] == 0.8
+    assert m["core_roster_coverage_rate"] == 0.8      # 24/30 (full Core denom)
+    assert m["resolved_core_roster_success_rate"] == 1.0  # 24/24
+    assert m["collection_complete"] is False
+    assert any("unresolved" in r for r in m["incomplete_reasons"])
+
+
+def test_expected_players_before_fetch():
+    """B: expected from roster listing (5), one fetch fails.
+
+    expected==5, successful==4, failed==[x], rate==0.8, complete==false —
+    never 'expected==4'.
+    """
+    m = _manifest(expected_core_players=5, successful_core_players=4,
+                  failed_core_players=["steam:x"])
+    assert m["expected_core_players"] == 5
+    assert m["successful_core_players"] == 4
+    assert m["failed_core_players"] == ["steam:x"]
+    assert m["core_player_collection_rate"] == 0.8
+    assert m["collection_complete"] is False
+
+
+def test_watchlist_player_failure_does_not_fail_core():
+    """C: watchlist player fetch failure never pollutes failed_core_players."""
+    m = _manifest(watchlist_player_failures=["steam:w1"])
+    assert m["failed_core_players"] == []
+    assert m["watchlist_player_failures"] == ["steam:w1"]
+    assert m["collection_complete"] is True
+
+
+def test_hltv_only_player_failure_does_not_fail_core():
+    """D: paiN/3DMAX (HLTV-only) player failures go to reference, not core."""
+    m = _manifest(reference_player_failures=["steam:p1", "steam:p2"],
+                  all_tracked_player_failures=["steam:o1"])
+    assert m["failed_core_players"] == []
+    assert m["reference_player_failures"] == ["steam:p1", "steam:p2"]
+    assert m["collection_complete"] is True
+
+
+def test_unresolved_core_mapping_does_not_invalidate_ranking(tmp_path):
+    """Unresolved settings mapping: ranking stays valid, collection blocked."""
+    m = _manifest(source_resolved_core_teams=[f"t{i}" for i in range(24)],
+                  source_unresolved_core_teams=["bc-game"],
+                  successful_core_team_rosters=[f"t{i}" for i in range(24)])
+    assert m["collection_complete"] is False  # coverage blocked
+    assert "bc-game" in m["source_unresolved_core_teams"]
     # the ranking itself is still structurally valid
     (tmp_path / "c.yaml").write_text("cohort:\n  core:\n    teams: []\n")
     activate_snapshot(REPO / "config/rankings/valve/2026-08-10.yaml",
@@ -130,50 +197,24 @@ def test_unresolved_core_mapping_does_not_invalidate_ranking(tmp_path, monkeypat
 # 4/5. collection manifest fail-closed
 # ---------------------------------------------------------------------------
 
-def test_core_team_fetch_failure_blocks_collection(tmp_path):
-    from cs2_pro_settings.cli import build_collection_manifest
-    m = build_collection_manifest(
-        core_slugs_requested=["spirit", "vitality", "mouz"],
-        core_roster_failures=["mouz"],
-        core_players_requested=["steam:1", "steam:2"],
-        core_player_failures=[],
-        unresolved_source_teams=[],
-        all_tracked_requested=[],
-        all_tracked_failures=[],
-    )
+def test_core_team_fetch_failure_blocks_collection():
+    m = _manifest(successful_core_team_rosters=[f"t{i}" for i in range(23)],
+                  failed_core_team_rosters=["t7"])
     assert m["collection_complete"] is False
-    assert m["failed_core_team_rosters"] == ["mouz"]
+    assert m["failed_core_team_rosters"] == ["t7"]
 
 
-def test_watchlist_failure_does_not_fail_core(tmp_path):
-    from cs2_pro_settings.cli import build_collection_manifest
-    m = build_collection_manifest(
-        core_slugs_requested=["spirit", "vitality"],
-        core_roster_failures=[],
-        core_players_requested=["steam:1"],
-        core_player_failures=[],
-        unresolved_source_teams=[],
-        all_tracked_requested=["spirit", "vitality", "100-thieves"],
-        all_tracked_failures=["100-thieves"],  # watchlist-only failure
-    )
+def test_watchlist_roster_failure_does_not_fail_core():
+    m = _manifest(all_tracked_roster_failures=["100-thieves"])
     assert m["collection_complete"] is True
     assert m["all_tracked_roster_failures"] == ["100-thieves"]
 
 
-def test_core_player_failure_blocks_player_collection(tmp_path):
-    from cs2_pro_settings.cli import build_collection_manifest
-    m = build_collection_manifest(
-        core_slugs_requested=["spirit"],
-        core_roster_failures=[],
-        core_players_requested=["steam:1", "steam:2"],
-        core_player_failures=["steam:2"],
-        unresolved_source_teams=[],
-        all_tracked_requested=[],
-        all_tracked_failures=[],
-    )
-    assert m["core_player_collection_complete"] is False
+def test_core_player_failure_blocks_player_collection():
+    m = _manifest(expected_core_players=2, successful_core_players=1,
+                  failed_core_players=["steam:2"])
     assert m["collection_complete"] is False
-    assert m["failed_players"] == ["steam:2"]
+    assert m["failed_core_players"] == ["steam:2"]
 
 
 # ---------------------------------------------------------------------------
@@ -307,8 +348,8 @@ def test_watchlist_review_timing(tmp_path, monkeypatch):
     today = date(2026, 8, 10)
     # added 1 day ago -> not due
     assert watchlist_review_due(today=today - timedelta(days=1)) == []
-    # item added 1 day ago evaluated today -> not due
-    assert watchlist_review_due(today=today) == [] or True  # 4 items all added 2026-08-10
+    # all 4 watchlist items added 2026-08-10 evaluated on 2026-08-11 -> not due
+    assert watchlist_review_due(today=date(2026, 8, 11)) == []
     # 179 days after added_at -> not due; 180 -> due
     # (entries are static; simulate by shifting 'today')
     assert watchlist_review_due(today=date(2026, 8, 10) + timedelta(days=179)) == []

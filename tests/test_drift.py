@@ -102,8 +102,11 @@ def test_matched_panel_separates_roster_change(repo_root):
     current = metrics_for(current_players, "2026-08-01", SCOPE_V2)
     report = compute_drift(baseline, current, conclusions=load_conclusions(repo_root),
                            previous_panel=baseline)
-    assert report.cohort_change["removed"] == [f"steam:{i}" for i in range(10)]
-    assert report.cohort_change["added"] == [f"steam:{i}" for i in range(100, 110)]
+    # privacy model: accepted aggregate never carries player IN/OUT lists
+    assert report.cohort_change["removed"] == "unavailable"
+    assert report.cohort_change["added"] == "unavailable"
+    assert report.cohort_change["baseline_players"] == 100
+    assert report.cohort_change["current_players"] == 100
     assert report.matched_panel_change["matched_count"] == 90
     assert report.matched_panel_change["status"] == "available"
     # per-field matched change computed on the intersection only

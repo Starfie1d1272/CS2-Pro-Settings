@@ -1,8 +1,18 @@
 name: Ranking update
-description: Submit a manual HLTV Top 30 snapshot for import and review.
-title: "ranking: HLTV Top 30 snapshot YYYY-MM-DD"
+description: Submit a manual Top 30 snapshot (Valve VRS or HLTV) for import and review.
+title: "ranking: Top 30 snapshot YYYY-MM-DD"
 labels: ["enhancement"]
 body:
+  - type: dropdown
+    id: provider
+    attributes:
+      label: Ranking provider
+      description: Which ranking does this snapshot cover?
+      options:
+        - Valve Global Ranking (VRS) — primary Core
+        - HLTV World Ranking — reference
+    validations:
+      required: true
   - type: input
     id: ranking_date
     attributes:
@@ -14,25 +24,25 @@ body:
   - type: input
     id: source_url
     attributes:
-      label: HLTV source URL
-      description: The ranking page you copied the Top 30 from
-      placeholder: "https://www.hltv.org/ranking/1"
+      label: Ranking source URL
+      description: The ranking page you copied the Top 30 from (VRS or HLTV page)
+      placeholder: "https://www.hltv.org/valve-ranking/teams/2026/august/10"
     validations:
       required: true
   - type: textarea
     id: top30
     attributes:
       label: Top 30
-      description: One team per line, starting with the rank number (1 Vitality, 2 Spirit, ...)
+      description: One team per line, starting with the rank number (1 Spirit, 2 Falcons, ...)
       placeholder: |
-        1 Vitality
-        2 Spirit
+        1 Spirit
+        2 Falcons
         ...
-        30 GamerLegion
+        30 EYEBALLERS
     validations:
       required: true
   - type: textarea
     id: notes
     attributes:
       label: Optional notes
-      description: Anything a reviewer should know (e.g. region of the ranking, roster notes)
+      description: Anything a reviewer should know (do NOT paste player rosters; ranking page player names are not current roster truth)

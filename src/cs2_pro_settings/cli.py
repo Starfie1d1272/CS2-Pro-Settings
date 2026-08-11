@@ -187,53 +187,74 @@ def cohort_scope() -> dict:
 
 
 def build_collection_manifest(
-    core_slugs_requested: list[str],
-    core_roster_failures: list[str],
-    core_players_requested: list[str],
-    core_player_failures: list[str],
-    unresolved_source_teams: list[str],
-    all_tracked_requested: list[str],
-    all_tracked_failures: list[str],
+    requested_core_teams: int,
+    source_resolved_core_teams: list[str],
+    source_unresolved_core_teams: list[str],
+    successful_core_team_rosters: list[str],
+    failed_core_team_rosters: list[str],
+    expected_core_players: int,
+    successful_core_players: int,
+    failed_core_players: list[str],
+    all_tracked_requested: int,
+    all_tracked_roster_failures: list[str],
+    all_tracked_player_failures: list[str],
+    reference_player_failures: list[str],
+    watchlist_player_failures: list[str],
 ) -> dict:
     """Deterministic collection manifest — fail closed on partial Core.
 
-    ANY Core team roster fetch failure or unresolved Core source team makes
-    collection incomplete; a significant Core player fetch failure makes the
-    Core player collection incomplete. Watchlist/reference failures do NOT
-    fail Core.
+    Four INDEPENDENT layers (never conflated):
+      1. ranking Core membership (requested_core_teams, e.g. 30)
+      2. source resolution (which Core teams have a settings page)
+      3. roster collection (roster fetch success among resolved teams)
+      4. player collection (settings fetch success among expected players)
+
+    Expected players are determined from ROSTER LISTINGS (pre-fetch), never
+    from fetch success. Each rate uses an explicit, named denominator.
+    collection_complete requires ALL of: requested > 0, no unresolved Core
+    source teams, no failed Core rosters, expected players > 0, no failed
+    Core players, and successful == expected.
     """
-    n_core = len(core_slugs_requested)
-    core_ok = n_core - len(core_roster_failures) - len(unresolved_source_teams)
-    core_team_coverage = round(core_ok / n_core, 4) if n_core else 0.0
-    n_players = len(core_players_requested)
-    player_ok = n_players - len(core_player_failures)
-    player_coverage = round(player_ok / n_players, 4) if n_players else 0.0
+    n_requested = requested_core_teams
+    n_resolved = len(source_resolved_core_teams)
+    n_unresolved = len(source_unresolved_core_teams)
+    n_roster_ok = len(successful_core_team_rosters)
+    n_roster_failed = len(failed_core_team_rosters)
     reasons: list[str] = []
-    if unresolved_source_teams:
-        reasons.append(f"unresolved core source teams: {unresolved_source_teams}")
-    if core_roster_failures:
-        reasons.append(f"core roster fetch failures: {core_roster_failures}")
-    if core_player_failures:
-        reasons.append(f"core player settings failures: {core_player_failures}")
-    if n_players == 0:
+    if n_requested <= 0:
+        reasons.append("no requested core teams")
+    if source_unresolved_core_teams:
+        reasons.append(f"unresolved core source teams: {sorted(source_unresolved_core_teams)}")
+    if failed_core_team_rosters:
+        reasons.append(f"core roster fetch failures: {sorted(failed_core_team_rosters)}")
+    if expected_core_players <= 0:
         reasons.append("no expected core players")
+    if failed_core_players:
+        reasons.append(f"core player settings failures: {sorted(failed_core_players)}")
+    if successful_core_players != expected_core_players:
+        reasons.append(f"core player collection mismatch: "
+                       f"{successful_core_players} != expected {expected_core_players}")
     return {
-        "requested_core_teams": n_core,
-        "resolved_core_teams": len(core_slugs_requested),
-        "successful_core_team_rosters": len(core_slugs_requested) - len(core_roster_failures),
-        "failed_core_team_rosters": sorted(core_roster_failures),
-        "unresolved_source_teams": sorted(unresolved_source_teams),
-        "expected_core_players": n_players,
-        "requested_players": n_players,
-        "successful_players": player_ok,
-        "failed_players": sorted(core_player_failures),
-        "core_team_coverage": core_team_coverage,
-        "player_collection_coverage": player_coverage,
+        "requested_core_teams": n_requested,
+        "source_resolved_core_teams": n_resolved,
+        "source_unresolved_core_teams": sorted(source_unresolved_core_teams),
+        "successful_core_team_rosters": n_roster_ok,
+        "failed_core_team_rosters": sorted(failed_core_team_rosters),
+        "expected_core_players": expected_core_players,
+        "successful_core_players": successful_core_players,
+        "failed_core_players": sorted(failed_core_players),
+        "core_source_resolution_rate": round(n_resolved / n_requested, 4) if n_requested else 0.0,
+        "core_roster_coverage_rate": round(n_roster_ok / n_requested, 4) if n_requested else 0.0,
+        "resolved_core_roster_success_rate": round(n_roster_ok / n_resolved, 4) if n_resolved else 0.0,
+        "core_player_collection_rate": round(successful_core_players / expected_core_players, 4)
+        if expected_core_players else 0.0,
         "collection_complete": not reasons,
-        "core_player_collection_complete": not core_player_failures and n_players > 0,
         "incomplete_reasons": reasons,
-        "all_tracked_requested_teams": len(all_tracked_requested),
-        "all_tracked_roster_failures": sorted(all_tracked_failures),
+        "all_tracked_requested_teams": all_tracked_requested,
+        "all_tracked_roster_failures": sorted(all_tracked_roster_failures),
+        "all_tracked_player_failures": sorted(all_tracked_player_failures),
+        "reference_player_failures": sorted(reference_player_failures),
+        "watchlist_player_failures": sorted(watchlist_player_failures),
     }
 
 
@@ -247,23 +268,57 @@ def step_collect(
     roster_by_team: dict[str, list[str]] = {}
     identity = IdentityIndex()
     cohort_cfg = load_cohort_config()
-    from .cohort import core_slugs, tracked_slugs
+    from .cohort import player_allowed, tracked_slugs
 
+    # ---- ranking Core membership (30) vs source resolution ----------------
+    core_cfg = cohort_cfg.get("cohort", {}).get("core", {})
     core_source_slugs: list[str] = []
+    core_unresolved_ids: list[str] = []
     if not (players or offline):
-        core_cfg = cohort_cfg.get("cohort", {}).get("core", {})
         core_source_slugs = sorted(
             t["settings_slug"] for t in (core_cfg.get("teams") or [])
             if t.get("settings_slug"))
         core_unresolved_ids = sorted(
             t["team_id"] for t in (core_cfg.get("teams") or []) if not t.get("settings_slug"))
-    else:
-        core_unresolved_ids = []
+    requested_core_teams = len(core_cfg.get("teams") or []) if not (players or offline) else 0
+    core_roster_ok: list[str] = []
     core_roster_failures: list[str] = []
-    core_player_failures: list[str] = []
-    core_players_requested: list[str] = []
+    core_expected: list[str] = []      # expected Core players from ROSTER listings
+    core_success: list[str] = []       # successfully fetched Core players
+    core_failures: list[str] = []
     all_tracked_requested: list[str] = []
-    all_tracked_failures: list[str] = []
+    all_tracked_roster_failures: list[str] = []
+    all_tracked_player_failures: list[str] = []
+    reference_player_failures: list[str] = []
+    watchlist_player_failures: list[str] = []
+    team_membership_conflicts: list[dict] = []
+
+    # tier of each roster team slug: core / watchlist / reference / supplemental
+    watch_slugs = set()
+    for item in cohort_cfg.get("cohort", {}).get("watchlist") or []:
+        if item.get("settings_slug"):
+            watch_slugs.add(str(item["settings_slug"]))
+    from .cohort import load_cohort_sets, team_ids_to_slugs
+
+    _sets = load_cohort_sets(cohort_cfg)
+    _slug_map = _sets.get("slug_map", {})
+    core_slugs_set = set(core_source_slugs)
+    hltv_only_slugs = set(team_ids_to_slugs(_sets["hltv_only_teams"], _slug_map))
+    supp_slugs = set()
+    for item in cohort_cfg.get("cohort", {}).get("supplemental") or []:
+        if item.get("settings_slug"):
+            supp_slugs.add(str(item["settings_slug"]))
+
+    def _tier_of(slug: str) -> str:
+        if slug in core_slugs_set:
+            return "core"
+        if slug in watch_slugs:
+            return "watchlist"
+        if slug in hltv_only_slugs:
+            return "reference"
+        if slug in supp_slugs:
+            return "supplemental"
+        return "other"
 
     for name, _sc in enabled_sources(scheduled_only):
         if source_filter and name != source_filter:
@@ -277,7 +332,8 @@ def step_collect(
             elif offline:
                 roster = src.list_players()
             else:
-                # cohort v4: scheduled universe = ranked union ∪ watchlist
+                # cohort v4: scheduled universe = ranked union ∪ watchlist;
+                # team page origin defines CURRENT ROSTER MEMBERSHIP evidence
                 roster_fn = getattr(src, "list_team_roster", None)
                 if roster_fn is not None:
                     roster = []
@@ -285,53 +341,84 @@ def step_collect(
                     for slug in tracked_slugs(cohort_cfg):
                         all_tracked_requested.append(slug)
                         try:
-                            for entry in roster_fn(slug):
-                                if entry["source_id"] not in seen:
-                                    seen.add(entry["source_id"])
-                                    roster.append(entry)
+                            entries = roster_fn(slug)
                         except SourceError as exc:
                             print(f"  [!] {name}/teams/{slug}: {exc}")
-                            all_tracked_failures.append(slug)
-                            if slug in core_source_slugs:
+                            all_tracked_roster_failures.append(slug)
+                            if slug in core_slugs_set:
                                 core_roster_failures.append(slug)
+                            continue
+                        if slug in core_slugs_set:
+                            core_roster_ok.append(slug)
+                        for entry in entries:
+                            entry["roster_team_slug"] = slug
+                            entry["cohort_membership"] = _tier_of(slug)
+                            if entry["source_id"] not in seen:
+                                seen.add(entry["source_id"])
+                                roster.append(entry)
                 else:
                     roster = src.list_players()
         except SourceError as exc:
             raise SystemExit(f"collect: {name} roster failed: {exc}") from exc
 
+        # ---- expected Core players BEFORE any fetch (roster listing) ------
+        # roster page role is applied here so coaches never inflate expected
+        for entry in roster:
+            if entry.get("cohort_membership") != "core":
+                continue
+            allowed, _reason = player_allowed(entry.get("role"), cohort_cfg)
+            if allowed and entry["source_id"] not in core_expected:
+                core_expected.append(entry["source_id"])
+
+        # ---- player fetch, classified by roster ORIGIN tier ----------------
         for entry in roster:
             source_id = entry["source_id"]
+            roster_team = entry.get("roster_team_slug")
+            tier = entry.get("cohort_membership", "other")
             try:
                 parsed = src.fetch_player(source_id)
             except SourceError as exc:
                 print(f"  [!] {name}/{source_id}: {exc}")
-                if entry.get("team") in core_source_slugs or (
-                        not players and not offline):
-                    core_player_failures.append(source_id)
+                if tier == "core":
+                    core_failures.append(source_id)
+                elif tier == "watchlist":
+                    watchlist_player_failures.append(source_id)
+                elif tier == "reference":
+                    reference_player_failures.append(source_id)
+                else:
+                    all_tracked_player_failures.append(source_id)
                 continue
             # cohort policy: role filter (coach/retired/content_creator excluded)
-            from .cohort import player_allowed
-
             allowed, reason = player_allowed(parsed.role, cohort_cfg)
             if not allowed:
                 print(f"  [-] {name}/{source_id}: {reason} (excluded)")
                 continue
-            if parsed.team in core_source_slugs:
-                core_players_requested.append(source_id)
+            if tier == "core":
+                core_success.append(source_id)
+            # team membership: TEAM PAGE ORIGIN is the evidence; player page
+            # teamId is a consistency check only (never silently override)
+            membership_team = roster_team or parsed.team
+            if (roster_team and parsed.team and parsed.team != roster_team):
+                team_membership_conflicts.append({
+                    "source_id": source_id,
+                    "roster_team_slug": roster_team,
+                    "player_page_team": parsed.team,
+                    "source_url": parsed.source_url,
+                })
             ident = identity.register(
                 source=name,
                 source_id=source_id,
                 name=parsed.name,
-                team=parsed.team,
+                team=membership_team,
                 steam_id=parsed.steam_id,
                 country=parsed.country,
-                role=parsed.role,
+                role=parsed.role or entry.get("role"),
             )
-            # roster snapshot: stable player_id per team (slug from source)
-            if parsed.team:
-                roster_by_team.setdefault(parsed.team, [])
-                if ident.player_id not in roster_by_team[parsed.team]:
-                    roster_by_team[parsed.team].append(ident.player_id)
+            # roster snapshot: stable player_id per team (roster ORIGIN team)
+            if membership_team:
+                roster_by_team.setdefault(membership_team, [])
+                if ident.player_id not in roster_by_team[membership_team]:
+                    roster_by_team[membership_team].append(ident.player_id)
             for raw_field, raw_value in parsed.fields.items():
                 attr, value = normalize_field(raw_field, raw_value)
                 if attr is None:
@@ -350,13 +437,19 @@ def step_collect(
                 )
 
     manifest = build_collection_manifest(
-        core_slugs_requested=core_source_slugs,
-        core_roster_failures=core_roster_failures,
-        core_players_requested=core_players_requested,
-        core_player_failures=core_player_failures,
-        unresolved_source_teams=core_unresolved_ids,
-        all_tracked_requested=all_tracked_requested,
-        all_tracked_failures=all_tracked_failures,
+        requested_core_teams=requested_core_teams,
+        source_resolved_core_teams=core_source_slugs,
+        source_unresolved_core_teams=core_unresolved_ids,
+        successful_core_team_rosters=core_roster_ok,
+        failed_core_team_rosters=core_roster_failures,
+        expected_core_players=len(core_expected),
+        successful_core_players=len(core_success),
+        failed_core_players=core_failures,
+        all_tracked_requested=len(all_tracked_requested),
+        all_tracked_roster_failures=all_tracked_roster_failures,
+        all_tracked_player_failures=all_tracked_player_failures,
+        reference_player_failures=reference_player_failures,
+        watchlist_player_failures=watchlist_player_failures,
     )
     _write_work("observations.json", [obs.__dict__ for obs in observations])
     _write_work("identities.json", {
@@ -364,6 +457,7 @@ def step_collect(
         "problems": identity.identity_problems,
     })
     _write_work("collection-manifest.json", manifest)
+    _write_work("team-membership-conflicts.json", team_membership_conflicts)
     return observations, roster_by_team, manifest
 
 
@@ -728,7 +822,7 @@ def cmd_update(args) -> int:
 
 
 # ---------------------------------------------------------------------------
-# ranking commands (manual HLTV snapshots)
+# ranking commands (manual VRS / HLTV snapshots)
 # ---------------------------------------------------------------------------
 
 def cmd_ranking_import(args) -> int:
@@ -753,6 +847,7 @@ def cmd_ranking_import(args) -> int:
         mappings = load_mappings() if not args.no_mapping else None
         snapshot = build_snapshot(
             entries, args.source_url, args.date, mappings=mappings,
+            provider=args.provider, ranking_type=args.ranking_type,
             allow_unresolved=args.allow_unresolved,
         )
         # diff vs previously accepted ranking (if any)
@@ -797,7 +892,7 @@ def main(argv: Optional[list[str]] = None) -> int:
 
     rank = sub.add_parser("ranking")
     rsub = rank.add_subparsers(dest="ranking_command", required=True)
-    imp = rsub.add_parser("import-hltv")
+    imp = rsub.add_parser("import-hltv", help="import a manual HLTV World Ranking Top 30")
     imp.add_argument("--date", required=True, help="ranking snapshot date YYYY-MM-DD")
     imp.add_argument("--source-url", required=True, help="HLTV ranking page URL")
     imp.add_argument("--stdin", action="store_true", help="read Top 30 from stdin")
@@ -807,6 +902,18 @@ def main(argv: Optional[list[str]] = None) -> int:
     imp.add_argument("--no-mapping", action="store_true", help="skip team mapping (testing)")
     imp.add_argument("--rankings-dir", default="config/rankings/hltv")
     imp.add_argument("--previous", default=None, help="previous accepted snapshot path for diff")
+    imp.set_defaults(provider="hltv", ranking_type="world")
+    imp_v = rsub.add_parser("import-vrs", help="import a manual Valve Global Ranking (VRS) Top 30")
+    imp_v.add_argument("--date", required=True, help="ranking snapshot date YYYY-MM-DD")
+    imp_v.add_argument("--source-url", required=True, help="Valve ranking display page URL")
+    imp_v.add_argument("--stdin", action="store_true", help="read Top 30 from stdin")
+    imp_v.add_argument("--file", default=None, help="read Top 30 from file")
+    imp_v.add_argument("--allow-unresolved", action="store_true",
+                       help="emit candidate with explicit unresolved status instead of failing")
+    imp_v.add_argument("--no-mapping", action="store_true", help="skip team mapping (testing)")
+    imp_v.add_argument("--rankings-dir", default="config/rankings/valve")
+    imp_v.add_argument("--previous", default=None, help="previous accepted snapshot path for diff")
+    imp_v.set_defaults(provider="valve", ranking_type="global")
 
     args = parser.parse_args(argv)
     if args.command == "ranking":

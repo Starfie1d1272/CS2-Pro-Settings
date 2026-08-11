@@ -250,8 +250,14 @@ def activate_snapshot(
     snapshot_path: Path,
     cohort_path: str = DEFAULT_COHORT,
     provider: Optional[str] = None,
+    target: str = "core",
 ) -> None:
-    """Point cohort.core at an accepted ranking snapshot.
+    """Point cohort.core (VRS) or cohort.reference (HLTV) at an accepted snapshot.
+
+    target="core" (default): requires a Valve/VRS snapshot; updates
+    cohort.core.
+    target="reference": requires an HLTV snapshot; updates cohort.reference.
+    A reference snapshot must NEVER silently activate as Core.
 
     Structural validity only: ranks must be complete and every team must
     have a canonical team_id (no `unresolved`). Teams WITHOUT a settings
@@ -266,14 +272,24 @@ def activate_snapshot(
                 f"cannot activate {snapshot_path.name}: contains unresolved "
                 "team mapping (no canonical team_id)")
     provider = provider or snapshot.get("provider", "hltv")
+    authority = snapshot.get("ranking_authority", provider)
+    if target == "core" and authority != "valve":
+        raise RankingError(
+            f"cannot activate {snapshot_path.name} as CORE: ranking "
+            f"authority is {authority!r}, not 'valve'. Use target='reference' "
+            "for HLTV snapshots.")
+    if target == "reference" and authority != "hltv":
+        raise RankingError(
+            f"cannot activate {snapshot_path.name} as REFERENCE: ranking "
+            f"authority is {authority!r}, not 'hltv'.")
     with open(cohort_path, encoding="utf-8") as f:
         cohort = yaml.safe_load(f) or {}
-    core = cohort.setdefault("cohort", {}).setdefault("core", {})
-    core["provider"] = provider
-    core["ranking_authority"] = snapshot.get("ranking_authority", provider)
-    core["ranking_type"] = snapshot.get("ranking_type", "global")
-    core["snapshot"] = snapshot["date"]
-    core["teams"] = [
+    block = cohort.setdefault("cohort", {}).setdefault(target, {})
+    block["provider"] = provider
+    block["ranking_authority"] = authority
+    block["ranking_type"] = snapshot.get("ranking_type", "global")
+    block["snapshot"] = snapshot["date"]
+    block["teams"] = [
         {"rank": t["rank"], "team_id": t["team_id"], "settings_slug": t.get("settings_slug")}
         for t in snapshot["teams"]
     ]

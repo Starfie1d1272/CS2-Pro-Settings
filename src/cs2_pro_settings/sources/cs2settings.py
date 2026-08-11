@@ -370,6 +370,10 @@ class CS2SettingsSource:
         AWPer / Entry Fragger / Sniper / Lurker / Captain / Coach) as text;
         CSS class names are NOT used as parser anchors. Footer/nav links to
         players of other teams (no role marker) are excluded.
+
+        Fail closed: a reachable team page that yields ZERO roster entries
+        raises SourceError (never an empty success — an empty result would
+        silently look like 'no active players').
         """
         url = f"{self.base_url}/teams/{team_slug}"
         html = self._get_text(url)
@@ -390,7 +394,11 @@ class CS2SettingsSource:
             role = next((r for r in _ROSTER_ROLES if low.endswith(r)), None)
             name = text[: -len(role)].strip() if role else pid
             seen.add(pid)
-            roster.append({"source_id": pid, "name": name or pid})
+            roster.append({"source_id": pid, "name": name or pid, "role": role})
+        if not roster:
+            raise SourceError(
+                f"cs2settings: team page {url} reachable but parsed 0 roster "
+                "entries (structure changed or page not a roster page)")
         return roster
 
     def fetch_player(self, source_id: str) -> ParsedPlayer:

@@ -153,7 +153,7 @@ def compute_drift(
     if not series_compatible:
         baseline_incompatible_reason = (
             f"baseline series {base_series!r} != current series {cur_series!r}; "
-            "baseline incompatible — the first accepted hltv-core-v2 snapshot "
+            "baseline incompatible — the first accepted vrs-core-v2 snapshot "
             "will initialize the new longitudinal series"
         )
 
@@ -221,26 +221,40 @@ def compute_drift(
     if baseline_panel is None:
         baseline_panel = {"status": "unavailable", "player_ids": []}
 
-    baseline_ids = set(baseline_panel.get("player_ids", []))
+    # cohort_change: the PUBLIC accepted aggregate carries NO player identity
+    # lists (privacy model). Only counts/deltas are derivable here; real
+    # player IN/OUT lives in the runtime roster state (roster_report).
     current_ids = set(current_panel.get("player_ids", []))
+    if baseline_panel.get("player_ids") is not None:
+        baseline_ids = set(baseline_panel["player_ids"])
+        cohort_change = {
+            "baseline_players": len(baseline_ids),
+            "current_players": len(current_ids),
+            "player_count_delta": len(current_ids) - len(baseline_ids),
+            "added": "unavailable",
+            "removed": "unavailable",
+        }
+    else:
+        # legacy-style public baseline without player ids: counts only
+        cohort_change = {
+            "baseline_players": baseline_agg.get("player_count") or 0,
+            "current_players": current_agg.get("player_count") or 0,
+            "player_count_delta": (current_agg.get("player_count") or 0)
+            - (baseline_agg.get("player_count") or 0),
+            "added": "unavailable",
+            "removed": "unavailable",
+        }
 
-    cohort_change = {
-        "baseline_players": len(baseline_ids),
-        "current_players": len(current_ids),
-        "added": sorted(current_ids - baseline_ids),
-        "removed": sorted(baseline_ids - current_ids),
-    }
-
-    matched = sorted(baseline_ids & current_ids)
     matched_change: dict = {
-        "status": "available" if (baseline_ids and matched) else "unavailable",
-        "matched_count": len(matched),
-        "baseline_count": len(baseline_ids),
+        "status": "unavailable",
+        "matched_count": 0,
+        "baseline_count": None,
         "current_count": len(current_ids),
     }
     # matched IDs for SETTINGS comparison = previous RUNTIME panel ∩ current
     # (previous successful production observation, NOT the accepted
-    # aggregate — the accepted aggregate may carry different player ids)
+    # aggregate — the accepted aggregate may carry different player ids or
+    # none at all). Matched status is determined by RUNTIME panel only.
     runtime_panel = (previous_panel or {}).get("panel") if isinstance(previous_panel, dict) else previous_panel
     runtime_base_ids = set((runtime_panel or {}).get("player_ids", [])) if runtime_panel else set()
     runtime_matched = sorted(runtime_base_ids & current_ids)
@@ -263,11 +277,24 @@ def compute_drift(
                         changed_count += 1
                 per_field[fld] = {"changed": changed_count, "compared": compared,
                                   "missing_transition": missing_transition}
-            matched_change["per_field"] = per_field
-            matched_change["matched_count"] = len(runtime_matched)
+            matched_change = {
+                "status": "available",
+                "matched_count": len(runtime_matched),
+                "baseline_count": len(runtime_base_ids),
+                "current_count": len(current_ids),
+                "per_field": per_field,
+            }
         else:
-            matched_change["per_field"] = None
-            matched_change["note"] = "per-player baseline values unavailable"
+            matched_change = {
+                "status": "available",
+                "matched_count": len(runtime_matched),
+                "baseline_count": len(runtime_base_ids),
+                "current_count": len(current_ids),
+                "per_field": None,
+                "note": "per-player baseline values unavailable",
+            }
+    else:
+        matched_change["note"] = "no overlap between previous runtime panel and current panel"
 
     return DriftReport(
         level=level,

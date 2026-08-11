@@ -14,7 +14,8 @@ def test_no_steam_id_uses_source_stable_id():
 
 def test_nickname_never_used_as_id():
     assert canonical_player_id(None, "prosettings", "ZywOo").startswith("source:")
-    assert "ZywOo" not in canonical_player_id("1", "x", "y").split(":")[-1] or True
+    tail = canonical_player_id("1", "x", "y").split(":")[-1]
+    assert tail != "y"  # bare nickname must never become the permanent id
 
 
 def test_same_steam_id_changed_nickname_same_player():

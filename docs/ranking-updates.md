@@ -1,78 +1,62 @@
-# Ranking updates (manual HLTV Top 30)
+# Ranking updates (manual VRS + HLTV Top 30)
 
-HLTV ranking snapshots are the **manual control plane** of the v2 cohort:
-`cohort.core` is defined only by the last accepted structured snapshot in
-`config/rankings/hltv/YYYY-MM-DD.yaml`. Downstream roster/settings
-collection is the automated data plane.
+Ranking snapshots are the **manual control plane** of the v4 cohort:
 
-## Why manual?
+- `cohort.core` is defined by the accepted **Valve Global Ranking (VRS)**
+  snapshot in `config/rankings/valve/`.
+- `cohort.reference` is defined by the accepted **HLTV World Ranking**
+  snapshot in `config/rankings/hltv/`.
 
-HLTV uses anti-bot / access limitation. This project will **not** bypass it.
-Rankings are therefore entered by humans (maintainers or contributors) and
-reviewed before activation. Dynamic ranking-based scope remains a planned
-extension only.
+Rankings are **never scraped**. Snapshots are manually entered by
+maintainers or contributors (see CONTRIBUTING.md), validated by the
+importer, reviewed, and then activated by a human.
 
-## Importing
+## Import
 
 ```bash
-python -m cs2_pro_settings ranking import-hltv \
+# VRS (primary Core) — provider=valve, ranking_type=global
+python -m cs2_pro_settings ranking import-vrs \
   --date 2026-08-10 \
-  --source-url https://www.hltv.org/ranking/1/2026/august/10 \
-  --stdin
-```
+  --source-url https://www.hltv.org/valve-ranking/teams/2026/august/10 \
+  --stdin < top30.txt
 
-Input format (stdin or --file):
-
-```
-1 Vitality
-2 Spirit
-3 The MongolZ
-...
-30 GamerLegion
-```
-
-Validation (importer fails on any violation):
-
-- exactly 30 teams;
-- ranks are exactly 1..30, unique and continuous;
-- no duplicate team names;
-- `--source-url` (http/https) and `--date` (ISO) required;
-- every display name resolves in `config/team-mappings.yaml`; unresolved
-  teams print `UNRESOLVED` and the import fails (or, with
-  `--allow-unresolved`, emits a candidate marked `unresolved: true` that
-  **cannot be activated**).
-
-Output: `config/rankings/hltv/YYYY-MM-DD.yaml` (candidate).
-
-## Comparing with the previous ranking
-
-```bash
+# HLTV (reference) — provider=hltv, ranking_type=world
 python -m cs2_pro_settings ranking import-hltv \
-  --date ... --source-url ... --stdin \
-  --previous config/rankings/hltv/2026-05-04.yaml
+  --date 2026-08-03 \
+  --source-url https://www.hltv.org/ranking/teams/2026/august/3 \
+  --stdin < top30.txt
 ```
 
-Prints `ENTERED CORE`, `EXITED CORE`, `RANK MOVEMENTS` and review
-suggestions. Exiting Core does **not** delete historical tracking data; it
-produces a watchlist-review suggestion for the maintainer.
+Both commands share one parser/validator (`parse_top30` + `validate_entries`
++ `build_snapshot`): ranks 1–30 unique & continuous, source URL and date
+required, team mapping via `config/team-mappings.yaml`.
 
-## Activation (human step)
+## Activation
 
-The accepted snapshot must be fully resolved (no `unresolved` entries and
-every team with a `settings_slug`). Activation updates `config/cohort.yaml`
-`cohort.core`:
+`activate_snapshot(path, target="core"|"reference")`:
 
-```python
-from cs2_pro_settings.rankings import activate_snapshot
-activate_snapshot(Path("config/rankings/hltv/2026-08-10.yaml"))
-```
+- `target="core"` — requires a **Valve/VRS** snapshot; updates
+  `cohort.core`. An HLTV snapshot CANNOT activate as Core.
+- `target="reference"` — requires an **HLTV** snapshot; updates
+  `cohort.reference`.
+
+Unresolved settings source mappings do NOT invalidate a snapshot: a team
+with `settings_slug: null` stays in ranking truth and only lowers
+collection coverage.
 
 ## Freshness
 
-- <30 days: fresh
-- 30–89 days: aging (status only)
-- 90–179 days: stale (status only)
-- ≥180 days: maintenance_due → deduplicated `[maintenance]` issue
+`ranking freshness` is evaluated weekly per snapshot (Core and reference
+independently): <30d fresh (status only), <90d aging (status only), <180d
+stale (status only), >=180d maintenance reminder issue.
 
-A stale ranking never blocks the settings pipeline; the generated report
-always names the accepted ranking date.
+## Derived sets
+
+consensus = VRS ∩ HLTV (27 teams, first round); ranked union = VRS ∪ HLTV
+(33 teams, first round). These are computed, never hand-written.
+
+## Hard rule
+
+Ranking page player names are **not** imported and are **not** current
+roster truth. Ranking defines competitive scope; the settings source
+defines observability.

@@ -163,9 +163,9 @@ source health → ranking/core scope → roster → settings:
 - `legacy-top30-plus-selected-v1` (2026-05-05, 41 teams / 198 players) is a
   legacy **extended** cohort — it is **not** a strict HLTV Top 30-only
   baseline, and its historical numbers are preserved unchanged.
-- The v2 Core series is `hltv-core-v2`. Different series are **not directly
+- The v2 Core series is `vrs-core-v2`. Different series are **not directly
   comparable** for automated headline Level 1/2 (`series_compatible=false`);
-  the first accepted hltv-core-v2 snapshot initializes the new longitudinal
+  the first accepted vrs-core-v2 snapshot initializes the new longitudinal
   series.
 - `RankingBasedScopeProvider` (auto-selecting a current ranking) remains a
   **planned extension only**; no ranking website is a live dependency until
@@ -213,7 +213,8 @@ python -m pytest -v                                 # offline tests
 Commands: `audit-sources`, `collect`, `normalize`, `reconcile`, `metrics`,
 `drift`, `report`, `update` (chained: audit → collect → normalize →
 reconcile → metrics → drift → report candidate), plus
-`ranking import-hltv` (manual HLTV Top 30 import).
+`ranking import-vrs` / `ranking import-hltv` (manual Valve VRS / HLTV Top 30
+import; HLTV is never scraped).
 
 Runtime state is split: per-run artifacts go to `work/` (gitignored);
 cross-run operational state (roster baseline, confirmation window, previous
@@ -250,8 +251,9 @@ scripts/                    actions_common.py, actions_daily.py, actions_weekly.
 `reports/2026-05.md` — the original deep-dive (41 teams / 198 players,
 snapshot 2026-05-05) with the cyberpunk figures in `figures/`. It is a dated,
 descriptive analysis of one snapshot; prevalence does not imply causal
-performance benefit. Its figures are historical; `figures/latest/` is
-regenerated only when a candidate snapshot is accepted.
+performance benefit. Its figures are historical. `figures/latest/` is only
+created when a vrs-core-v2 candidate snapshot is accepted — until then no
+unaccepted candidate charts are published as "latest".
 
 ## 11. Licensing
 

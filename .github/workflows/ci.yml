@@ -22,8 +22,8 @@ jobs:
       - name: Install
         run: pip install -e ".[dev]"
 
-      - name: pytest
-        run: python -m pytest -v
+      - name: pytest (project DeprecationWarnings are errors)
+        run: python -W error::DeprecationWarning -m pytest -v
 
       - name: Offline fixture end-to-end (deterministic)
         run: |

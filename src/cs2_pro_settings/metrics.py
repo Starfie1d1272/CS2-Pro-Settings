@@ -61,7 +61,7 @@ def compute_metrics(
 
     players should already be filtered to the desired segment; the caller
     (CLI) computes core / core_plus_watchlist / all_tracked separately.
-    series identifies the longitudinal series (e.g. hltv-core-v2); different
+    series identifies the longitudinal series (e.g. vrs-core-v2); different
     series are NOT directly comparable for headline drift.
     """
     n = len(players)

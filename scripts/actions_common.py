@@ -71,7 +71,7 @@ def open_automation_pr() -> Optional[dict]:
     out = sh("gh", "pr", "list", "--state", "open", "--limit", "100",
              "--json", "number,headRefName,title", "--jq",
              f'.[] | select(.headRefName | startswith("{PR_BRANCH_PREFIX}")) | '
-             '"\(.number)\t\(.headRefName)"')
+             r'"\(.number)\t\(.headRefName)"')
     if not out:
         return None
     line = out.splitlines()[0]

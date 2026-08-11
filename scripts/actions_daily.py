@@ -47,7 +47,26 @@ def main() -> int:
     primary_ok = str(source_status.get("cs2settings", "missing")).startswith("ok")
 
     # ---- collection completeness (fail closed on partial Core) ----------
-    collection_complete = bool(manifest.get("collection_complete", False)) if manifest else True
+    # A MISSING/malformed manifest is fail-closed: never default to complete.
+    if not manifest or not isinstance(manifest, dict):
+        print("collection manifest missing/malformed: treated as incomplete; "
+              "no publish / state advance / headline drift")
+        if not dr:
+            upsert_issue(
+                ISSUE_SOURCE,
+                "\n".join([
+                    "## Collection manifest missing/malformed",
+                    f"- observed: {__import__('datetime').date.today().isoformat()}",
+                    f"- pipeline outcome: {outcome}",
+                    "collection-manifest.json missing or malformed; treated as "
+                    "incomplete. No state advance, no publish, no headline drift.",
+                ]),
+            )
+            print("manifest-missing issue created/updated")
+        else:
+            print("(dry-run: no issue)")
+        return 1  # workflow stays red (production state unknown)
+    collection_complete = bool(manifest.get("collection_complete", False))
     incomplete_reasons = manifest.get("incomplete_reasons") or []
 
     # ---- source health / pipeline failure -------------------------------

@@ -35,24 +35,41 @@ MISSINGNESS_PP = 10.0
 CONFLICT_RATE = 0.10
 
 
+def _snapshot_freshness(snapshot_date: Optional[str]) -> dict:
+    if not snapshot_date:
+        return {"snapshot": None, "freshness": None, "days": None}
+    from cs2_pro_settings.rankings import freshness
+
+    try:
+        name, days = freshness(snapshot_date)
+        return {"snapshot": snapshot_date, "freshness": name, "days": days}
+    except ValueError:
+        return {"snapshot": snapshot_date, "freshness": "unknown", "days": None}
+
+
 def ranking_status() -> dict:
-    """Load accepted ranking snapshot + freshness status."""
+    """Freshness of the accepted ranking snapshots — Core and reference SEPARATE.
+
+    A stale VRS snapshot is reported as VRS stale; a stale HLTV snapshot as
+    HLTV stale. They are never conflated.
+    """
     cohort = {}
     cp = ROOT / "config" / "cohort.yaml"
     if cp.exists():
         cohort = yaml.safe_load(cp.read_text(encoding="utf-8")) or {}
-    core = cohort.get("cohort", {}).get("core", {})
-    snapshot_date = core.get("snapshot")
-    status = {"snapshot": snapshot_date, "freshness": None, "days": None}
-    if snapshot_date:
-        from cs2_pro_settings.rankings import freshness
-        try:
-            name, days = freshness(snapshot_date)
-            status["freshness"] = name
-            status["days"] = days
-        except ValueError:
-            status["freshness"] = "unknown"
-    return status
+    c = cohort.get("cohort", {})
+    core = c.get("core", {})
+    ref = c.get("reference", {})
+    return {
+        "core": {
+            "provider": core.get("provider", "valve"),
+            **_snapshot_freshness(core.get("snapshot")),
+        },
+        "reference": {
+            "provider": ref.get("provider", "hltv"),
+            **_snapshot_freshness(ref.get("snapshot")),
+        },
+    }
 
 
 def watchlist_review_due(today: Optional[date] = None) -> list[str]:
@@ -146,9 +163,14 @@ def main() -> int:
                         f"missingness spike >= 10pp in {field}: "
                         f"{base_miss*100:.1f}% -> {cur_miss*100:.1f}%")
 
-    turnover = roster_report.get("turnover_rate")
+    # Core-only turnover drives the headline quality guard; all-tracked
+    # turnover is reported separately for monitoring (Watchlist / HLTV-only
+    # roster churn must NOT trigger the Core >=15% quality warning)
+    turnover = roster_report.get("core_turnover_rate", roster_report.get("turnover_rate"))
+    all_tracked_turnover = roster_report.get("turnover_rate")
     if turnover is not None and turnover >= 0.15:
-        problems.append(f"roster turnover >= 15%: {turnover}")
+        problems.append(f"Core roster turnover >= 15%: {turnover}")
+    print(f"all_tracked_turnover: {all_tracked_turnover}")
 
     # monthly snapshot publishability: Core initialized + collection
     # complete + core players present (no 0-player / incomplete snapshot)
@@ -186,13 +208,18 @@ def main() -> int:
         upsert_issue(ISSUE_QUALITY, body)
         print("data-quality issue created/updated")
 
-    # ranking maintenance: ONLY >=180d triggers an issue (30/90d are status only)
+    # ranking maintenance: ONLY >=180d triggers an issue (30/90d are status
+    # only); Core (VRS) and reference (HLTV) freshness are evaluated
+    # SEPARATELY and never conflated
     maintenance_lines: list[str] = []
-    if rank.get("freshness") == "maintenance_due":
-        maintenance_lines.append(
-            f"- HLTV ranking snapshot {rank.get('snapshot')} is "
-            f"{rank.get('days')} days old (>=180d); consider importing a new "
-            "manual snapshot (ranking import-hltv)")
+    for key, label, importer in (("core", "Valve Global Ranking (VRS)", "import-vrs"),
+                                 ("reference", "HLTV World Ranking", "import-hltv")):
+        rs = rank.get(key, {})
+        if rs.get("freshness") == "maintenance_due":
+            maintenance_lines.append(
+                f"- {label} snapshot {rs.get('snapshot')} is "
+                f"{rs.get('days')} days old (>=180d); consider importing a "
+                f"new manual snapshot (ranking {importer})")
     if watch_due:
         maintenance_lines.append(
             "- watchlist items without last_reviewed (review_due): "

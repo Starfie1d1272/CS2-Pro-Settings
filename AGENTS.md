@@ -45,7 +45,7 @@ Automation rules:
 - Core scope unstable OR roster unstable (turnover >= 15%) → overall
   headline Level 2 automation is suppressed (human review required); the
   matched panel is always computed independently.
-- A baseline from a different cohort series (legacy 2026-05 vs hltv-core-v2)
+- A baseline from a different cohort series (legacy 2026-05 vs vrs-core-v2)
   is NOT comparable for headline Level 1/2 automation.
 - Cross-run runtime state (roster baseline, previous matched panel) lives in
   `.runtime-state/` (gitignored) and persists via the GitHub Actions cache;
