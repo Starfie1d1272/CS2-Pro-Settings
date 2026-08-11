@@ -12,7 +12,7 @@ from __future__ import annotations
 import statistics
 from typing import Any, Optional
 
-from .models import NormalizedPlayerSettings
+from .models import CUSTOM_COLOR_CODE, NormalizedPlayerSettings
 
 # Real normalized settings attributes (excludes identity metadata:
 # player_id / canonical_name / team / cohort_tier / provenance)
@@ -100,6 +100,35 @@ def compute_metrics(
 
     color_cats = _counts([p.crosshair_color for p in players])
     color_valid = _valid_n([p.crosshair_color for p in players])
+
+    # Custom RGB: interpreted ONLY when the raw crosshair mode code is the
+    # game's custom-RGB value (cl_crosshaircolor 5, CUSTOM_COLOR_CODE) AND
+    # the R/G/B channels are all present. Preset-mode RGB is latent/
+    # inactive state (see models.py) and never enters this denominator;
+    # a missing channel makes the player Custom-RGB-missing, never
+    # defaulted to 255,255,255. The mode code is the authoritative switch.
+    custom_players = sum(1 for p in players
+                         if p.crosshair_color_code == CUSTOM_COLOR_CODE)
+    rgb_keys = [
+        f"{p.crosshair_color_r},{p.crosshair_color_g},{p.crosshair_color_b}"
+        for p in players
+        if p.crosshair_color_code == CUSTOM_COLOR_CODE
+        and p.crosshair_color_r is not None
+        and p.crosshair_color_g is not None
+        and p.crosshair_color_b is not None
+    ]
+    rgb_cats = _counts(rgb_keys)
+    rgb_valid = len(rgb_keys)
+    top_rgb = _top(rgb_cats)
+    custom_rgb = {
+        "valid_n": rgb_valid,
+        "custom_players": custom_players,
+        "coverage": _share(rgb_valid, custom_players),
+        "categories": rgb_cats,
+        "unique_colors": len(rgb_cats),
+        "top_rgb": top_rgb,
+        "top_rgb_share": _share(rgb_cats.get(top_rgb, 0), rgb_valid) if top_rgb else None,
+    }
 
     fov = [p.viewmodel_fov for p in players]
     fov_valid = _valid_n(fov)
@@ -208,6 +237,7 @@ def compute_metrics(
             "dot_outline_off_share": _share(both_off, ch_valid),
             "color_categories": color_cats,
             "top_color": _top(color_cats),
+            "custom_rgb": custom_rgb,
         },
         "viewmodel": {
             "valid_n": fov_valid,

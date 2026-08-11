@@ -151,6 +151,47 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     plt.close(fig)
     written.append(p)
 
+    # Custom crosshair RGB: ONLY players in Custom mode with complete
+    # R/G/B channels (aggregate custom_rgb.valid_n). Preset-mode RGB is
+    # latent state and is never plotted here. Exact RGB categories, top N
+    # + Other, colored by the actual RGB value (v1 notebook style, no
+    # subjective nearest-color naming).
+    crgb = (agg.get("crosshair") or {}).get("custom_rgb") or {}
+    if (crgb.get("valid_n") or 0) > 0 and crgb.get("categories"):
+        cats = dict(crgb["categories"])
+        top_n = dict(list(cats.items())[:10])
+        rest = sum(v for k, v in list(cats.items())[10:])
+        if rest:
+            top_n["Other"] = rest
+        labels = list(top_n.keys())
+        counts = list(top_n.values())
+
+        def _hex_of(key: str) -> str:
+            try:
+                r, g, b = (int(x) for x in key.split(","))
+            except (TypeError, ValueError):
+                return "#888888"
+            return "#{:02x}{:02x}{:02x}".format(
+                max(0, min(r, 255)), max(0, min(g, 255)), max(0, min(b, 255)))
+
+        fig, ax = plt.subplots(figsize=(10, 5.5))
+        colors = [_hex_of(k) for k in labels]
+        y = range(len(labels))
+        ax.barh(list(y), counts, color=colors, edgecolor="#121212", linewidth=0.8)
+        ax.set_yticks(list(y))
+        ax.set_yticklabels(labels, fontsize=9)
+        ax.invert_yaxis()
+        ax.set_title(
+            f"Custom crosshair RGB (exact colors, n={crgb['valid_n']})",
+            fontsize=13, fontweight="bold", color=ACCENT)
+        ax.set_xlabel("Player Count")
+        ax.tick_params(axis="x", labelsize=9)
+        fig.tight_layout()
+        p = out_dir / "crosshair_custom_rgb.png"
+        fig.savefig(p, dpi=150)
+        plt.close(fig)
+        written.append(p)
+
     # FOV
     fig, ax = plt.subplots(figsize=(8, 5))
     vm = agg.get("viewmodel") or {}

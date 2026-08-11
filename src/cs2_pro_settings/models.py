@@ -10,6 +10,14 @@ from __future__ import annotations
 from dataclasses import dataclass, field
 from typing import Any, Optional
 
+# The game's custom-RGB crosshair mode: cl_crosshaircolor 5 (verified via
+# the historical CS:GO implementation preserved by Kisak-Strike,
+# cross-checked against current CS2 game data: the in-game RGB sliders set
+# cl_crosshaircolor to 5). The RAW mode code is the authoritative switch
+# for Custom-mode RGB interpretation; the string label ("Custom") is a
+# derived display value, never the switch.
+CUSTOM_COLOR_CODE = 5
+
 
 @dataclass
 class PlayerIdentity:
@@ -82,6 +90,18 @@ class NormalizedPlayerSettings:
     crosshair_gap: Optional[float] = None
     crosshair_thickness: Optional[float] = None
     crosshair_color: Optional[str] = None
+    # RAW mode/code from the source (e.g. cs2settings `crosshair.color`,
+    # which is the game's cl_crosshaircolor value). Never interpreted as a
+    # color on its own: the verified label lives in crosshair_color.
+    crosshair_color_code: Optional[int] = None
+    # RAW stored RGB channels (cl_crosshaircolor_r/g/b). These are ACTIVE
+    # only when crosshair_color_code == CUSTOM_COLOR_CODE (Custom mode):
+    # for preset modes the source keeps the values as latent state and
+    # they do NOT represent the current effective color. Never used to
+    # override a preset category.
+    crosshair_color_r: Optional[int] = None
+    crosshair_color_g: Optional[int] = None
+    crosshair_color_b: Optional[int] = None
     crosshair_outline: Optional[bool] = None
     crosshair_dot: Optional[bool] = None
     crosshair_alpha: Optional[int] = None

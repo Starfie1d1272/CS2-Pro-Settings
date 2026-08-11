@@ -160,6 +160,8 @@
 如果主导颜色变了：
 才写"信仰又变了"。
 
+> 数据能力更新：本期已恢复 Custom RGB breakdown（仅 Custom 模式解释 RGB，exact RGB 精确展示）。最终文章待人工撰写。
+
 ---
 
 ## Q6：Viewmodel

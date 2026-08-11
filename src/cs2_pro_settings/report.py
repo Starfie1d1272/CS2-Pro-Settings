@@ -69,6 +69,7 @@ FIGURE_FILES = {
     "aspect_ratio": "aspect_ratio.png",
     "resolution": "resolution.png",
     "crosshair": "crosshair_color.png",
+    "custom_rgb": "crosshair_custom_rgb.png",
     "viewmodel": "fov.png",
 }
 
@@ -275,6 +276,13 @@ class ReportView:
     crosshair_minimal_pct: str = "n/a"
     crosshair_n: int = 0
     crosshair_color_rows: list[tuple[str, int, int]] = field(default_factory=list)
+    # Custom RGB (valid_n = Custom-mode players with complete R/G/B)
+    custom_rgb_valid_n: int = 0
+    custom_rgb_players: int = 0
+    custom_rgb_coverage: str = "n/a"
+    custom_rgb_unique: int = 0
+    custom_rgb_top: str = "n/a"
+    custom_rgb_top_pct: str = "n/a"
     fov68_pct: str = "n/a"
     viewmodel_dominant_offset: str = "n/a"
     fov_n: int = 0
@@ -453,6 +461,15 @@ def build_report_view(
     v.crosshair_n = _as_int(ch.get("valid_n"))
     v.crosshair_minimal_pct = _pct(ch.get("dot_outline_off_share"))
     v.crosshair_color_rows = _cats_top_rows(ch.get("color_categories") or {})
+    crgb = ch.get("custom_rgb") or {}
+    v.custom_rgb_valid_n = _as_int(crgb.get("valid_n"))
+    v.custom_rgb_players = _as_int(crgb.get("custom_players"))
+    v.custom_rgb_coverage = _pct(
+        crgb.get("coverage") if isinstance(crgb.get("coverage"), (int, float)) else None)
+    v.custom_rgb_unique = _as_int(crgb.get("unique_colors"))
+    v.custom_rgb_top = str(crgb.get("top_rgb") or "n/a")
+    v.custom_rgb_top_pct = _pct(
+        crgb.get("top_rgb_share") if isinstance(crgb.get("top_rgb_share"), (int, float)) else None)
 
     vm = agg.get("viewmodel") or {}
     v.fov_n = _as_int(vm.get("valid_n"))
@@ -704,7 +721,16 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
         if v.crosshair_color_rows:
             color_txt = " · ".join(f"{k} {_cats_pct_from_row((k, c, t))}" for k, c, t in v.crosshair_color_rows)
             lines.append(f"- Color categories: {color_txt} (n={v.crosshair_n})")
-            lines.append("- The current snapshot only records color categories; the Custom RGB breakdown is not part of the v2 aggregate yet.")
+            if v.custom_rgb_valid_n:
+                lines.append("")
+                lines.append(fig("custom_rgb"))
+                lines.append("")
+                top_txt = (f" · top **{v.custom_rgb_top}** ({v.custom_rgb_top_pct})"
+                           if v.custom_rgb_top != "n/a" else "")
+                lines.append(
+                    f"- Custom RGB: **{v.custom_rgb_valid_n}/{v.custom_rgb_players}** "
+                    f"players with complete RGB ({v.custom_rgb_coverage}) · "
+                    f"{v.custom_rgb_unique} unique exact colors{top_txt}")
         lines.append("")
 
     # 5. viewmodel
@@ -884,7 +910,16 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
         if v.crosshair_color_rows:
             color_txt = " · ".join(f"{k} {_cats_pct_from_row((k, c, t))}" for k, c, t in v.crosshair_color_rows)
             lines.append(f"- 颜色类别：{color_txt}（n={v.crosshair_n}）")
-            lines.append("- 当前标准化快照仅按类别统计颜色，尚未包含 Custom RGB 具体色值的拆分。")
+            if v.custom_rgb_valid_n:
+                lines.append("")
+                lines.append(fig("custom_rgb"))
+                lines.append("")
+                top_txt = (f" · 最常用 **{v.custom_rgb_top}**（{v.custom_rgb_top_pct}）"
+                           if v.custom_rgb_top != "n/a" else "")
+                lines.append(
+                    f"- Custom RGB：**{v.custom_rgb_valid_n}/{v.custom_rgb_players}** "
+                    f"名选手 RGB 三通道完整（{v.custom_rgb_coverage}）· "
+                    f"{v.custom_rgb_unique} 种精确颜色{top_txt}")
         lines.append("")
 
     if v.fov_n:

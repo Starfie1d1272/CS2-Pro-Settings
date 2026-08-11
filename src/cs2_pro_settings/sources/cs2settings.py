@@ -15,6 +15,7 @@ Fail closed: any HTTP or parse failure raises SourceError.
 from __future__ import annotations
 
 import json
+import math
 import re
 from datetime import date
 from typing import Any, Optional
@@ -264,7 +265,10 @@ _CROSSHAIR_MAP = {
     "size": "crosshair_size",
     "gap": "crosshair_gap",
     "thickness": "crosshair_thickness",
-    "color": "crosshair_color_raw",
+    "color": "crosshair_color_code",
+    "colorR": "crosshair_color_r",
+    "colorG": "crosshair_color_g",
+    "colorB": "crosshair_color_b",
     "outline": "crosshair_outline",
     "dot": "crosshair_dot",
     "alpha": "crosshair_alpha",
@@ -288,11 +292,75 @@ _MAP_MAP = {
     "radarCentered": "radar_centered",
 }
 
-# cs2settings crosshair color code -> category (from their own schema)
+# cs2settings crosshair color code -> verified game semantic.
+# Verified 2026-08-11 (final):
+#  - blob `crosshair.color` IS the game's cl_crosshaircolor cvar value:
+#    the share-code codec (chunks/fAUr8sLQ.js) stores `color & 7` and the
+#    Copy Commands generator emits `cl_crosshaircolor <color>` verbatim;
+#  - the 0-4 preset mapping (Red/Green/Yellow/Blue/Cyan) comes from the
+#    historical CS:GO implementation preserved by Kisak-Strike
+#    (weapon_csbase.cpp, cl_crosshaircolor switch: 0 Red / 1 Green /
+#    2 Yellow / 3 Blue / 4 Cyan), cross-checked against current CS2 game
+#    data: the in-game RGB sliders set cl_crosshaircolor to 5, so Custom
+#    mode = 5 (custom-RGB channels active);
+#  - codes 6+ have unverified / unsupported semantics: the raw code is
+#    preserved but NO label is attached (the site's preview palette keeps
+#    extra swatches at index 6-8, but they are UI fallback colors, not
+#    presets);
+#  - live data shows only codes 1/2/4/5, matching pro habits (green/cyan/
+#    custom dominate; pure red/blue rare).
+# NOTE: this is 0-based (CS:GO heritage), NOT the old 1 Green / 2 Yellow /
+# 3 Cyan / 4 Blue / 5 Custom / 6 Pink / 7 Red / 8 White table.
 _COLOR_CODES = {
-    1: "Green", 2: "Yellow", 3: "Cyan", 4: "Blue",
-    5: "Custom", 6: "Pink", 7: "Red", 8: "White",
+    0: "Red", 1: "Green", 2: "Yellow", 3: "Blue", 4: "Cyan", 5: "Custom",
 }
+
+
+def _exact_int(v: Any) -> Optional[int]:
+    """Exact integer parsing: int, integral float (4.0), integer string.
+
+    Rejects non-integral floats (4.2 -> NOT 4), bools, NaN/inf and other
+    malformed values -> None. Field-level fail-closed: a bad value fails
+    THAT field, never the whole player page.
+    """
+    if isinstance(v, bool):
+        return None
+    if isinstance(v, int):
+        return v
+    if isinstance(v, float):
+        if not math.isfinite(v) or not v.is_integer():
+            return None
+        return int(v)
+    if isinstance(v, str):
+        s = v.strip()
+        try:
+            f = float(s)
+        except (TypeError, ValueError):
+            return None
+        if not math.isfinite(f) or not f.is_integer():
+            return None
+        return int(f)
+    return None
+
+
+def _parse_color_code(v: Any) -> Optional[int]:
+    """Raw cl_crosshaircolor value: ANY non-negative exact integer is
+    preserved (code 0 included; the share-code codec stores `color & 7`,
+    so 0..7 round-trip and 8+ collapse modulo 8 — the raw value is kept
+    verbatim). Semantics are only attached by _COLOR_CODES for codes with
+    confirmed game meaning; 6+ stay raw with no label.
+    """
+    iv = _exact_int(v)
+    return iv if iv is not None and iv >= 0 else None
+
+
+def _as_int_in_range(v: Any, lo: int, hi: int) -> Optional[int]:
+    """Exact integer in [lo, hi]; bools / non-integral / NaN / inf /
+    out-of-range -> None. Field-level fail-closed: a bad channel fails
+    THAT field, never the whole player page.
+    """
+    iv = _exact_int(v)
+    return iv if iv is not None and lo <= iv <= hi else None
 
 
 class CS2SettingsSource:
@@ -466,8 +534,25 @@ class CS2SettingsSource:
             f = _CROSSHAIR_MAP.get(k)
             if not f:
                 continue
-            if f == "crosshair_color_raw":
-                fields["crosshair_color"] = _COLOR_CODES.get(int(v)) if isinstance(v, (int, float)) else v
+            if f == "crosshair_color_code":
+                # raw mode/code (the game's cl_crosshaircolor value) is
+                # ALWAYS preserved verbatim; a verified label is attached
+                # only for codes with confirmed game semantics. Preset RGB
+                # channels stay latent (see models.py) and never override
+                # the category.
+                code = _parse_color_code(v)
+                if code is not None:
+                    fields["crosshair_color_code"] = code
+                    label = _COLOR_CODES.get(code)
+                    if label is not None:
+                        fields["crosshair_color"] = label
+            elif f in ("crosshair_color_r", "crosshair_color_g",
+                       "crosshair_color_b"):
+                # RGB channels: 0..255 integer range check; malformed or
+                # out-of-range fails THIS field closed, never the page.
+                rgb = _as_int_in_range(v, 0, 255)
+                if rgb is not None:
+                    fields[f] = rgb
             else:
                 fields[f] = v
         vid = blob.get("videoSettings")
