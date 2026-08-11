@@ -196,10 +196,8 @@ def test_verified_color_code_mapping():
 
 
 def test_unverified_codes_preserve_raw_but_no_label():
-    """Codes 6+ are not valid cl_crosshaircolor states (the game falls
-    back to green); the site's palette swatches at index 6-8 are UI
-    fallback colors, not presets. Raw code is preserved, label is NOT
-    guessed (no Magenta / White / Orange locks)."""
+    """Codes 6+ have unverified / unsupported semantics in this pipeline.
+    Their raw value is preserved, but no color label is inferred."""
     for code in (6, 7, 8):
         parsed = _parsed({"color": code})
         assert parsed.fields["crosshair_color_code"] == code, f"code {code} dropped"
