@@ -6,7 +6,9 @@
 ## Snapshot
 
 - snapshot date: **2026-08-11**
-- cohort size: 133 players / 30 teams
+- cohort size: 149 players / 30 teams
+- settings availability: 133/149 with at least one usable setting (89.3%); 16 with zero usable settings
+- field-level coverage varies: each metric reports its own valid_n
 - source: v2-vrs-core
 - tracked-team scope: vrs-core-v2 (37 teams in universe, 30 in Core)
 
@@ -46,7 +48,7 @@
 
 ### Cohort change
 
-- baseline players: 198; current: 133
+- baseline players: 198; current: 149
 - added: unavailable; removed: unavailable
 
 ### Matched panel
@@ -65,8 +67,8 @@
 
 ## Extended tracking (non-Core segments)
 
-- core_plus_watchlist: 147 players / 33 teams (eDPI median 800.0)
-- all_tracked: 154 players / 35 teams (eDPI median 800.0)
+- core_plus_watchlist: 163 players / 33 teams (eDPI median 800.0)
+- all_tracked: 172 players / 35 teams (eDPI median 800.0)
 
 ## Limitations
 
