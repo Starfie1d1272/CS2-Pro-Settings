@@ -95,11 +95,14 @@ def write_candidate_files(metrics: dict, monthly: bool = False) -> list[str]:
         json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     changed.append("data/aggregate/latest.json")
     if monthly:
+        # the monthly file must stay in sync with latest for the SAME
+        # candidate (data corrections propagate): write unconditionally —
+        # content is deterministic, so an unchanged run produces no git
+        # diff and no empty commit
         month_file = AGG / f"{date.today().strftime('%Y-%m')}.json"
-        if not month_file.exists():
-            month_file.write_text(
-                json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
-            changed.append(month_file.name)
+        month_file.write_text(
+            json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+        changed.append(month_file.name)
     rep = WORK / "report-candidate.md"
     if rep.exists():
         (REPORTS / "latest.md").write_text(rep.read_text(encoding="utf-8"), encoding="utf-8")
