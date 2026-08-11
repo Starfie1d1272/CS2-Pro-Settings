@@ -1,0 +1,68 @@
+# Data Provenance
+
+## Sources
+
+This project tracks professional CS2 player settings published by third-party
+websites:
+
+- prosettings.net — player settings database (used by the original 2026-05 snapshot)
+- cs2settings.com — player settings database (v2 primary candidate source)
+- proconfig.net — editorial cross-check source (v2 secondary, disabled by default)
+
+## Ownership
+
+- Third-party source data is **not relicensed by this repository**. Upstream
+  rights remain with their respective sources.
+- **Source-derived row-level datasets are not distributed in the current
+  public tree.** The row-level CSVs from the original 2026-05 snapshot
+  (`cs2_pro_raw.csv`, `cs2_pro_detailed_RAW.csv`,
+  `cs2_pro_2026_Active_Master.csv`, `cs2_pro_2026_Active_Final.csv`) were
+  removed when the v2 pipeline was introduced. They may remain in Git history
+  for transparency; the current public tree no longer republishes them.
+- Raw scraped HTML is never committed or uploaded as artifacts.
+- No live crawl output (work/) is committed.
+
+## What is published
+
+- **Aggregate statistics** (`data/aggregate/`) — per-snapshot summary metrics
+  with `valid_n` for every denominator. These are derived statistics over the
+  sampled cohort, not third-party row-level records.
+- **Reports** (`reports/`) — descriptive analyses authored from aggregate
+  statistics, with explicit snapshot date and cohort scope.
+- Generated figures (`figures/`) — visualizations of aggregate statistics.
+
+Every aggregate snapshot records its source and generation date. Every
+normalized field in the v2 pipeline carries provenance (source, source_url,
+retrieved_at, source_updated_at where available).
+
+## Policy
+
+Automated collection is limited to target paths that are accessible via
+ordinary HTTP and are not disallowed for the configured user agent by the
+source's robots policy. A robots allowance or the absence of dedicated
+terms is NOT represented as affirmative legal permission. Adapters fail
+closed; no anti-bot bypass, CAPTCHA solving, proxy rotation, or browser
+automation is used. See `docs/source-audit/` for per-source policy audits.
+
+- **Source availability != permission.** An adapter capability never by
+  itself enables scheduled use; `enabled_for_schedule` is an explicit
+  policy decision kept in `config/sources.yaml`.
+- ProSettings stays **local / user-triggered only**; it is not opened as a
+  scheduled mirror even where it could serve as a settings fallback.
+- Local coverage audits (probe scripts) never commit raw row-level data and
+  never advance production runtime state.
+- Stable identities (SteamIDs) are used for runtime reconciliation only;
+  identity crosswalks are not committed to the public tree.
+- Public aggregates contain no player-level settings records or identity
+  lists.
+
+## Runtime state
+
+Cross-run operational state (roster baseline, roster confirmation window,
+previous matched panel) is stored in `.runtime-state/` and persisted between
+production runs through the GitHub Actions cache. It is **ephemeral
+operational state**: never committed to the public repository, never
+uploaded as a workflow artifact, and it holds only minimal derived
+matched-panel fields (player_id, dpi, edpi, resolution, polling_rate) —
+never raw HTML, bios, or other source content. Cache loss produces a safe
+warm-up run, not a false drift alert.

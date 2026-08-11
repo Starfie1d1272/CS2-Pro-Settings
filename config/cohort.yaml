@@ -1,0 +1,173 @@
+cohort:
+  core:
+    provider: valve
+    ranking_authority: valve
+    ranking_type: global
+    presentation_host: hltv.org
+    snapshot: '2026-08-10'
+    top_n: 30
+    teams:
+    - rank: 1
+      team_id: team-spirit
+    - rank: 2
+      team_id: falcons
+    - rank: 3
+      team_id: 9z
+    - rank: 4
+      team_id: mouz
+    - rank: 5
+      team_id: vitality
+    - rank: 6
+      team_id: natus-vincere
+    - rank: 7
+      team_id: legacy
+    - rank: 8
+      team_id: furia
+    - rank: 9
+      team_id: betboom
+    - rank: 10
+      team_id: faze
+    - rank: 11
+      team_id: parivision
+    - rank: 12
+      team_id: g2
+    - rank: 13
+      team_id: aurora
+    - rank: 14
+      team_id: fut
+    - rank: 15
+      team_id: the-mongolz
+    - rank: 16
+      team_id: alliance
+    - rank: 17
+      team_id: mibr
+    - rank: 18
+      team_id: big
+    - rank: 19
+      team_id: liquid
+    - rank: 20
+      team_id: astralis
+    - rank: 21
+      team_id: tyloo
+    - rank: 22
+      team_id: b8
+    - rank: 23
+      team_id: inner-circle
+    - rank: 24
+      team_id: gamerlegion
+    - rank: 25
+      team_id: magic
+    - rank: 26
+      team_id: heroic
+    - rank: 27
+      team_id: dendele
+    - rank: 28
+      team_id: ninjas-in-pyjamas
+    - rank: 29
+      team_id: hotu
+    - rank: 30
+      team_id: eyeballers
+  reference:
+    provider: hltv
+    ranking_authority: hltv
+    ranking_type: world
+    presentation_host: hltv.org
+    snapshot: '2026-08-03'
+    top_n: 30
+    teams:
+    - rank: 1
+      team_id: falcons
+    - rank: 2
+      team_id: team-spirit
+    - rank: 3
+      team_id: furia
+    - rank: 4
+      team_id: vitality
+    - rank: 5
+      team_id: mouz
+    - rank: 6
+      team_id: natus-vincere
+    - rank: 7
+      team_id: 9z
+    - rank: 8
+      team_id: aurora
+    - rank: 9
+      team_id: g2
+    - rank: 10
+      team_id: betboom
+    - rank: 11
+      team_id: faze
+    - rank: 12
+      team_id: legacy
+    - rank: 13
+      team_id: astralis
+    - rank: 14
+      team_id: the-mongolz
+    - rank: 15
+      team_id: fut
+    - rank: 16
+      team_id: parivision
+    - rank: 17
+      team_id: b8
+    - rank: 18
+      team_id: pain
+    - rank: 19
+      team_id: liquid
+    - rank: 20
+      team_id: 3dmax
+    - rank: 21
+      team_id: gamerlegion
+    - rank: 22
+      team_id: magic
+    - rank: 23
+      team_id: luminosity
+    - rank: 24
+      team_id: mibr
+    - rank: 25
+      team_id: tyloo
+    - rank: 26
+      team_id: alliance
+    - rank: 27
+      team_id: ninjas-in-pyjamas
+    - rank: 28
+      team_id: big
+    - rank: 29
+      team_id: dendele
+    - rank: 30
+      team_id: heroic
+  watchlist:
+  - team_id: bc-game
+    settings_slug: null
+    reason: rising/notable roster; near-top-tier tracking candidate
+    status: active
+    added_at: '2026-08-10'
+    note: manual watchlist entry; not proof of current VRS/HLTV Top 30 membership
+  - team_id: 100-thieves
+    settings_slug: 100-thieves
+    reason: historically selected / rising candidate
+    status: active
+    added_at: '2026-08-10'
+    note: manual watchlist entry; not proof of current VRS/HLTV Top 30 membership
+  - team_id: m80
+    settings_slug: m80
+    reason: near-ranked-union / competitive relevance
+    status: active
+    added_at: '2026-08-10'
+    note: manual watchlist entry; not proof of current VRS/HLTV Top 30 membership
+  - team_id: lynn-vision
+    settings_slug: lynn-vision
+    reason: regional / international relevance
+    status: active
+    added_at: '2026-08-10'
+    note: manual watchlist entry; not proof of current VRS/HLTV Top 30 membership
+  supplemental: []
+ranking_freshness:
+  aging_days: 30
+  stale_days: 90
+  maintenance_days: 180
+filters:
+  exclude:
+  - coach
+  - retired
+  - content_creator
+include_free_agents: false

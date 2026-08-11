@@ -1,101 +1,90 @@
 # CLAUDE.md
 
-This file provides guidance to Claude Code (claude.ai/code) when working with code in this repository.
+This file provides guidance to Claude Code when working with this repository.
 
-## 项目概述
+## Project
 
-CS2 职业选手参数数据挖掘项目。从 prosettings.net 爬取 Top 战队现役选手的外设/画质/准星设置，经过 ETL 清洗后生成赛博朋克主题的可视化图表。
+CS2 Pro Settings Tracker — a reproducible, multi-source longitudinal data
+pipeline for tracking how professional Counter-Strike 2 settings evolve over
+time. v1 was a one-off May 2026 notebook analysis; v2 is the canonical
+automated pipeline.
 
-主报告：`CS-Pro-Settings.md`（面向读者的数据分析文章）。
-仓库说明：`README.md`（面向开发者的复现指南）。
+## v1 vs v2
 
-## 数据管道 (3 阶段)
+- `notebooks/v1/` — historical 2026-05 snapshot pipeline. **Historical only**;
+  not executed by CI, not scheduled, do not modify their algorithms.
+- `src/cs2_pro_settings/` — **canonical v2 pipeline** (models, identity,
+  cohort, normalize, reconcile, metrics, drift, roster, rankings,
+  runtime_state, scopes, report, plots, CLI, sources).
+- `reports/2026-05.md` — historical snapshot analysis (dated, descriptive).
+- `reports/latest.md` — generated placeholder; regenerated only when a
+  candidate snapshot is accepted.
 
-```
-01_data_collection.ipynb  → Phase 1: 网页爬取 → cs2_pro_raw.csv, cs2_pro_detailed_RAW.csv
-02_data_cleaning.ipynb    → Phase 2: ETL 清洗 + 质检 + 特征增强 → cs2_pro_2026_Active_Final.csv
-03_final_report.ipynb     → Phase 3: 23 张图表渲染（22 数据分析 + 1 AI 生成全览）→ figures/*.png
-```
-
-02 是唯一的清洗入口：
-- Cell 1: 战队白名单（41队/64变体）+ 选手白名单（202人/216变体，含HLTV→prosettings别名）
-- Cell 2: 数值化 + 质检去重 → Master.csv
-- Cell 3: RAW特征合并（30+字段，含准星/视角/雷达） → Final.csv
-- Cell 4: 就绪检查
-
-03 Cell 0 包含跨平台中文字体自动检测（Windows → macOS → Linux fallback），无需手动配置。
-
-## 环境
+## Environment
 
 ```bash
-# 方式 A: conda（推荐）
-conda env create -f environment.yml
-conda activate cs2_data
-
-# 方式 B: pip
-pip install -r requirements.txt
-
-# 启动
-jupyter notebook
+python -m venv .venv && source .venv/bin/activate
+pip install -e ".[dev]"        # canonical dependency source: pyproject.toml
+python -m pytest -v            # offline tests (no live scraping)
+python -m cs2_pro_settings update --offline   # offline fixture pipeline
 ```
 
-已有 conda 环境 `cs2pro`，与 `environment.yml` 等效。运行脚本时使用：
-```bash
-/opt/homebrew/Caskroom/miniforge/base/envs/cs2pro/bin/python <script>
-```
+Do NOT use machine-specific paths.
 
-## 绘图引擎
+## Pipeline order (also the decision order for automation)
 
-所有图表统一使用暗黑赛博朋克主题 (`dark_background` + 自定义 rcParams)，封装在 `03_final_report.ipynb` 的 Cell 0 中：
-- `setup_cs2_theme()` — 初始化全局 rcParams
-- `bar()` — 柱状图（自动标注数值）
-- `pie()` — 饼图
-- `hist()` — 直方图 + KDE + 可选均值/中位数参考线
-- `save()` — 封装 `plt.savefig()`，统一输出到 `figures/`，150dpi
+1. source health → 2. ranking/core scope → 3. current roster → 4. settings
+   collect → 5. normalize → 6. reconcile → 7. metrics → 8. stability →
+   9. drift → 10. report
 
-## 数据清洗规则
+Automation rules:
 
-1. 剔除 eDPI / Resolution 为空的空壳记录
-2. 剔除选手名与队伍名完全一致的假人数据
-3. 大小写去重（按 Player 小写保留第一条）
-4. Brightness 字段需 strip `%` 后转数值
-5. Refresh Rate 需正则提取数字部分 `r'(\d+)'`
+- CI is offline: pytest + offline fixture pipeline + deterministic check.
+- Scheduled workflows are online but only for enabled sources.
+- HLTV rankings are MANUAL (imported snapshots, never scraped).
+- Core scope unstable OR roster unstable (turnover >= 15%) → overall
+  headline Level 2 automation is suppressed (human review required); the
+  matched panel is always computed independently.
+- A baseline from a different cohort series (legacy 2026-05 vs hltv-core-v2)
+  is NOT comparable for headline Level 1/2 automation.
+- Cross-run runtime state (roster baseline, previous matched panel) lives in
+  `.runtime-state/` (gitignored) and persists via the GitHub Actions cache;
+  cache loss → safe warm-up run.
+- Raw third-party source data / raw HTML is never committed; `work/` and
+  `.runtime-state/` are gitignored; only `data/aggregate/` snapshots are
+  committed.
+- Issues and candidate PRs are deduplicated; nothing is auto-merged.
+- Report interpretation is written by humans; the pipeline is deterministic.
+- No anti-bot bypass, CAPTCHA solving, proxy rotation, or browser automation.
 
-## 报告数据校验
+## Data rules
 
-修改 `CS-Pro-Settings.md` 中的数据声明时，用以下命令交叉验证：
+- Every aggregate share carries `valid_n`; a missing field never defaults to
+  the full cohort size.
+- Player identity: `steam:<steamid>` preferred; never a bare nickname.
+- Reconciliation surfaces conflicts; never silently overwrite.
+- 5pp / 15% thresholds are operational notification thresholds, not
+  statistical significance.
 
-```bash
-/opt/homebrew/Caskroom/miniforge/base/envs/cs2pro/bin/python -c "
-import pandas as pd
-df = pd.read_csv('data/cs2_pro_2026_Active_Final.csv', low_memory=False)
-# 替换为需要验证的查询
-"
-```
+## Cohort model v3
 
-关键数字速查（198人/41队, 数据截至2026-05-05）：
-- eDPI 中位数: 800, 均值: 848
-- 800 DPI: 53.5%, 400 DPI: 41.4%, >=1600: 3.5%
-- 1280x960: 134人 (67.7%), 4:3: 78.1%
-- 显示器: 360Hz 31.8%, 540Hz+ 31.8%
-- FOV 68: 85.3%, X=2.5/Y=0/Z=-1.5 为黄金公式
-- 亮度 93%: 87人, 100%: 18人, 130%: 23人
-- Dot+Outline 双关: 81.8%
-- 准星颜色: Custom 38.4%, Cyan 31.3%, Green 23.2%
-- V-Sync: 100% 关闭, Reflex: 48.5% 开启
-- 雷达旋转: 79.3%, 雷达居中: 72.2%
-- 亮度默认值即为 93%, 并非选手精心选择
-- 鼠标回报率: 1000Hz 62.6%, 4000Hz+ 18.2%
+- **Core**: strictly defined by the last accepted manual HLTV Top 30
+  snapshot (`config/rankings/hltv/YYYY-MM-DD.yaml`); Core only feeds
+  headline statistics.
+- **Watchlist**: manual near-top30 / rising teams (not proof of HLTV rank).
+- **Supplemental**: regional / notable / legacy-selected teams.
+- Tracked universe = Core ∪ Watchlist ∪ Supplemental; extended segments are
+  reported separately (`segments` in metrics).
+- `ranking import-hltv` validates 1..30 unique/continuous ranks + mapping;
+  unresolved teams fail or emit non-activatable candidates.
 
-## 发布与社交平台
+## Key files
 
-- 主报告 `CS-Pro-Settings.md` → GitHub README 引用
-- `social/heybox-article.md` → 小黑盒（标题栏手动填，不支持 `` ` `` 和 H3/H4，图片拖入）
-- `social/xiaohongshu.md` → 小红书 9 篇拆解（5 天发布计划）
-- `social/wechat.md` / `social/bilibili.md` → 公众号/B站参考
-- 公众号账号: Starfie1d（科技互联网+科学科普+旅游摄影）
-
-## 已知缺口
-
-- RAW 中有 Gamma、Digital Vibrance、Color Temperature 等显示器参数未提取到 02 pipeline
-- CITATION.cff 已配置 GitHub 引用按钮，LICENSE 为 CC BY 4.0
+- `config/cohort.yaml` — Core/Watchlist/Supplemental + filters
+- `config/sources.yaml` — source enablement + field priority
+- `config/conclusions.yaml` — deterministic drift rules
+- `config/stability.yaml` — roster turnover guard (15%)
+- `config/team-mappings.yaml` — ranking display name → slug mapping
+- `docs/source-audit/` — per-source policy audits
+- `DATA_PROVENANCE.md` — third-party data boundaries + runtime state
+- `CONTRIBUTING.md`, `docs/ranking-updates.md` — community ranking updates
