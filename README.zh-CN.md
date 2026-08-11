@@ -14,16 +14,18 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 
 ## 最新一期
 
+<!-- CURRENT_SNAPSHOT:START -->
 **2026-08-11 · VRS Top 30 · 30 支战队 · 149 名选手** —— 第一份正式接受的 `vrs-core-v2` baseline。
 
 - 133/149 名选手有可用设置数据（89.3%）
 - 中位 eDPI 800
 - 400 + 800 DPI 合计 95.5%
 - 4:3 占 82.0%
-- 1280×960 占 68.4%
+- 1280x960 占 68.4%
 - 1000 Hz 占 62.4%
 - 4000 Hz+ 占 18.0%
 - viewmodel_fov 68 占 91.2%
+<!-- CURRENT_SNAPSHOT:END -->
 
 从当前快照来看，800 eDPI、4:3、1280×960 和 FOV 68 依然构成非常稳定的职业赛场主流画像。
 
@@ -128,7 +130,7 @@ pip install -e ".[dev]"
 python -m pytest -v                          # 离线测试
 python -m cs2_pro_settings update --offline  # fixture 全流程
 python -m cs2_pro_settings update --scheduled  # 定时源 live 流程
-python scripts/render_accepted.py            # 重新生成已接受的月度报告
+python scripts/render_accepted.py            # backfill 首期 baseline / 重渲染 latest pair
 ```
 
 ## 仓库结构
@@ -157,10 +159,7 @@ tests/                   离线测试 + fixtures
 - 报告、文档、生成图：CC BY 4.0（`CONTENT_LICENSE.md`）。
 - 第三方源数据：不由本仓库重新许可（`DATA_PROVENANCE.md`）。
 
-## 局限
+## 数据说明
 
-- 所有统计描述的都是抽样职业选手 cohort；某项设置在职业选手中常见，并不代表它能带来竞技表现提升。
-- `valid_n` 逐字段不同；缺失字段永远不会默认使用完整 cohort 作为分母。
-- roster 稳定性守卫是运维性质的，设计上偏保守。
-- 跨 run 运行时状态（GitHub Actions 缓存）是尽力而为；缓存丢失只会产生安全的 warm-up run，不会产生虚假漂移告警。
-- 解释性/结论性文字由人工撰写；管线只产生确定性数据与报告。
+- 各字段的 `valid_n` 可能不同；缺失字段不会默认使用完整 cohort 作为分母。
+- 2026-05 legacy 系列（`legacy-top30-plus-selected-v1`）仅作历史参照，不是 `vrs-core-v2` 的同系列纵向 baseline。

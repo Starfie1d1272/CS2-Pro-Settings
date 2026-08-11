@@ -657,25 +657,40 @@ def step_report(candidate: bool) -> Path:
     cur_series = (metrics.get("aggregate", {}).get("series") or {}).get("series_id")
     legacy = read_legacy_metadata(DATA_AGG, cur_series)
 
+    snapshot_date = (metrics.get("aggregate", {}) or {}).get("snapshot_date")
+    month = (snapshot_date or date.today().isoformat())[:7]
+    if len(month) != 7:
+        month = date.today().strftime("%Y-%m")
+
     if candidate:
         out_en = WORK / "report-candidate.md"
         out_zh = WORK / "report-candidate.zh-CN.md"
+        out_month_en = WORK / "report-candidate-monthly.md"
+        out_month_zh = WORK / "report-candidate-monthly.zh-CN.md"
     else:
         out_en = ROOT / "reports" / "latest.md"
         out_zh = ROOT / "reports" / "latest.zh-CN.md"
-    # English is the canonical report; both locales share the same view model
-    out_en.write_text(
-        render_report(metrics=metrics, drift=drift, source_status=status,
-                      conflicts=conflicts, baseline=baseline,
-                      roster_report=roster_report, manifest=manifest,
-                      legacy_snapshot=legacy, locale="en"),
-        encoding="utf-8")
-    out_zh.write_text(
-        render_report(metrics=metrics, drift=drift, source_status=status,
-                      conflicts=conflicts, baseline=baseline,
-                      roster_report=roster_report, manifest=manifest,
-                      legacy_snapshot=legacy, locale="zh-CN"),
-        encoding="utf-8")
+        out_month_en = ROOT / "reports" / f"{month}.md"
+        out_month_zh = ROOT / "reports" / f"{month}.zh-CN.md"
+
+    common = dict(metrics=metrics, drift=drift, source_status=status,
+                  conflicts=conflicts, baseline=baseline,
+                  roster_report=roster_report, manifest=manifest,
+                  legacy_snapshot=legacy)
+    # latest pair: latest cross-links + mutable figures/latest scope
+    out_en.write_text(render_report(locale="en", figure_scope="latest",
+                                    cross_link_base="latest", **common),
+                      encoding="utf-8")
+    out_zh.write_text(render_report(locale="zh-CN", figure_scope="latest",
+                                    cross_link_base="latest", **common),
+                      encoding="utf-8")
+    # monthly pair: same-month cross-links + immutable figures/YYYY-MM scope
+    out_month_en.write_text(render_report(locale="en", figure_scope=month,
+                                          cross_link_base=month, **common),
+                            encoding="utf-8")
+    out_month_zh.write_text(render_report(locale="zh-CN", figure_scope=month,
+                                          cross_link_base=month, **common),
+                            encoding="utf-8")
     return out_en
 
 

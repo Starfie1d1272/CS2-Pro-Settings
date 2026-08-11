@@ -183,12 +183,25 @@ def _cats_share_num(cats: dict, key: str) -> Optional[int]:
 
 
 def _cats_top_rows(cats: dict, limit: int = 6) -> list[tuple[str, int, int]]:
-    """Deterministic top categories: (key, count, total), count-desc."""
+    """Deterministic category ranking: (category, count, total), count-desc.
+
+    This is the SINGLE source of truth for "top category / runner-up"
+    rendering: renderers never assume a specific category (4:3, 1280x960,
+    16:9, 1920x1080, ...) is first or second.
+    """
     total = sum(cats.values())
     if total <= 0:
         return []
     ordered = sorted(cats.items(), key=lambda kv: (-kv[1], kv[0]))
     return [(k, v, total) for k, v in ordered[:limit]]
+
+
+def _cats_combined_share(cats: dict, keys) -> Optional[tuple[int, int]]:
+    """(combined_count, total) for a fixed set of category keys (raw)."""
+    total = sum(cats.values())
+    if total <= 0:
+        return None
+    return (sum(cats.get(k, 0) for k in keys), total)
 
 
 def _numeric_key(s: str) -> float:
@@ -253,16 +266,10 @@ class ReportView:
     polling_4000_plus_pct: str = "n/a"
     polling_4000_plus_count: Optional[int] = None
     polling_n: int = 0
-    aspect_4_3_pct: str = "n/a"
-    aspect_16_9_pct: str = "n/a"
-    aspect_4_3_count: Optional[int] = None
-    aspect_16_9_count: Optional[int] = None
+    # dynamic category rankings (top / runner-up, never hard-coded labels)
+    aspect_rank: list[tuple[str, int, int]] = field(default_factory=list)
     aspect_n: int = 0
-    resolution_top_category: str = "n/a"
-    resolution_1280x960_pct: str = "n/a"
-    resolution_1920x1080_pct: str = "n/a"
-    resolution_1280x960_count: Optional[int] = None
-    resolution_1920x1080_count: Optional[int] = None
+    resolution_rank: list[tuple[str, int, int]] = field(default_factory=list)
     resolution_n: int = 0
     crosshair_minimal_pct: str = "n/a"
     crosshair_n: int = 0
@@ -435,20 +442,11 @@ def build_report_view(
 
     aspect = agg.get("aspect_ratio") or {}
     v.aspect_n = _as_int(aspect.get("valid_n"))
-    acats = aspect.get("categories") or {}
-    v.aspect_4_3_pct = _cats_pct(acats, ["4:3"]) if acats else _pct(aspect.get("share_4_3"))
-    v.aspect_16_9_pct = _cats_pct(acats, ["16:9"])
-    v.aspect_4_3_count = _cats_share_num(acats, "4:3")
-    v.aspect_16_9_count = _cats_share_num(acats, "16:9")
+    v.aspect_rank = _cats_top_rows(aspect.get("categories") or {})
 
     res = agg.get("resolution") or {}
     v.resolution_n = _as_int(res.get("valid_n"))
-    v.resolution_top_category = str(res.get("top_category") or "n/a")
-    rcats = res.get("categories") or {}
-    v.resolution_1280x960_pct = _cats_pct(rcats, ["1280x960"]) if rcats else _pct(res.get("share_1280x960"))
-    v.resolution_1920x1080_pct = _cats_pct(rcats, ["1920x1080"])
-    v.resolution_1280x960_count = _cats_share_num(rcats, "1280x960")
-    v.resolution_1920x1080_count = _cats_share_num(rcats, "1920x1080")
+    v.resolution_rank = _cats_top_rows(res.get("categories") or {})
 
     ch = agg.get("crosshair") or {}
     v.crosshair_n = _as_int(ch.get("valid_n"))
@@ -557,10 +555,12 @@ def _key_numbers_en(v: ReportView) -> list[str]:
         rows.append(f"- Median eDPI: **{v.edpi_median}** (n={v.edpi_n})")
     if v.dpi_n:
         rows.append(f"- DPI: 800 at {v.dpi_800_pct} · 400 at {v.dpi_400_pct} (n={v.dpi_n})")
-    if v.aspect_n:
-        rows.append(f"- 4:3: **{v.aspect_4_3_pct}** (n={v.aspect_n})")
-    if v.resolution_n:
-        rows.append(f"- {v.resolution_top_category}: **{v.resolution_1280x960_pct}** (n={v.resolution_n})")
+    if v.aspect_rank:
+        top, _c, _t = v.aspect_rank[0]
+        rows.append(f"- {top}: **{_cats_pct_from_row(v.aspect_rank[0])}** (n={v.aspect_n})")
+    if v.resolution_rank:
+        top, _c, _t = v.resolution_rank[0]
+        rows.append(f"- {top}: **{_cats_pct_from_row(v.resolution_rank[0])}** (n={v.resolution_n})")
     if v.polling_n:
         rows.append(f"- Polling: 1000 Hz at {v.polling_1000_pct} · 4000 Hz+ at {v.polling_4000_plus_pct} (n={v.polling_n})")
     if v.crosshair_n and v.crosshair_color_rows:
@@ -579,10 +579,12 @@ def _key_numbers_zh(v: ReportView) -> list[str]:
         rows.append(f"- 中位 eDPI：**{v.edpi_median}**（n={v.edpi_n}）")
     if v.dpi_n:
         rows.append(f"- DPI：800 占 {v.dpi_800_pct} · 400 占 {v.dpi_400_pct}（n={v.dpi_n}）")
-    if v.aspect_n:
-        rows.append(f"- 4:3：**{v.aspect_4_3_pct}**（n={v.aspect_n}）")
-    if v.resolution_n:
-        rows.append(f"- {v.resolution_top_category}：**{v.resolution_1280x960_pct}**（n={v.resolution_n}）")
+    if v.aspect_rank:
+        top, _c, _t = v.aspect_rank[0]
+        rows.append(f"- {top}：**{_cats_pct_from_row(v.aspect_rank[0])}**（n={v.aspect_n}）")
+    if v.resolution_rank:
+        top, _c, _t = v.resolution_rank[0]
+        rows.append(f"- {top}：**{_cats_pct_from_row(v.resolution_rank[0])}**（n={v.resolution_n}）")
     if v.polling_n:
         rows.append(f"- 回报率：1000 Hz 占 {v.polling_1000_pct} · 4000 Hz+ 占 {v.polling_4000_plus_pct}（n={v.polling_n}）")
     if v.crosshair_n and v.crosshair_color_rows:
@@ -668,23 +670,27 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
     if v.aspect_n or v.resolution_n:
         lines.append(heading("Resolution & display"))
         lines.append("")
-        if v.aspect_n:
+        if v.aspect_rank:
             lines.append("### Aspect ratio")
             lines.append("")
             lines.append(fig("aspect_ratio"))
             lines.append("")
-            lines.append(f"- 4:3: **{v.aspect_4_3_pct}** (n={v.aspect_n})")
-            if v.aspect_16_9_count is not None:
-                lines.append(f"- 16:9 is the next tier at {v.aspect_16_9_count}/{v.aspect_n} ({v.aspect_16_9_pct}).")
+            top, tc, tt = v.aspect_rank[0]
+            lines.append(f"- {top}: **{_cats_pct_from_row(v.aspect_rank[0])}** (n={v.aspect_n})")
+            if len(v.aspect_rank) > 1:
+                runner, rc, rt = v.aspect_rank[1]
+                lines.append(f"- {runner} is the next tier at {rc}/{rt} ({_cats_pct_from_row(v.aspect_rank[1])}).")
             lines.append("")
-        if v.resolution_n:
+        if v.resolution_rank:
             lines.append("### Resolution")
             lines.append("")
             lines.append(fig("resolution"))
             lines.append("")
-            lines.append(f"- Most common: **{v.resolution_top_category}** ({v.resolution_1280x960_pct}, n={v.resolution_n})")
-            if v.resolution_1920x1080_count is not None:
-                lines.append(f"- 1920×1080 is next at {v.resolution_1920x1080_count}/{v.resolution_n} ({v.resolution_1920x1080_pct}).")
+            top, tc, tt = v.resolution_rank[0]
+            lines.append(f"- Most common: **{top}** ({_cats_pct_from_row(v.resolution_rank[0])}, n={v.resolution_n})")
+            if len(v.resolution_rank) > 1:
+                runner, rc, rt = v.resolution_rank[1]
+                lines.append(f"- {runner} is next at {rc}/{rt} ({_cats_pct_from_row(v.resolution_rank[1])}).")
             lines.append("")
 
     # 4. crosshair
@@ -845,23 +851,27 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
     if v.aspect_n or v.resolution_n:
         lines.append(heading("分辨率与显示"))
         lines.append("")
-        if v.aspect_n:
+        if v.aspect_rank:
             lines.append("### 宽高比")
             lines.append("")
             lines.append(fig("aspect_ratio"))
             lines.append("")
-            lines.append(f"- 4:3：**{v.aspect_4_3_pct}**（n={v.aspect_n}）")
-            if v.aspect_16_9_count is not None:
-                lines.append(f"- 16:9 次之，占 {v.aspect_16_9_count}/{v.aspect_n}（{v.aspect_16_9_pct}）。")
+            top, tc, tt = v.aspect_rank[0]
+            lines.append(f"- {top}：**{_cats_pct_from_row(v.aspect_rank[0])}**（n={v.aspect_n}）")
+            if len(v.aspect_rank) > 1:
+                runner, rc, rt = v.aspect_rank[1]
+                lines.append(f"- {runner} 次之，占 {rc}/{rt}（{_cats_pct_from_row(v.aspect_rank[1])}）。")
             lines.append("")
-        if v.resolution_n:
+        if v.resolution_rank:
             lines.append("### 分辨率")
             lines.append("")
             lines.append(fig("resolution"))
             lines.append("")
-            lines.append(f"- 最常见：**{v.resolution_top_category}**（{v.resolution_1280x960_pct}，n={v.resolution_n}）")
-            if v.resolution_1920x1080_count is not None:
-                lines.append(f"- 1920×1080 次之，占 {v.resolution_1920x1080_count}/{v.resolution_n}（{v.resolution_1920x1080_pct}）。")
+            top, tc, tt = v.resolution_rank[0]
+            lines.append(f"- 最常见：**{top}**（{_cats_pct_from_row(v.resolution_rank[0])}，n={v.resolution_n}）")
+            if len(v.resolution_rank) > 1:
+                runner, rc, rt = v.resolution_rank[1]
+                lines.append(f"- {runner} 次之，占 {rc}/{rt}（{_cats_pct_from_row(v.resolution_rank[1])}）。")
             lines.append("")
 
     if v.crosshair_n:
@@ -948,6 +958,128 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
     lines.append("- 项目与方法：[`README.md`](../README.md)")
     lines.append("")
     return "\n".join(lines)
+
+
+# ---------------------------------------------------------------------------
+# README current-snapshot block (the ONLY automation-editable README region)
+# ---------------------------------------------------------------------------
+
+CURRENT_SNAPSHOT_START = "<!-- CURRENT_SNAPSHOT:START -->"
+CURRENT_SNAPSHOT_END = "<!-- CURRENT_SNAPSHOT:END -->"
+
+
+def render_current_snapshot_block(
+    metrics: dict,
+    locale: str = "en",
+    first_snapshot: Optional[bool] = None,
+) -> str:
+    """Render the README current-snapshot block from the candidate/accepted
+    aggregate. English and Chinese share the same data logic (raw category
+    counts); only wording differs. `first_snapshot=None` omits the
+    "first baseline" phrasing entirely.
+    """
+    agg = metrics.get("aggregate", metrics) if isinstance(metrics, dict) else {}
+    series = (agg.get("series") or {}).get("series_id", "n/a")
+    snapshot_date = agg.get("snapshot_date") or "n/a"
+    team_count = agg.get("team_count")
+    player_count = agg.get("player_count") or 0
+    av = agg.get("settings_availability") or {}
+    m = av.get("players_with_any_setting")
+    n = av.get("cohort_players")
+    share = av.get("any_setting_share")
+    avail_txt = f"{m}/{n}" if m is not None and n is not None else "n/a"
+    avail_pct = _pct(share if isinstance(share, (int, float)) else None)
+
+    lines = [CURRENT_SNAPSHOT_START]
+    if locale == "zh-CN":
+        header = f"**{snapshot_date} · VRS Top 30 · {team_count} 支战队 · {player_count} 名选手**"
+        if first_snapshot is True:
+            header += f" —— 第一份正式接受的 `{series}` baseline。"
+        elif first_snapshot is False:
+            header += f" · `{series}`"
+        lines.append(header)
+        lines.append("")
+        if avail_txt != "n/a":
+            lines.append(f"- {avail_txt} 名选手有可用设置数据（{avail_pct}）")
+        edpi = agg.get("edpi") or {}
+        if edpi.get("count"):
+            lines.append(f"- 中位 eDPI {_num(edpi.get('median'))}")
+        dpi_cats = (agg.get("dpi") or {}).get("categories") or {}
+        combo = _cats_combined_share(dpi_cats, ["400", "800"])
+        if combo:
+            c, t = combo
+            lines.append(f"- 400 + 800 DPI 合计 {c / t * 100:.1f}%")
+        aspect_rank = _cats_top_rows((agg.get("aspect_ratio") or {}).get("categories") or {})
+        if aspect_rank:
+            lines.append(f"- {aspect_rank[0][0]} 占 {_cats_pct_from_row(aspect_rank[0])}")
+        res_rank = _cats_top_rows((agg.get("resolution") or {}).get("categories") or {})
+        if res_rank:
+            lines.append(f"- {res_rank[0][0]} 占 {_cats_pct_from_row(res_rank[0])}")
+        poll_cats = (agg.get("mouse_polling") or {}).get("categories") or {}
+        p1000 = _cats_combined_share(poll_cats, ["1000"])
+        if p1000:
+            c, t = p1000
+            lines.append(f"- 1000 Hz 占 {c / t * 100:.1f}%")
+        p4000 = _cats_ge_share(poll_cats, 4000)
+        if p4000:
+            c, t = p4000
+            lines.append(f"- 4000 Hz+ 占 {c / t * 100:.1f}%")
+        vm = agg.get("viewmodel") or {}
+        if vm.get("fov68_share") is not None:
+            lines.append(f"- viewmodel_fov 68 占 {_pct(vm.get('fov68_share'))}")
+    else:
+        header = f"**{snapshot_date} · VRS Top 30 · {team_count} teams · {player_count} players**"
+        if first_snapshot is True:
+            header += f" — the first accepted `{series}` baseline."
+        elif first_snapshot is False:
+            header += f" · `{series}`"
+        lines.append(header)
+        lines.append("")
+        if avail_txt != "n/a":
+            lines.append(f"- {avail_txt} players with usable settings ({avail_pct})")
+        edpi = agg.get("edpi") or {}
+        if edpi.get("count"):
+            lines.append(f"- median eDPI {_num(edpi.get('median'))}")
+        dpi_cats = (agg.get("dpi") or {}).get("categories") or {}
+        combo = _cats_combined_share(dpi_cats, ["400", "800"])
+        if combo:
+            c, t = combo
+            lines.append(f"- 400 + 800 DPI = {c / t * 100:.1f}%")
+        aspect_rank = _cats_top_rows((agg.get("aspect_ratio") or {}).get("categories") or {})
+        if aspect_rank:
+            lines.append(f"- {aspect_rank[0][0]} = {_cats_pct_from_row(aspect_rank[0])}")
+        res_rank = _cats_top_rows((agg.get("resolution") or {}).get("categories") or {})
+        if res_rank:
+            lines.append(f"- {res_rank[0][0]} = {_cats_pct_from_row(res_rank[0])}")
+        poll_cats = (agg.get("mouse_polling") or {}).get("categories") or {}
+        p1000 = _cats_combined_share(poll_cats, ["1000"])
+        if p1000:
+            c, t = p1000
+            lines.append(f"- 1000 Hz = {c / t * 100:.1f}%")
+        p4000 = _cats_ge_share(poll_cats, 4000)
+        if p4000:
+            c, t = p4000
+            lines.append(f"- 4000 Hz+ = {c / t * 100:.1f}%")
+        vm = agg.get("viewmodel") or {}
+        if vm.get("fov68_share") is not None:
+            lines.append(f"- viewmodel_fov 68 = {_pct(vm.get('fov68_share'))}")
+    lines.append(CURRENT_SNAPSHOT_END)
+    return "\n".join(lines)
+
+
+def _cats_ge_share(cats: dict, min_value: float) -> Optional[tuple[int, int]]:
+    """(combined_count, total) of categories with numeric key >= min_value."""
+    total = sum(cats.values())
+    if total <= 0:
+        return None
+    num = 0
+    for k, v in cats.items():
+        try:
+            if float(k) >= min_value:
+                num += v
+        except (TypeError, ValueError):
+            continue
+    return (num, total)
 
 
 # ---------------------------------------------------------------------------

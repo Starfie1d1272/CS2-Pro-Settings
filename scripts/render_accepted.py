@@ -1,17 +1,25 @@
 #!/usr/bin/env python3
-"""Render accepted-state bilingual snapshot reports from committed aggregates.
+"""Backfill renderer for ACCEPTED snapshot reports (limited scope).
 
-The monthly archives and the rolling latest reports are regenerated
-deterministically from the ACCEPTED public aggregate — no collection is
-performed and no accepted data is overwritten. The minimal run metadata
-(source status, conflicts, collection manifest) is reconstructed from the
-accepted aggregate plus recorded accepted-run facts, documented below.
+This script is a BACKFILL TOOL ONLY, for the first accepted `vrs-core-v2`
+baseline (2026-08) and for re-rendering the rolling latest pair from the
+committed accepted aggregate.
+
+It CANNOT and MUST NOT be used to reconstruct future same-series reports:
+drift, roster turnover, matched-panel summaries and source/conflict run
+context are not part of the public aggregate, so a byte-for-byte rebuild of
+future reports is not possible. Future reports are produced by the pipeline
+(`python -m cs2_pro_settings update` -> candidate files -> automation PR).
+
+Guards:
+- `reports/2026-05.md` is NEVER writable by this script (legacy preserved).
+- `--month <old-month>` renders ONLY that month's archive pair; it never
+  touches `reports/latest.*`.
+- Without `--month`, ONLY the latest pair is rendered (from latest.json).
 
 Usage (repo root):
-    python scripts/render_accepted.py                # latest.json -> latest + YYYY-MM reports
-    python scripts/render_accepted.py --month 2026-08
-    python scripts/render_accepted.py --no-latest    # archives only
-    python scripts/render_accepted.py --latest-only  # latest reports only
+    python scripts/render_accepted.py                  # latest pair only
+    python scripts/render_accepted.py --month 2026-08  # archive pair only
 """
 from __future__ import annotations
 
@@ -28,6 +36,8 @@ from cs2_pro_settings.report import read_legacy_metadata, render_report  # noqa:
 
 AGG_DIR = ROOT / "data" / "aggregate"
 REPORTS_DIR = ROOT / "reports"
+
+LEGACY_MONTH = "2026-05"
 
 
 def _load(path: Path) -> dict:
@@ -46,6 +56,8 @@ def _accepted_metadata(metrics: dict) -> dict:
         required collection_complete=true, so every roster member with a
         stable identity was fetched; zero-settings players were fetched but
         exposed no settings fields).
+    This is ONLY valid for the first vrs-core-v2 baseline backfill; future
+    same-series reports must use the pipeline's real run context.
     """
     agg = metrics.get("aggregate", {})
     scope = agg.get("scope") or {}
@@ -73,7 +85,8 @@ def _self_baseline_drift(metrics: dict) -> dict:
 
     The accepted baseline (data/aggregate/latest.json) is the SAME snapshot,
     so there is nothing to compare: level 0, no changes, matched panel
-    unavailable (public aggregate carries no identity lists).
+    unavailable (public aggregate carries no identity lists). Only valid for
+    the first-baseline backfill; future reports need the pipeline's drift.
     """
     agg = metrics.get("aggregate", {})
     player_count = agg.get("player_count") or 0
@@ -104,34 +117,19 @@ def _self_baseline_drift(metrics: dict) -> dict:
     }
 
 
-def render_accepted(month: str, latest: bool = True, archive: bool = True) -> list[Path]:
-    month_path = AGG_DIR / f"{month}.json"
-    if not month_path.exists():
-        raise SystemExit(f"accepted aggregate not found: {month_path}")
-    metrics = _load(month_path)
+def render_accepted(base: str, month_scope: str, metrics: dict) -> Path:
     baseline = _load(AGG_DIR / "latest.json")
     agg = metrics.get("aggregate", {})
     cur_series = (agg.get("series") or {}).get("series_id")
     legacy = read_legacy_metadata(AGG_DIR, cur_series)
     meta = _accepted_metadata(metrics)
     drift = _self_baseline_drift(metrics)
-
-    written: list[Path] = []
-    if latest:
-        written.append(_write_pair("latest", metrics, baseline, drift, meta, legacy))
-    if archive:
-        written.append(_write_pair(month, metrics, baseline, drift, meta, legacy))
-    return written
-
-
-def _write_pair(base: str, metrics: dict, baseline: dict, drift: dict,
-                meta: dict, legacy: Optional[dict]) -> Path:
     for locale, suffix in (("en", ".md"), ("zh-CN", ".zh-CN.md")):
         text = render_report(
             metrics=metrics, drift=drift, source_status=meta["source_status"],
-            conflicts=meta["conflicts"], baseline=baseline, manifest=meta["manifest"],
-            legacy_snapshot=legacy, locale=locale, figure_scope="latest",
-            cross_link_base=base,
+            conflicts=meta["conflicts"], baseline=baseline,
+            manifest=meta["manifest"], legacy_snapshot=legacy, locale=locale,
+            figure_scope=month_scope, cross_link_base=base,
         )
         out = REPORTS_DIR / f"{base}{suffix}"
         out.write_text(text, encoding="utf-8")
@@ -142,16 +140,27 @@ def _write_pair(base: str, metrics: dict, baseline: dict, drift: dict,
 def main(argv: Optional[list[str]] = None) -> int:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--month", default=None,
-                        help="snapshot month (default: month of data/aggregate/latest.json)")
-    parser.add_argument("--no-latest", action="store_true", help="skip reports/latest*")
-    parser.add_argument("--latest-only", action="store_true", help="only reports/latest*")
+                        help="backfill a specific accepted month archive "
+                             "(e.g. 2026-08); never %s" % LEGACY_MONTH)
     args = parser.parse_args(argv)
 
+    if args.month == LEGACY_MONTH:
+        raise SystemExit(
+            f"refusing to touch the legacy {LEGACY_MONTH} report; "
+            "reports/2026-05.md is preserved as-is")
+    if args.month:
+        # archive-only backfill: NEVER touches reports/latest.*
+        month = args.month
+        metrics = _load(AGG_DIR / f"{month}.json")
+        render_accepted(month, month_scope=month, metrics=metrics)
+        print(f"backfilled archive pair for {month}; latest.* untouched")
+        return 0
+
+    # latest-only render (from the accepted latest.json)
     latest_agg = _load(AGG_DIR / "latest.json")
-    month = args.month or (latest_agg.get("aggregate", latest_agg).get("snapshot_date") or "")[:7]
-    if not month:
-        raise SystemExit("cannot determine snapshot month from latest.json")
-    render_accepted(month, latest=not args.no_latest, archive=not args.latest_only)
+    metrics = latest_agg
+    render_accepted("latest", month_scope="latest", metrics=metrics)
+    print("re-rendered reports/latest.* from the accepted latest.json")
     return 0
 
 

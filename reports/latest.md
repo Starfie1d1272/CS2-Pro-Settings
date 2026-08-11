@@ -52,7 +52,7 @@
 ![resolution.png](../figures/latest/resolution.png)
 
 - Most common: **1280x960** (68.4%, n=133)
-- 1920×1080 is next at 12/133 (9.0%).
+- 1920x1080 is next at 12/133 (9.0%).
 
 ## 4. Crosshair
 

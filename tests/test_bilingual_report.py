@@ -19,9 +19,12 @@ sys.path.insert(0, str(Path(__file__).resolve().parent.parent / "scripts"))
 from cs2_pro_settings.metrics import compute_metrics  # noqa: E402
 from cs2_pro_settings.models import NormalizedPlayerSettings  # noqa: E402
 from cs2_pro_settings.report import (  # noqa: E402
+    CURRENT_SNAPSHOT_END,
+    CURRENT_SNAPSHOT_START,
     FIELD_KEYS,
     FIGURE_FILES,
     build_report_view,
+    render_current_snapshot_block,
     render_report,
 )
 
@@ -385,8 +388,10 @@ def _metrics_for_candidate():
 
 def test_monthly_candidate_writes_four_reports(_candidate_env):
     actions_common, work, fake_root = _candidate_env
-    (work / "report-candidate.md").write_text("EN v1\n", encoding="utf-8")
-    (work / "report-candidate.zh-CN.md").write_text("ZH v1\n", encoding="utf-8")
+    (work / "report-candidate.md").write_text("EN latest v1\n", encoding="utf-8")
+    (work / "report-candidate.zh-CN.md").write_text("ZH latest v1\n", encoding="utf-8")
+    (work / "report-candidate-monthly.md").write_text("EN monthly v1\n", encoding="utf-8")
+    (work / "report-candidate-monthly.zh-CN.md").write_text("ZH monthly v1\n", encoding="utf-8")
     changed = actions_common.write_candidate_files(_metrics_for_candidate(), monthly=True)
     month = date.today().strftime("%Y-%m")
     latest_en = fake_root / "reports" / "latest.md"
@@ -395,27 +400,87 @@ def test_monthly_candidate_writes_four_reports(_candidate_env):
     month_zh = fake_root / "reports" / f"{month}.zh-CN.md"
     for p in (latest_en, latest_zh, month_en, month_zh):
         assert p.exists(), p
-    assert latest_en.read_text() == month_en.read_text() == "EN v1\n"
-    assert latest_zh.read_text() == month_zh.read_text() == "ZH v1\n"
+    # latest pair and monthly pair keep their own content (cross-links and
+    # figure scopes legitimately differ; they are no longer byte-identical)
+    assert latest_en.read_text() == "EN latest v1\n"
+    assert latest_zh.read_text() == "ZH latest v1\n"
+    assert month_en.read_text() == "EN monthly v1\n"
+    assert month_zh.read_text() == "ZH monthly v1\n"
+    # both figure scopes are written for a monthly candidate
+    assert (fake_root / "figures" / "latest" / "edpi.png").exists()
+    assert (fake_root / "figures" / month / "edpi.png").exists()
     assert "data/aggregate/latest.json" in changed
     assert f"{month}.json" in changed
+    assert f"figures/{month}/*" in changed
     assert not any("social" in c for c in changed)
 
 
 def test_same_month_refresh_syncs_all_four(_candidate_env):
     actions_common, work, fake_root = _candidate_env
     month = date.today().strftime("%Y-%m")
-    (work / "report-candidate.md").write_text("EN v1\n", encoding="utf-8")
-    (work / "report-candidate.zh-CN.md").write_text("ZH v1\n", encoding="utf-8")
+    for name, text in (("report-candidate.md", "EN latest v1\n"),
+                       ("report-candidate.zh-CN.md", "ZH latest v1\n"),
+                       ("report-candidate-monthly.md", "EN monthly v1\n"),
+                       ("report-candidate-monthly.zh-CN.md", "ZH monthly v1\n")):
+        (work / name).write_text(text, encoding="utf-8")
     actions_common.write_candidate_files(_metrics_for_candidate(), monthly=True)
     # correctness-fix refresh of the SAME month
-    (work / "report-candidate.md").write_text("EN v2\n", encoding="utf-8")
-    (work / "report-candidate.zh-CN.md").write_text("ZH v2\n", encoding="utf-8")
+    for name, text in (("report-candidate.md", "EN latest v2\n"),
+                       ("report-candidate.zh-CN.md", "ZH latest v2\n"),
+                       ("report-candidate-monthly.md", "EN monthly v2\n"),
+                       ("report-candidate-monthly.zh-CN.md", "ZH monthly v2\n")):
+        (work / name).write_text(text, encoding="utf-8")
     actions_common.write_candidate_files(_metrics_for_candidate(), monthly=True)
-    for name in ("latest.md", f"{month}.md"):
-        assert (fake_root / "reports" / name).read_text() == "EN v2\n"
-    for name in ("latest.zh-CN.md", f"{month}.zh-CN.md"):
-        assert (fake_root / "reports" / name).read_text() == "ZH v2\n"
+    assert (fake_root / "reports" / "latest.md").read_text() == "EN latest v2\n"
+    assert (fake_root / "reports" / "latest.zh-CN.md").read_text() == "ZH latest v2\n"
+    assert (fake_root / "reports" / f"{month}.md").read_text() == "EN monthly v2\n"
+    assert (fake_root / "reports" / f"{month}.zh-CN.md").read_text() == "ZH monthly v2\n"
+
+
+def test_next_month_does_not_touch_previous_month_figures(_candidate_env):
+    """A later month's candidate must never mutate an earlier month's
+    figures/YYYY-MM archive."""
+    actions_common, work, fake_root = _candidate_env
+    for name in ("report-candidate.md", "report-candidate.zh-CN.md",
+                 "report-candidate-monthly.md", "report-candidate-monthly.zh-CN.md"):
+        (work / name).write_text("x\n", encoding="utf-8")
+    metrics = _metrics_for_candidate()
+    actions_common.write_candidate_files(metrics, monthly=True, month="2026-08")
+    prev_bytes = (fake_root / "figures" / "2026-08" / "edpi.png").read_bytes()
+    actions_common.write_candidate_files(metrics, monthly=True, month="2026-09")
+    assert (fake_root / "figures" / "2026-09" / "edpi.png").exists()
+    assert (fake_root / "figures" / "2026-08" / "edpi.png").read_bytes() == prev_bytes
+
+
+def test_monthly_report_figure_links_point_to_month_scope():
+    """reports/YYYY-MM.* must reference ../figures/YYYY-MM/, never latest."""
+    metrics = _accepted_shaped_metrics()
+    month = "2026-08"
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics,
+                       locale="en", figure_scope=month, cross_link_base=month)
+    zh = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics,
+                       locale="zh-CN", figure_scope=month, cross_link_base=month)
+    assert f"../figures/{month}/edpi.png" in en
+    assert f"../figures/{month}/fov.png" in zh
+    assert f"[中文版](./{month}.zh-CN.md)" in en
+    assert f"[English version](./{month}.md)" in zh
+    assert "../figures/latest/" not in en
+    assert "../figures/latest/" not in zh
+
+
+def test_latest_report_figure_links_point_to_latest_scope():
+    metrics = _accepted_shaped_metrics()
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
+    zh = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
+    assert "../figures/latest/edpi.png" in en
+    assert "../figures/latest/fov.png" in zh
+    assert "[中文版](./latest.zh-CN.md)" in en
+    assert "[English version](./latest.md)" in zh
+    assert "../figures/2026-08/" not in en
 
 
 def test_non_monthly_candidate_writes_latest_pair_only(_candidate_env):
@@ -554,3 +619,154 @@ def test_readme_bilingual_key_facts_parity():
     for fact in ("2026-08-11", "vrs-core-v2", "30 支战队", "149",
                  "133/149", "82.0%", "68.4%", "91.2%"):
         assert fact in zh, f"missing in ZH README: {fact}"
+
+
+# ---------------------------------------------------------------------------
+# 14. dynamic top / runner-up category rendering
+# ---------------------------------------------------------------------------
+
+def test_resolution_top_flip_uses_real_top_and_share():
+    """When 1920x1080 becomes the top resolution, the report must say so
+    with ITS OWN share — never 1280x960's percentage."""
+    metrics = _accepted_shaped_metrics()
+    metrics["aggregate"]["resolution"]["categories"] = {
+        "1920x1080": 91, "1280x960": 12}
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
+    assert "Most common: **1920x1080**" in en
+    # 91 / 103 = 88.3%; runner-up is 1280x960 at 12/103
+    assert "1280x960 is next at 12/103" in en
+    assert "**1280x960** (68.4%" not in en
+    zh = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
+    assert "最常见：**1920x1080**" in zh
+    assert "1280x960 次之" in zh
+
+
+def test_aspect_runner_up_is_dynamic():
+    """When 5:4 is second, '16:9 is the next tier' must NOT appear."""
+    metrics = _accepted_shaped_metrics()
+    metrics["aggregate"]["aspect_ratio"]["categories"] = {
+        "4:3": 109, "5:4": 11, "16:9": 8}
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
+    assert "5:4 is the next tier at 11/128" in en
+    assert "16:9 is the next tier" not in en
+    zh = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
+    assert "5:4 次之" in zh
+    assert "16:9 次之" not in zh
+
+
+def test_key_numbers_use_real_top_share():
+    metrics = _accepted_shaped_metrics()
+    metrics["aggregate"]["resolution"]["categories"] = {
+        "1920x1080": 91, "1280x960": 12}
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
+    # Key numbers line uses the REAL top with the REAL share (91/103)
+    assert "- 1920x1080: **88.3%**" in en
+    assert "- 1280x960: **68.4%**" not in en
+
+
+def test_default_top_rendering_unchanged():
+    """1280x960 first / 4:3 first / 16:9 second keeps the previous output."""
+    metrics = _accepted_shaped_metrics()
+    en = render_report(metrics, _self_baseline_drift(metrics),
+                       {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
+    assert "Most common: **1280x960** (68.4%, n=133)" in en
+    assert "1920x1080 is next at 12/133 (9.0%)." in en
+    assert "- 4:3: **82.0%** (n=133)" in en
+    assert "16:9 is the next tier at 11/133 (8.3%)." in en
+
+
+# ---------------------------------------------------------------------------
+# 15. README CURRENT_SNAPSHOT block (automation-editable region only)
+# ---------------------------------------------------------------------------
+
+def test_readme_snapshot_block_matches_aggregate():
+    metrics = _accepted_shaped_metrics()
+    en = render_current_snapshot_block(metrics, locale="en", first_snapshot=True)
+    for fact in ("2026-08-11", "30 teams", "149 players", "133/149",
+                 "89.3%", "800", "95.5%", "82.0%", "68.4%", "62.4%",
+                 "18.0%", "91.2%", "first accepted"):
+        assert fact in en, f"missing in EN block: {fact}"
+    zh = render_current_snapshot_block(metrics, locale="zh-CN", first_snapshot=True)
+    for fact in ("2026-08-11", "30 支战队", "149 名选手", "133/149",
+                 "89.3%", "800", "95.5%", "82.0%", "68.4%", "62.4%",
+                 "18.0%", "91.2%", "第一份正式接受"):
+        assert fact in zh, f"missing in ZH block: {fact}"
+    # block is fully delimited by the markers
+    assert en.startswith(CURRENT_SNAPSHOT_START)
+    assert en.endswith(CURRENT_SNAPSHOT_END)
+    assert zh.startswith(CURRENT_SNAPSHOT_START)
+    assert zh.endswith(CURRENT_SNAPSHOT_END)
+
+
+def test_readme_block_update_preserves_static_prose(_candidate_env):
+    """write_candidate_files updates ONLY the CURRENT_SNAPSHOT block; all
+    other README prose is untouched."""
+    actions_common, work, fake_root = _candidate_env
+    static = "# CS2 Pro Settings Tracker\n\nStatic tagline and project intro.\n\n## Current snapshot\n\n"
+    en_block = (CURRENT_SNAPSHOT_START + "\n**OLD n/a**\n" + CURRENT_SNAPSHOT_END
+                + "\n\nStatic footer after the block.\n")
+    zh_block = (CURRENT_SNAPSHOT_START + "\n**OLD n/a**\n" + CURRENT_SNAPSHOT_END
+                + "\n\n静态结尾。\n")
+    (fake_root / "README.md").write_text(static + en_block, encoding="utf-8")
+    (fake_root / "README.zh-CN.md").write_text(static + zh_block, encoding="utf-8")
+    (work / "report-candidate.md").write_text("EN\n", encoding="utf-8")
+    (work / "report-candidate.zh-CN.md").write_text("ZH\n", encoding="utf-8")
+    actions_common.write_candidate_files(_metrics_for_candidate(), monthly=False)
+    en = (fake_root / "README.md").read_text(encoding="utf-8")
+    zh = (fake_root / "README.zh-CN.md").read_text(encoding="utf-8")
+    assert "Static tagline and project intro." in en
+    assert "Static footer after the block." in en
+    assert "2026-08-11" in en and "OLD n/a" not in en
+    assert "静态结尾。" in zh
+    assert "2026-08-11" in zh and "OLD n/a" not in zh
+
+
+def test_readme_without_block_is_untouched(_candidate_env):
+    """A README without the markers must never be modified."""
+    actions_common, work, fake_root = _candidate_env
+    (fake_root / "README.md").write_text("no block here\n", encoding="utf-8")
+    (work / "report-candidate.md").write_text("EN\n", encoding="utf-8")
+    (work / "report-candidate.zh-CN.md").write_text("ZH\n", encoding="utf-8")
+    actions_common.write_candidate_files(_metrics_for_candidate(), monthly=False)
+    assert (fake_root / "README.md").read_text(encoding="utf-8") == "no block here\n"
+
+
+# ---------------------------------------------------------------------------
+# 16. render_accepted.py backfill guards
+# ---------------------------------------------------------------------------
+
+def _patch_render_accepted(tmp_path, monkeypatch):
+    import render_accepted
+    monkeypatch.setattr(render_accepted, "REPORTS_DIR", tmp_path / "reports")
+    (tmp_path / "reports").mkdir(parents=True)
+    return render_accepted
+
+
+def test_render_accepted_refuses_legacy_month(tmp_path, monkeypatch):
+    render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
+    with pytest.raises(SystemExit):
+        render_accepted.main(["--month", "2026-05"])
+
+
+def test_render_accepted_month_writes_archive_only(tmp_path, monkeypatch):
+    render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
+    assert render_accepted.main(["--month", "2026-08"]) == 0
+    assert (tmp_path / "reports" / "2026-08.md").exists()
+    assert (tmp_path / "reports" / "2026-08.zh-CN.md").exists()
+    # archive-only backfill must NEVER touch reports/latest.*
+    assert not (tmp_path / "reports" / "latest.md").exists()
+    assert not (tmp_path / "reports" / "latest.zh-CN.md").exists()
+
+
+def test_render_accepted_latest_only(tmp_path, monkeypatch):
+    render_accepted = _patch_render_accepted(tmp_path, monkeypatch)
+    assert render_accepted.main([]) == 0
+    assert (tmp_path / "reports" / "latest.md").exists()
+    assert (tmp_path / "reports" / "latest.zh-CN.md").exists()
+    # latest-only render never writes monthly archives
+    assert not (tmp_path / "reports" / "2026-08.md").exists()

@@ -10,16 +10,18 @@ Instead of publishing another static settings table, the project tracks the curr
 
 ## Current snapshot
 
+<!-- CURRENT_SNAPSHOT:START -->
 **2026-08-11 · VRS Top 30 · 30 teams · 149 players** — the first accepted `vrs-core-v2` baseline.
 
 - 133/149 players with usable settings (89.3%)
 - median eDPI 800
 - 400 + 800 DPI = 95.5%
 - 4:3 = 82.0%
-- 1280×960 = 68.4%
+- 1280x960 = 68.4%
 - 1000 Hz = 62.4%
 - 4000 Hz+ = 18.0%
 - viewmodel_fov 68 = 91.2%
+<!-- CURRENT_SNAPSHOT:END -->
 
 From the current snapshot, 800 eDPI, 4:3, 1280×960 and FOV 68 still form a remarkably stable picture of the pro-scene mainstream.
 
@@ -122,7 +124,7 @@ pip install -e ".[dev]"
 python -m pytest -v                          # offline tests
 python -m cs2_pro_settings update --offline  # full pipeline on fixtures
 python -m cs2_pro_settings update --scheduled  # live pipeline, scheduled sources
-python scripts/render_accepted.py            # regenerate accepted monthly reports
+python scripts/render_accepted.py            # backfill first-baseline / re-render latest pair
 ```
 
 ## Repository structure
@@ -152,10 +154,7 @@ tests/                   offline tests + fixtures
 - Reports, docs, generated figures: CC BY 4.0 (`CONTENT_LICENSE.md`).
 - Third-party source data: not relicensed by this repository (`DATA_PROVENANCE.md`).
 
-## Limitations
+## Data notes
 
-- All statements describe the sampled professional-player cohort; prevalence does not imply a causal performance benefit.
-- `valid_n` varies per field; a missing field never defaults to the full cohort size.
-- Roster stability guards are operational and intentionally conservative.
-- Cross-run runtime state (GitHub Actions cache) is best-effort; a cache miss yields a safe warm-up run, never a false drift alert.
-- Interpretive/conclusion text is written by humans; the pipeline produces deterministic data and reports only.
+- Field-level `valid_n` may differ; a missing field never defaults to the full cohort size.
+- The 2026-05 legacy series (`legacy-top30-plus-selected-v1`) is a historical reference, not a same-series longitudinal baseline for `vrs-core-v2`.

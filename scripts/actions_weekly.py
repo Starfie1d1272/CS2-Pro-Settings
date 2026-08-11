@@ -213,8 +213,8 @@ def main() -> int:
         report_pairs = [
             (REPORTS / "latest.md", WORK / "report-candidate.md"),
             (REPORTS / "latest.zh-CN.md", WORK / "report-candidate.zh-CN.md"),
-            (REPORTS / f"{month}.md", WORK / "report-candidate.md"),
-            (REPORTS / f"{month}.zh-CN.md", WORK / "report-candidate.zh-CN.md"),
+            (REPORTS / f"{month}.md", WORK / "report-candidate-monthly.md"),
+            (REPORTS / f"{month}.zh-CN.md", WORK / "report-candidate-monthly.zh-CN.md"),
         ]
         for target, src in report_pairs:
             if not src.exists():
