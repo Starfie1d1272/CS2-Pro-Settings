@@ -15,7 +15,7 @@
 - series: vrs-core-v2 (core_top30)
 - Core ranking snapshot: 2026-08-10
 - Core teams: 30
-- Watchlist + Supplemental teams in universe: 7
+- Non-Core tracked teams in universe: 7
 - Core feeds headline statistics; Watchlist/Supplemental are tracked as extended segments only (see segments below).
 
 ## Source status
@@ -47,7 +47,7 @@
 ### Cohort change
 
 - baseline players: 198; current: 133
-- added: 11; removed: 11
+- added: unavailable; removed: unavailable
 
 ### Matched panel
 
