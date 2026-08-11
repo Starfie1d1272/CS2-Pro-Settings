@@ -34,10 +34,12 @@ jobs:
           cp work/metrics.json /tmp/m1.json
           cp work/drift.json /tmp/d1.json
           cp work/report-candidate.md /tmp/r1.md
+          cp work/report-candidate.zh-CN.md /tmp/r1-zh.md
           python -m cs2_pro_settings update --offline > /dev/null
           diff /tmp/m1.json work/metrics.json
           diff /tmp/d1.json work/drift.json
           diff /tmp/r1.md work/report-candidate.md
+          diff /tmp/r1-zh.md work/report-candidate.zh-CN.md
           echo "deterministic OK (run2 == run3)"
 
       - name: No raw artifacts in tree

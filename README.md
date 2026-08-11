@@ -1,194 +1,110 @@
 # CS2 Pro Settings Tracker
 
-A reproducible longitudinal data pipeline for tracking how professional
-Counter-Strike 2 settings evolve over time.
+[English](README.md) | [简体中文](./README.zh-CN.md)
 
-This project started as a one-off May 2026 analysis of 198 active pro
-players. It is now a scheduled, multi-source, provenance-aware pipeline that
-detects conclusion changes and raises notifications / candidate PRs —
-without auto-merging and without LLM-generated interpretation.
+**What settings do top CS2 professionals actually use — and how do those choices change over time?**
 
-## 1. What this project does
+CS2 Pro Settings Tracker turns professional-player settings into a reproducible longitudinal dataset.
 
-- Collects professional CS2 player settings from public sources (normal HTTP
-  only; no anti-bot bypass).
-- Resolves **stable player identities** (SteamID-based when available; never
-  a bare nickname).
-- Tracks the **tracked-team roster** over time (roster snapshots, turnover,
-  offseason guard).
-- Produces deterministic aggregate metrics where **every share carries its
-  valid_n** (a missing field never defaults to the full cohort).
-- Detects **conclusion drift** with deterministic Level 0/1/2 rules.
-- Separates **current-cohort** analysis from **matched-panel** analysis
-  (same players across snapshots).
-- Runs scheduled monitoring (daily / weekly) via GitHub Actions; issues and
-  candidate PRs are deduplicated; nothing is auto-merged.
+Instead of publishing another static settings table, the project tracks the current VRS Top 30, follows roster changes and stable player identities, records accepted monthly snapshots, and separates real same-player setting changes from changes caused by roster turnover.
 
-## 2. Current accepted snapshot
+## Current snapshot
 
-| | |
-|---|---|
-| snapshot date | **2026-05-05** (historical accepted baseline) |
-| scope | 41 teams / 198 players |
-| artifacts | `data/aggregate/2026-05.json`, `reports/2026-05.md` |
+**2026-08-11 · VRS Top 30 · 30 teams · 149 players** — the first accepted `vrs-core-v2` baseline.
 
-The v2 monitoring pipeline was added in 2026-08. It has not yet produced an
-accepted live snapshot; until a full candidate snapshot is reviewed and
-merged, the accepted baseline remains 2026-05-05. Do not treat offline
-fixture runs or partial live smoke tests as snapshots.
+- 133/149 players with usable settings (89.3%)
+- median eDPI 800
+- 400 + 800 DPI = 95.5%
+- 4:3 = 82.0%
+- 1280×960 = 68.4%
+- 1000 Hz = 62.4%
+- 4000 Hz+ = 18.0%
+- viewmodel_fov 68 = 91.2%
 
-## 3. v2 architecture
+From the current snapshot, 800 eDPI, 4:3, 1280×960 and FOV 68 still form a remarkably stable picture of the pro-scene mainstream.
+
+→ [Latest report](./reports/latest.md) · [中文报告](./reports/latest.zh-CN.md) · [Monthly archive](./reports/2026-08.md)
+
+## Why this project exists
+
+Static pro-settings websites answer one question well: *"what does this player use right now?"* This project answers a different one: **how do the settings preferences of the entire pro scene change over time?**
+
+- Is 800 DPI continuing to replace 400 DPI?
+- Will 4:3 actually leave the pro scene?
+- Will 4K/8K polling rates become the new standard?
+- Does a change in the data mean the scene changed, or just that different players entered the Top 30?
+- Which parameters do the *same* players adjust months later?
+
+A one-off static table cannot answer these. That is why this project evolved from a single May 2026 analysis into a scheduled longitudinal tracker.
+
+## From one analysis to a long-term tracker
+
+The first community article (小黑盒, published 2026-05-05) analyzed 41 teams / 198 players and drew strong feedback. Manually recorded engagement snapshot (captured 2026-08-11; **not** auto-updated):
+
+- 2852 likes
+- 4408 favorites
+- 402 comments
+
+The feedback pushed the project from a one-off analysis into the automated tracker you see here. Record: [`social/2026-05/publication.md`](./social/2026-05/publication.md)
+
+## What makes the tracker different?
+
+### Stable player identities
+Players are identified by SteamID (`steam:<id>`), never by a bare nickname, so the same person is tracked across time and across sources.
+
+### Roster-aware tracking
+The Core sample is the accepted VRS Top 30. Rosters are tracked per team with stable IDs, and roster turnover is kept separate from settings changes.
+
+### Same-player longitudinal panel
+When the same player appears in two snapshots, their fields are compared directly. `missing → value` / `value → missing` transitions are completeness changes, not settings changes.
+
+### Reproducible monthly snapshots
+Every accepted month is archived as machine-readable aggregate (`data/aggregate/`) plus deterministic bilingual reports (`reports/latest.md` / `reports/YYYY-MM.md`, English + zh-CN).
+
+### Automated but review-gated
+Collection, drift detection and candidate PRs are automated; nothing is auto-merged. Reports are deterministic and no LLM is used to invent conclusions.
+
+## How it works
 
 ```
-sources (adapters, fail closed)
-  -> identity (steam:<id> canonical)
-  -> roster snapshots (team -> stable player ids)
-  -> normalize (all parsing rules in one place)
-  -> reconcile (conflicts surfaced, never silently overwritten)
-  -> metrics (deterministic aggregate + panel)
-  -> drift (Level 0/1/2, suppression rules)
-  -> report (deterministic markdown, no LLM)
+VRS Top 30 (accepted ranking snapshot)
+  ↓
+Current roster (per-team, stable IDs)
+  ↓
+Stable SteamID identity
+  ↓
+Settings collection (normal HTTP, fail closed)
+  ↓
+Normalization / reconciliation (conflicts surfaced, never overwritten)
+  ↓
+Monthly snapshots (accepted aggregates + bilingual reports)
+  ↓
+Current-cohort + matched-player analysis
+  ↓
+Reports / community articles
 ```
 
-Code lives in `src/cs2_pro_settings/`; run it with
-`python -m cs2_pro_settings <command>` (see section 8).
+## Cohort model
 
-## 4. Automatic monitoring
+- **Core (primary)**: accepted Valve Global Ranking (VRS) Top 30 snapshot — manual import, never scraped.
+- **Reference**: accepted HLTV World Ranking Top 30 (sensitivity panel).
+- **Segments**: consensus (VRS ∩ HLTV), ranked union (VRS ∪ HLTV), Core + Watchlist, all tracked — reported only when real values exist.
+- **Series compatibility**: `vrs-core-v2` (from 2026-08) is the current longitudinal series. The 2026-05 legacy snapshot (`legacy-top30-plus-selected-v1`, 41 teams / 198 players) is a historical reference and is **not** treated as a directly comparable baseline.
+- Ranking truth and settings-source coverage are independent: an unresolved source mapping lowers collection coverage only, never the ranking.
 
-- **CI** (`.github/workflows/ci.yml`): pytest + offline fixture end-to-end +
-  deterministic-output check on every PR/push. Never touches the network for
-  sources.
-- **Daily** (`.github/workflows/daily-update.yml`, 08:17 Asia/Shanghai):
-  source health → scope → roster → settings → metrics → drift. Actions:
-  - Level 0: nothing.
-  - Level 1: deduplicated `[data-drift]` issue.
-  - Level 2 (scope stable AND roster stable): candidate PR
-    `automation/settings-update-YYYYMMDD` (deduplicated — at most one open
-    candidate PR per drift).
-  - Confirmed roster change: deduplicated `[roster-change]` issue.
-  - Primary source unhealthy: deduplicated `[data-source]` issue; baseline
-    not updated.
-- **Weekly** (`.github/workflows/weekly-reconcile.yml`, Sunday 08:47
-  Asia/Shanghai): source health, scope, roster, identity problems,
-  missingness, conflict rate, monthly-snapshot due check; deduplicated
-  `[data-quality]` issue.
-- **Monthly**: when the current month's `data/aggregate/YYYY-MM.json` is
-  missing, a monthly aggregate snapshot candidate is created even without a
-  Level 2 change (merged into the existing automation PR if one is open).
+## Automation & review gates
 
-Every workflow uses the repository `GITHUB_TOKEN`; no PATs. Dry runs are the
-default for `workflow_dispatch` (`dry_run=true`): live fetch allowed, no
-issues/commits/PRs.
+- **CI**: offline pytest (warnings-as-errors) + offline fixture end-to-end + deterministic-output check on every PR.
+- **Daily**: source health → scope → roster → settings → metrics → drift; deduplicated issues; candidate PR only on Level 2 with stable scope and roster.
+- **Weekly**: quality/maintenance checks, ranking freshness, monthly-snapshot due check.
+- **Monthly**: missing or stale `data/aggregate/YYYY-MM.json` triggers a candidate that synchronizes all four report files (`latest.md`, `latest.zh-CN.md`, `YYYY-MM.md`, `YYYY-MM.zh-CN.md`) — latest is never newer than the same-month archive.
+- Nothing auto-merges; issues and candidate PRs are deduplicated.
 
-## 5. Cohort and roster changes
+## Drift rules
 
-### Cohort model v4: VRS Core + HLTV reference + ranked universe + Watchlist
+Deterministic rules in `config/conclusions.yaml` (no LLM): Level 1 = share moves ≥ 5 pp (or eDPI median ≥ 50); Level 2 = dominant category flips. When Core roster turnover ≥ 15% or the Core scope changed, the overall headline Level 2 is suppressed pending human review. These are **operational notification thresholds, not statistical significance**.
 
-- **Core (primary)** — accepted **Valve Global Ranking (VRS) Top 30**
-  snapshot (`config/rankings/valve/2026-08-10.yaml`). VRS is the chosen
-  PRIMARY competitive scope for this project — a project methodology
-  decision, not a claim that any other ranking is useless.
-- **Reference** — accepted **HLTV World Ranking Top 30** snapshot
-  (`config/rankings/hltv/2026-08-03.yaml`), a sensitivity/reference panel.
-- **Consensus** = VRS ∩ HLTV (27 teams, first round) — robustness panel.
-- **Ranked union** = VRS ∪ HLTV (33 teams, first round) — scheduled
-  tracking universe.
-- **Watchlist** — manual observation choices (BC.Game, 100 Thieves, M80,
-  Lynn Vision). They imply nothing about current VRS/HLTV membership;
-  BC.Game has no resolvable settings page and stays `coverage=unresolved`
-  rather than fabricated.
-
-Headline statistics use **Core only**; `consensus`, `ranked_union`,
-`core_plus_watchlist` and `all_tracked` are reported as separate segments.
-
-**Ranking truth and source coverage are independent** (hard invariant):
-an unresolved settings source mapping lowers collection coverage only — it
-never invalidates a ranking. Ranking rosters (player names on ranking
-pages) are never imported and never treated as current roster truth.
-
-### Manual HLTV/VRS rankings (no scraping)
-
-HLTV ranking is **not scraped** (anti-bot / access limitation; bypassing is
-out of scope by policy). Ranking snapshots are:
-
-- manually imported via `python -m cs2_pro_settings ranking import-hltv`
-  (validates ranks 1–30, no duplicates, continuous numbering, source URL,
-  and team mapping — unresolved teams fail or emit an explicit unresolved
-  candidate that cannot be activated),
-- versioned under `config/rankings/hltv/`,
-- community-contributable (CONTRIBUTING.md, `docs/ranking-updates.md`,
-  ranking-update issue template),
-- intentionally low-maintenance: a stale ranking never blocks the settings
-  pipeline; the report always names the accepted ranking date; only ≥180
-  days triggers a deduplicated `[maintenance]` issue (30/90-day bands are
-  status-only).
-
-### Roster drift, matched panel, stability guard
-
-- **Roster drift**: per-team added/removed/unchanged player diffs between
-  runs, computed on stable player IDs. A change must be observed twice with
-  the same fingerprint before it is **confirmed** (`.runtime-state/`, the
-  Actions cache — gitignored) and notified; transient site desyncs do not
-  cause noise.
-- **Turnover**: `1 - matched / previous` players (Core players only for the
-  headline guard; all-tracked turnover is recorded separately).
-- **Stability guard (15%)**: `config/stability.yaml`
-  (`roster.turnover_threshold: 0.15`) — an **operational automation
-  threshold, not a statistical significance threshold**. When Core turnover
-  ≥ 15% (or the Core scope changed), overall cohort metrics are still
-  computed and may still notify at Level 1, but an overall
-  dominant-category flip alone must NOT auto-produce a Level 2 headline PR
-  (`headline_suppressed=true`).
-- **Matched panel**: always computed independently when stable identities
-  exist; a same-player material change is reported separately
-  (matched-panel driven PRs are labeled as such).
-- **Why this matters**: offseason roster changes can distort aggregate
-  settings trends without any player actually changing their settings. The
-  matched panel separates "settings evolution" from "roster composition
-  change".
-
-### Decision order
-
-source health → ranking/core scope → roster → settings:
-
-- source unhealthy: no baseline/state update, `[data-source]` issue;
-- Core scope changed: overall Core headline Level 2 suppressed pending review;
-- Core scope stable but roster turnover ≥15%: overall headline Level 2
-  suppressed;
-- Core scope stable and roster stable: normal Level 0/1/2;
-- Watchlist/Supplemental changes alone can never trigger Core headline Level 2.
-
-### Series compatibility
-
-- `legacy-top30-plus-selected-v1` (2026-05-05, 41 teams / 198 players) is a
-  legacy **extended** cohort — it is **not** a strict HLTV Top 30-only
-  baseline, and its historical numbers are preserved unchanged.
-- The v2 Core series is `vrs-core-v2`. Different series are **not directly
-  comparable** for automated headline Level 1/2 (`series_compatible=false`);
-  the first accepted vrs-core-v2 snapshot initializes the new longitudinal
-  series.
-- `RankingBasedScopeProvider` (auto-selecting a current ranking) remains a
-  **planned extension only**; no ranking website is a live dependency until
-  it has its own source/policy audit and explicit opt-in.
-
-## 6. Multi-source model and provenance
-
-"Multi-source" means the pipeline is multi-source at **independent layers**
-— ranking scope, roster discovery, player identity, player settings and
-source policy are separate concerns:
-
-- **Ranking scope** — VRS Core (primary) + HLTV reference, manual
-  snapshots, never scraped; ranking truth is `rank / team_id` + provenance
-  and never carries source locators.
-- **Roster discovery** — only sources with `roster_discovery: true` can
-  list a team's current active roster. A missing team page in one source is
-  a *roster discovery gap in that source*, never "the team has no data".
-- **Player identity** — SteamID-safe merging only; nicknames are lookup
-  hints, never identity. Identity crosswalks stay in runtime state.
-- **Player settings** — reconciled by `field_priority` after identity-safe
-  alignment; conflicts are surfaced, never silently overwritten.
-- **Source policy** — `enabled` vs `enabled_for_schedule` vs
-  local-review-only are separate; capability never grants permission.
+## Source policy
 
 | Source | Roster discovery | Player settings | Stable identity | Scheduled | Local review |
 |---|---|---|---|---|---|
@@ -196,105 +112,50 @@ source policy are separate concerns:
 | prosettings.net | no | yes | yes (numeric /profiles/) | **no** | yes |
 | proconfig.net | no | yes | yes | no (disabled) | opt-in |
 
-Per-source audits: `docs/source-audit/`. Adapters fail closed; no anti-bot
-bypass, CAPTCHA solving, proxy rotation, or browser automation. Third-party
-row-level data is **not** relicensed or redistributed in the current tree;
-see `DATA_PROVENANCE.md`.
+Per-source audits: `docs/source-audit/`. Only ordinary HTTP; no anti-bot bypass, CAPTCHA solving, proxy rotation, or browser automation. Third-party row-level data is not redistributed (`DATA_PROVENANCE.md`).
 
-## 7. Conclusion drift
-
-Deterministic rules in `config/conclusions.yaml` (no LLM):
-
-- Level 1 (trend drift): share metrics move ≥ 5 percentage points
-  (absolute); eDPI median moves ≥ 50.
-- Level 2 (headline conclusion changed): the dominant category flips (e.g.
-  800 DPI no longer dominant) or an explicit boolean conclusion flips.
-- Suppression: if the tracked-team scope changed or roster turnover ≥ 15%,
-  overall Level 2 is capped to Level 1 with `headline_suppressed=true`.
-
-These thresholds are **operational notification thresholds, not
-statistical significance**.
-
-## 8. Reproduce locally
+## Reproduce locally
 
 ```bash
-python -m venv .venv && source .venv/bin/activate   # or: conda env create -f environment.yml
+python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
-
-python -m cs2_pro_settings audit-sources            # source policy/access check
-python -m cs2_pro_settings update --offline         # full pipeline on test fixtures (no network)
-python -m cs2_pro_settings update --scheduled       # live pipeline, scheduled sources only
-python -m pytest -v                                 # offline tests
+python -m pytest -v                          # offline tests
+python -m cs2_pro_settings update --offline  # full pipeline on fixtures
+python -m cs2_pro_settings update --scheduled  # live pipeline, scheduled sources
+python scripts/render_accepted.py            # regenerate accepted monthly reports
 ```
 
-Commands: `audit-sources`, `collect`, `normalize`, `reconcile`, `metrics`,
-`drift`, `report`, `update` (chained: audit → collect → normalize →
-reconcile → metrics → drift → report candidate), plus
-`ranking import-vrs` / `ranking import-hltv` (manual Valve VRS / HLTV Top 30
-import; HLTV is never scraped).
-
-Runtime state is split: per-run artifacts go to `work/` (gitignored);
-cross-run operational state (roster baseline, confirmation window, previous
-matched panel) lives in `.runtime-state/` (gitignored) and is persisted
-between production runs via the GitHub Actions cache. Cache loss causes a
-safe warm-up run, never a false drift alert. Only `data/aggregate/`
-snapshots are committed (and only on accepted updates / monthly snapshots).
-
-## 9. Repository structure
+## Repository structure
 
 ```
-src/cs2_pro_settings/       v2 canonical pipeline (models, identity, cohort,
-                            normalize, reconcile, metrics, drift, roster,
-                            rankings, runtime_state, scopes, report, plots,
-                            cli, sources/)
-config/                     cohort.yaml (Core/Watchlist/Supplemental),
-                            sources.yaml, conclusions.yaml, stability.yaml,
-                            team-mappings.yaml, cohort-2026-05-legacy.yaml,
-                            rankings/hltv/ (manual snapshots)
-data/aggregate/             accepted snapshot aggregates (2026-05.json, latest.json)
-reports/                    2026-05.md (historical), latest.md (generated placeholder)
-docs/source-audit/          per-source policy audits
-docs/ranking-updates.md     how to contribute a ranking snapshot
-notebooks/v1/               archived 2026-05 notebook pipeline (historical only)
-tests/                      offline tests + fixtures (no live scraping in CI)
-social/2026-05/             historical publication drafts
-.github/workflows/          ci.yml, daily-update.yml, weekly-reconcile.yml
-.github/ISSUE_TEMPLATE/     ranking-update.yml, watchlist.yml
-scripts/                    actions_common.py, actions_daily.py, actions_weekly.py
+src/cs2_pro_settings/    v2 pipeline (identity, cohort, roster, metrics, drift,
+                         report, plots, sources, ...)
+config/                  cohort.yaml, sources.yaml, conclusions.yaml,
+                         stability.yaml, team-mappings.yaml, rankings/
+data/aggregate/          accepted snapshots (2026-05.json, 2026-08.json, latest.json)
+reports/                 deterministic bilingual reports (latest.*, YYYY-MM.*;
+                         2026-05.md = preserved historical legacy)
+figures/                 deterministic headline figures
+social/                  human/editorial publication archive (never modified
+                         by automation) + publication records
+scripts/                 actions_*.py (automation), render_accepted.py
+tests/                   offline tests + fixtures
 ```
 
-## 10. Historical May 2026 analysis
+## Historical May 2026 analysis
 
-`reports/2026-05.md` — the original deep-dive (41 teams / 198 players,
-snapshot 2026-05-05) with the cyberpunk figures in `figures/`. It is a dated,
-descriptive analysis of one snapshot; prevalence does not imply causal
-performance benefit. Its figures are historical. `figures/latest/` is only
-created when a vrs-core-v2 candidate snapshot is accepted — until then no
-unaccepted candidate charts are published as "latest".
+`reports/2026-05.md` is the original deep-dive (41 teams / 198 players, snapshot 2026-05-05). It is a dated, descriptive analysis of one snapshot and is preserved in its original form — the standardized bilingual reports begin with 2026-08.
 
-## 11. Licensing
+## Licensing
 
 - Source code: MIT (`LICENSE`).
-- Reports, documentation, generated figures: CC BY 4.0 (`CONTENT_LICENSE.md`).
-- Third-party source data: not relicensed by this repository
-  (`DATA_PROVENANCE.md`). Old row-level source-derived data may remain in Git
-  history because history was not rewritten; the current public tree no
-  longer republishes it.
+- Reports, docs, generated figures: CC BY 4.0 (`CONTENT_LICENSE.md`).
+- Third-party source data: not relicensed by this repository (`DATA_PROVENANCE.md`).
 
-## 12. Limitations
+## Limitations
 
-- All statements describe the sampled tracked-team cohort; prevalence does
-  not imply causal performance benefit.
-- `valid_n` varies per field; a missing field never defaults to the full
-  cohort size.
-- Automated collection is limited to target paths that are accessible via
-  ordinary HTTP and are not disallowed for the configured user agent by the
-  source's robots policy; a robots allowance or absence of dedicated terms
-  is NOT affirmative legal permission. No anti-bot bypass is used.
-- Drift thresholds are operational, not statistical.
-- Roster stability guards are designed for pro-circuit reality (offseason
-  moves); they are intentionally conservative.
-- Cross-run runtime state is best-effort operational state (GitHub Actions
-  cache), not a database; a cache miss yields a safe warm-up run.
-- Interpretive/conclusion text is written by humans; the pipeline produces
-  deterministic data and reports only.
+- All statements describe the sampled professional-player cohort; prevalence does not imply a causal performance benefit.
+- `valid_n` varies per field; a missing field never defaults to the full cohort size.
+- Roster stability guards are operational and intentionally conservative.
+- Cross-run runtime state (GitHub Actions cache) is best-effort; a cache miss yields a safe warm-up run, never a false drift alert.
+- Interpretive/conclusion text is written by humans; the pipeline produces deterministic data and reports only.

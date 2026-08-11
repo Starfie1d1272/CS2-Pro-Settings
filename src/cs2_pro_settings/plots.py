@@ -124,6 +124,15 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
     plt.close(fig)
     written.append(p)
 
+    # Aspect ratio
+    fig, ax = plt.subplots(figsize=(8, 5))
+    _bar(ax, {k: v for k, v in ((agg.get("aspect_ratio") or {}).get("categories") or {}).items()}, "Aspect Ratio", ORANGE)
+    p = out_dir / "aspect_ratio.png"
+    fig.tight_layout()
+    fig.savefig(p, dpi=150)
+    plt.close(fig)
+    written.append(p)
+
     # Refresh rate
     fig, ax = plt.subplots(figsize=(9, 5))
     _bar(ax, {k: v for k, v in ((agg.get("refresh_rate") or {}).get("categories") or {}).items()}, "Monitor Refresh Rate", ORANGE)

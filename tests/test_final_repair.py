@@ -140,6 +140,12 @@ def test_weekly_core_turnover_guard(monkeypatch, tmp_path):
     monkeypatch.setattr(actions_common, "WORK", tmp_path)
     monkeypatch.setattr(actions_common, "AGG", tmp_path / "agg")
     monkeypatch.setattr(actions_common, "ROOT", REPO)
+    # REPORTS/FIGURES MUST be isolated too: the monthly path really calls
+    # write_candidate_files, which writes the 4 report files and renders
+    # figures — unpatched they would overwrite the REAL repo's public
+    # reports/ and figures/latest with test data
+    monkeypatch.setattr(actions_common, "REPORTS", tmp_path / "reports")
+    monkeypatch.setattr(actions_common, "FIGURES", tmp_path / "figures" / "latest")
     (tmp_path / "agg").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("DRY_RUN", "false")
     monkeypatch.setenv("PIPELINE_OUTCOME", "success")

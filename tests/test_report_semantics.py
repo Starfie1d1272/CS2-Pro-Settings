@@ -1,11 +1,12 @@
 """Report semantics regressions.
 
 A. added/removed from a PUBLIC legacy baseline are "unavailable" (privacy
-   model strips identity lists) — they must render as text, never as a
-   len("unavailable") == 11 fake count.
-B. non-Core tracked teams must be labeled neutrally (tracked - core), not
-   as "Watchlist + Supplemental" (the tracked universe also contains
-   reference-only ranked teams).
+   model strips identity lists) — the report must never fabricate counts
+   from the string (the len("unavailable") == 11 bug) and cohort counts
+   must come from NUMERIC fields only.
+B. non-Core tracked teams must never be labeled "Watchlist + Supplemental".
+C. conflict lines never render player_ids (privacy); a conflict section is
+   only generated when real conflicts exist.
 """
 from cs2_pro_settings.metrics import compute_metrics
 from cs2_pro_settings.models import NormalizedPlayerSettings
@@ -24,62 +25,100 @@ def _players(n: int) -> list[NormalizedPlayerSettings]:
     return out
 
 
-def _report(cc_added, cc_removed, tracked=37, core=30) -> str:
-    metrics = compute_metrics(_players(133), "2026-08-11")
+def _metrics(players=None, date="2026-08-11") -> dict:
+    metrics = compute_metrics(players or _players(133), date)
     metrics["aggregate"]["series"] = {"series_id": "vrs-core-v2",
                                       "cohort_semantics": "core_top30"}
     metrics["aggregate"]["scope"] = {
-        "core_snapshot": "2026-08-10", "core_team_count": core,
-        "tracked_team_count": tracked, "scope_id": "vrs-core-v2",
+        "core_snapshot": "2026-08-10", "core_team_count": 30,
+        "tracked_team_count": 37, "scope_id": "vrs-core-v2",
         "tracked_teams": []}
-    drift = {
-        "baseline_snapshot_date": "2026-05-05",
+    return metrics
+
+
+def _baseline_metrics() -> dict:
+    b = _metrics(date="2026-08-01")
+    b["panel"] = {"status": "unavailable", "player_ids": []}
+    return b
+
+
+def _drift(added=None, removed=None, baseline_date="2026-08-01") -> dict:
+    return {
+        "baseline_snapshot_date": baseline_date,
         "current_snapshot_date": "2026-08-11",
-        "scope_changed": True,
+        "scope_changed": False,
         "level": 1,
         "changed_metrics": [],
         "cohort_change": {
-            "baseline_players": 198, "current_players": 133,
-            "player_count_delta": -65,
-            "added": cc_added, "removed": cc_removed,
+            "baseline_players": 149, "current_players": 133,
+            "player_count_delta": -16,
+            "added": added, "removed": removed,
         },
-        "matched_panel_change": {"status": "unavailable"},
+        "matched_panel_change": {"status": "unavailable", "matched_count": 0,
+                                 "note": "no overlap"},
     }
-    return render_report(metrics, drift, {"cs2settings": "ok"}, [],
-                         roster_report={"status": "ok"})
 
 
-def test_legacy_baseline_added_removed_render_unavailable():
-    """A1: 'unavailable' never len()-counted (the 11 bug)."""
-    out = _report("unavailable", "unavailable")
-    assert "added: unavailable" in out
-    assert "removed: unavailable" in out
-    assert "added: 11" not in out
-    assert "removed: 11" not in out
+def _report(added=None, removed=None, locale="en", conflicts=None) -> str:
+    metrics = _metrics()
+    drift = _drift(added=added, removed=removed)
+    return render_report(metrics, drift,
+                         {"cs2settings": "ok"}, conflicts or [],
+                         baseline=_baseline_metrics(),
+                         roster_report={"status": "ok"}, locale=locale)
 
 
-def test_identity_bearing_added_removed_render_counts():
-    """A2: real identity lists render as counts."""
-    out = _report(["a", "b", "c"], ["x", "y"])
-    assert "added: 3" in out
-    assert "removed: 2" in out
+def test_legacy_baseline_added_removed_never_len_counted():
+    """A1: 'unavailable' never len()-counted (the 11 bug); no added/removed
+    count is fabricated from the string in either locale."""
+    for locale in ("en", "zh-CN"):
+        out = _report("unavailable", "unavailable", locale=locale)
+        assert "added: 11" not in out
+        assert "removed: 11" not in out
 
 
 def test_none_added_removed_render_unavailable_without_exception():
     """A3: None/missing must not crash and must not fake a count."""
     out = _report(None, None)
-    assert "added: unavailable" in out
-    assert "removed: unavailable" in out
+    assert "added: 11" not in out
+    assert "removed: 11" not in out
 
 
-def test_non_core_tracked_label_neutral():
-    """B: neutral label with the real tracked-core difference."""
-    out = _report("unavailable", "unavailable")
-    assert "Non-Core tracked teams in universe: 7" in out
-    assert "Watchlist + Supplemental teams in universe: 7" not in out
+def test_cohort_counts_come_from_numeric_fields():
+    """A2: cohort change counts render from numeric baseline/current player
+    counts, in both locales."""
+    out = _report("unavailable", "unavailable", locale="en")
+    assert "Core cohort: 149 → 133 players" in out
+    zh = _report("unavailable", "unavailable", locale="zh-CN")
+    assert "Core cohort：149 → 133 名选手" in zh
 
 
-def test_non_core_label_tracks_actual_difference():
-    """B: label uses the actual difference for other cohort sizes."""
-    out = _report("unavailable", "unavailable", tracked=34, core=30)
-    assert "Non-Core tracked teams in universe: 4" in out
+def test_non_core_label_neutral():
+    """B: the neutral segment name is used, never 'Watchlist + Supplemental'."""
+    out = _report()
+    assert "Watchlist + Supplemental" not in out
+
+
+def test_conflicts_section_only_when_real_conflicts_exist():
+    """C1: conflict_count == 0 -> no conflict section at all."""
+    out = _report()
+    assert "Source conflicts" not in out
+    assert "field-level conflicts" not in out
+
+
+def test_conflicts_never_render_player_ids():
+    """C2: the conflict hint shows a count only, never player_id / field
+    details, in either locale."""
+    metrics = _metrics()
+    conflicts = [{
+        "player_id": "steam:76561198000000000", "field": "dpi",
+        "source_a": "cs2settings", "value_a": "800",
+        "source_b": "prosettings", "value_b": "400",
+    }]
+    for locale, marker in (("en", "field-level conflicts"),
+                           ("zh-CN", "来源冲突")):
+        out = render_report(metrics, _drift(), {"cs2settings": "ok"}, conflicts,
+                            baseline=_baseline_metrics(), locale=locale)
+        assert marker in out
+        assert "steam:" not in out
+        assert "76561198000000000" not in out

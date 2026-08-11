@@ -85,7 +85,16 @@ def ensure_git_identity() -> None:
 
 
 def write_candidate_files(metrics: dict, monthly: bool = False) -> list[str]:
-    """Update public candidate artifacts; returns changed file descriptions."""
+    """Update public candidate artifacts; returns changed file descriptions.
+
+    Report contract (bilingual, synchronized):
+      - reports/latest.md          = English canonical latest report
+      - reports/latest.zh-CN.md    = Chinese latest report
+      - monthly: reports/YYYY-MM.md + reports/YYYY-MM.zh-CN.md archives
+    The monthly archives are written UNCONDITIONALLY so a correctness-fix
+    refresh of the same month propagates into both languages (content is
+    deterministic, so an unchanged run produces no git diff / empty commit).
+    """
     from cs2_pro_settings.metrics import public_aggregate
     from cs2_pro_settings.plots import render_all
 
@@ -94,19 +103,27 @@ def write_candidate_files(metrics: dict, monthly: bool = False) -> list[str]:
     (AGG / "latest.json").write_text(
         json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     changed.append("data/aggregate/latest.json")
+
+    def _copy_report(src_name: str, dst: Path) -> None:
+        src = WORK / src_name
+        if src.exists():
+            dst.write_text(src.read_text(encoding="utf-8"), encoding="utf-8")
+            changed.append(f"reports/{dst.name}")
+
+    _copy_report("report-candidate.md", REPORTS / "latest.md")
+    _copy_report("report-candidate.zh-CN.md", REPORTS / "latest.zh-CN.md")
     if monthly:
         # the monthly file must stay in sync with latest for the SAME
         # candidate (data corrections propagate): write unconditionally —
         # content is deterministic, so an unchanged run produces no git
         # diff and no empty commit
-        month_file = AGG / f"{date.today().strftime('%Y-%m')}.json"
+        month = date.today().strftime("%Y-%m")
+        month_file = AGG / f"{month}.json"
         month_file.write_text(
             json.dumps(pub, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
         changed.append(month_file.name)
-    rep = WORK / "report-candidate.md"
-    if rep.exists():
-        (REPORTS / "latest.md").write_text(rep.read_text(encoding="utf-8"), encoding="utf-8")
-        changed.append("reports/latest.md")
+        _copy_report("report-candidate.md", REPORTS / f"{month}.md")
+        _copy_report("report-candidate.zh-CN.md", REPORTS / f"{month}.zh-CN.md")
     render_all(metrics, FIGURES)
     changed.append("figures/latest/*")
     return changed
@@ -198,11 +215,17 @@ def create_or_update_candidate_pr(
     # NOW write candidate files on the correct branch
     changed_files = write_candidate_files(metrics, monthly=monthly)
 
-    # git add only paths that actually exist (reports/latest.md is written
-    # only when the pipeline produced a candidate report)
+    # git add only paths that actually exist (report files are written only
+    # when the pipeline produced a candidate report)
     add_paths = ["data/aggregate"]
-    if (REPORTS / "latest.md").exists():
-        add_paths.append("reports/latest.md")
+    for rep_name in ("latest.md", "latest.zh-CN.md"):
+        if (REPORTS / rep_name).exists():
+            add_paths.append(f"reports/{rep_name}")
+    if monthly:
+        month = date.today().strftime("%Y-%m")
+        for rep_name in (f"{month}.md", f"{month}.zh-CN.md"):
+            if (REPORTS / rep_name).exists():
+                add_paths.append(f"reports/{rep_name}")
     if FIGURES.is_dir():
         add_paths.append("figures/latest")
     sh("git", "add", "--", *add_paths)
