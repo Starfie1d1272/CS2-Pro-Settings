@@ -305,7 +305,14 @@ def test_weekly_no_missingness_warning_across_series(monkeypatch, tmp_path):
     monkeypatch.setattr(actions_common, "sh", fake_sh)
     monkeypatch.setattr(actions_common, "WORK", tmp_path)
     monkeypatch.setattr(actions_common, "AGG", tmp_path / "agg")
+    # actions_weekly binds AGG/ROOT at import time (from actions_common
+    # import AGG) — patch the weekly module itself, not actions_common
+    monkeypatch.setattr(actions_weekly, "AGG", tmp_path / "agg")
+    monkeypatch.setattr(actions_weekly, "ROOT", REPO)
     monkeypatch.setattr(actions_common, "ROOT", REPO)
+    # monthly candidate PR path must not touch the real repo in this test
+    monkeypatch.setattr(actions_weekly, "create_or_update_candidate_pr",
+                        lambda *a, **k: None)
     (tmp_path / "agg").mkdir(parents=True, exist_ok=True)
     monkeypatch.setenv("DRY_RUN", "false")
     monkeypatch.setenv("PIPELINE_OUTCOME", "success")
