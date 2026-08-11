@@ -24,13 +24,13 @@ MAPPINGS = load_mappings(str(REPO / "config" / "team-mappings.yaml"))
 # A. source-specific team refs
 # ---------------------------------------------------------------------------
 
-def test_aurora_null_cs2_slug_does_not_mean_unobservable():
-    # Aurora has cs2settings.team_slug=null in the mapping
-    assert resolve_team_source_ref("aurora", "cs2settings", MAPPINGS) is None
+def test_null_cs2_slug_does_not_mean_unobservable():
+    # Luminosity has cs2settings.team_slug=null in the mapping
+    assert resolve_team_source_ref("luminosity", "cs2settings", MAPPINGS) is None
     # but the team_id exists and the mapping entry is present (source refs
     # are per-source; prosettings/proconfig keys exist as empty refs)
-    entry = next(e for e in MAPPINGS["teams"] if e["team_id"] == "aurora")
-    assert entry["team_id"] == "aurora"
+    entry = next(e for e in MAPPINGS["teams"] if e["team_id"] == "luminosity")
+    assert entry["team_id"] == "luminosity"
     assert "prosettings" in entry["source_refs"]
     assert "proconfig" in entry["source_refs"]
 
