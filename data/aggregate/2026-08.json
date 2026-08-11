@@ -1,8 +1,14 @@
 {
   "aggregate": {
     "snapshot_date": "2026-08-11",
-    "player_count": 133,
+    "player_count": 149,
     "team_count": 30,
+    "settings_availability": {
+      "cohort_players": 149,
+      "players_with_any_setting": 133,
+      "players_with_zero_settings": 16,
+      "any_setting_share": 0.8926
+    },
     "source": {
       "primary": "v2-vrs-core"
     },
@@ -334,7 +340,7 @@
   },
   "panel": {
     "status": "available",
-    "player_count": 133,
-    "stable_identity_count": 133
+    "player_count": 149,
+    "stable_identity_count": 149
   }
 }

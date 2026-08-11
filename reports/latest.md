@@ -39,16 +39,13 @@
 
 ## Comparison with previous accepted snapshot
 
-- baseline: 2026-05-05 -> current: 2026-08-11
+- baseline: 2026-08-11 -> current: 2026-08-11
 - drift level: **0** (0 = data changed, no material drift; 1 = trend drift; 2 = headline conclusion changed)
-- **series incompatible**: baseline series 'legacy-top30-plus-selected-v1' != current series 'vrs-core-v2'; baseline incompatible — the first accepted vrs-core-v2 snapshot will initialize the new longitudinal series
-- **scope changed**: scope metadata changed (legacy baseline); headline Level 2 suppressed
-- **headline suppressed**: scope metadata changed (legacy baseline); headline Level 2 suppressed
 - no conclusion-level changes
 
 ### Cohort change
 
-- baseline players: 198; current: 149
+- baseline players: 149; current: 149
 - added: unavailable; removed: unavailable
 
 ### Matched panel
