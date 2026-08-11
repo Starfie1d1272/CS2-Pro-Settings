@@ -147,9 +147,14 @@ def tracked_slugs(cohort_config: dict) -> list[str]:
     directly (e.g. test fixtures without ranking snapshots) are honored too.
     """
     slugs: set[str] = set()
-    # direct core team slugs (works without ranking snapshots)
+    # direct core team slugs (works without ranking snapshots). Uses the
+    # SOURCE-specific cs2settings locator (_cs2_slug_of -> source_refs /
+    # legacy settings_slug), NEVER the ranking team_id: team_id and source
+    # slug are different namespaces (e.g. team_id "natus-vincere" vs
+    # cs2settings slug "navi"), and a team_id must never be used as a
+    # fetch slug (it 404s and pollutes all_tracked_roster_failures).
     for item in (cohort_config.get("cohort", {}).get("core", {}).get("teams") or []):
-        s = _slug_of(item)
+        s = _cs2_slug_of(item)
         if s:
             slugs.add(s)
     # ranked union slugs from the accepted snapshots (adds HLTV-only teams)
