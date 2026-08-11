@@ -107,7 +107,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # DPI
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in (agg.get("dpi") or {}).get("categories") or {}.items()},
+    _bar(ax, {k: v for k, v in ((agg.get("dpi") or {}).get("categories") or {}).items()},
          "DPI Distribution", ACCENT)
     p = out_dir / "dpi.png"
     fig.tight_layout()
@@ -117,7 +117,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Resolution
     fig, ax = plt.subplots(figsize=(10, 5))
-    _bar(ax, dict(list((agg.get("resolution") or {}).get("categories") or {}.items())[:10]), "Resolution (top 10)", CYAN)
+    _bar(ax, dict(list(((agg.get("resolution") or {}).get("categories") or {}).items())[:10]), "Resolution (top 10)", CYAN)
     p = out_dir / "resolution.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
@@ -126,7 +126,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Refresh rate
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in (agg.get("refresh_rate") or {}).get("categories") or {}.items()}, "Monitor Refresh Rate", ORANGE)
+    _bar(ax, {k: v for k, v in ((agg.get("refresh_rate") or {}).get("categories") or {}).items()}, "Monitor Refresh Rate", ORANGE)
     p = out_dir / "refresh_rate.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
@@ -179,7 +179,7 @@ def render_all(metrics: dict, out_dir: Path) -> list[Path]:
 
     # Polling rate
     fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in (agg.get("mouse_polling") or {}).get("categories") or {}.items()}, "Mouse Polling Rate", CYAN)
+    _bar(ax, {k: v for k, v in ((agg.get("mouse_polling") or {}).get("categories") or {}).items()}, "Mouse Polling Rate", CYAN)
     p = out_dir / "polling_rate.png"
     fig.tight_layout()
     fig.savefig(p, dpi=150)
