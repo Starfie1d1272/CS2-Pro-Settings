@@ -181,12 +181,28 @@ def create_or_update_candidate_pr(
     else:
         head = f"{PR_BRANCH_PREFIX}{date.today().strftime('%Y%m%d')}"
         sh("git", "fetch", "origin", "main")
-        sh("git", "checkout", "-B", head, "origin/main")
+        # A branch with the same name may ALREADY exist remotely without an
+        # open PR (previous run pushed it but PR creation failed, or the PR
+        # was closed). Reuse it instead of creating a conflicting branch —
+        # push would be rejected as non-fast-forward otherwise.
+        remote = sh("git", "ls-remote", "--heads", "origin", head)
+        if remote.strip():
+            sh("git", "fetch", "origin", head)
+            sh("git", "checkout", "-B", head, f"origin/{head}")
+        else:
+            sh("git", "checkout", "-B", head, "origin/main")
 
     # NOW write candidate files on the correct branch
     changed_files = write_candidate_files(metrics, monthly=monthly)
 
-    sh("git", "add", "data/aggregate", "reports/latest.md", "figures/latest")
+    # git add only paths that actually exist (reports/latest.md is written
+    # only when the pipeline produced a candidate report)
+    add_paths = ["data/aggregate"]
+    if (REPORTS / "latest.md").exists():
+        add_paths.append("reports/latest.md")
+    if FIGURES.is_dir():
+        add_paths.append("figures/latest")
+    sh("git", "add", "--", *add_paths)
     # commit only if there are changes (no empty commits)
     status = sh("git", "status", "--porcelain")
     if status:

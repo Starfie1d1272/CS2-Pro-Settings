@@ -49,6 +49,64 @@ def _seed_repo(origin: Path, work: Path) -> None:
     git(work, "checkout", "-q", "main")
 
 
+def test_remote_branch_exists_without_pr_is_reused(tmp_path, monkeypatch):
+    """Branch pushed by a previous failed run (no open PR) is reused, and
+    the push stays fast-forward (never rejected)."""
+    from cs2_pro_settings import cli
+    from cs2_pro_settings.metrics import compute_metrics
+    from cs2_pro_settings.models import NormalizedPlayerSettings
+    import actions_common
+
+    origin = tmp_path / "origin.git"
+    work = tmp_path / "work"
+    work.mkdir()
+    git(work, "init", "-q", "--bare", str(origin))
+    repo = tmp_path / "repo"
+    git(work, "init", "-q", str(repo))
+    git(work, "-C", str(repo), "remote", "add", "origin", str(origin))
+    git(work, "-C", str(repo), "config", "user.email", "t@t")
+    git(work, "-C", str(repo), "config", "user.name", "t")
+    (repo / "seed.txt").write_text("seed")
+    git(work, "-C", str(repo), "add", ".")
+    git(work, "-C", str(repo), "commit", "-qm", "seed")
+    git(work, "-C", str(repo), "branch", "-M", "main")
+    git(work, "-C", str(repo), "push", "-q", "origin", "main")
+
+    # simulate a previous run that pushed the branch but failed before PR creation
+    git(work, "-C", str(repo), "checkout", "-qb", "automation/settings-update-20260811")
+    (repo / "leftover.txt").write_text("leftover")
+    git(work, "-C", str(repo), "add", ".")
+    git(work, "-C", str(repo), "commit", "-qm", "leftover")
+    git(work, "-C", str(repo), "push", "-q", "origin", "automation/settings-update-20260811")
+    git(work, "-C", str(repo), "checkout", "-q", "main")
+
+    real_git = actions_common.sh
+
+    def fake_git(*args, check=True):
+        if args[0] == "gh":
+            return ""
+        return real_git("git", "-C", str(repo), *args[1:], check=check)
+
+    monkeypatch.setattr(actions_common, "sh", fake_git)
+    monkeypatch.setattr(actions_common, "ROOT", repo)
+    monkeypatch.setattr(actions_common, "WORK", work)
+    monkeypatch.setattr(actions_common, "AGG", repo / "data" / "aggregate")
+    monkeypatch.setattr(actions_common, "REPORTS", repo / "reports")
+    monkeypatch.setattr(actions_common, "FIGURES", repo / "figures" / "latest")
+    (repo / "data" / "aggregate").mkdir(parents=True, exist_ok=True)
+    (repo / "reports").mkdir(parents=True, exist_ok=True)
+    (repo / "figures" / "latest").mkdir(parents=True, exist_ok=True)
+
+    metrics = compute_metrics([], "2026-08-11")
+    actions_common.create_or_update_candidate_pr(
+        {"level": 0, "baseline_snapshot_date": "2026-05-05",
+         "current_snapshot_date": "2026-08-11", "scope_changed": False,
+         "changed_metrics": [], "cohort_change": {}, "matched_panel_change": {}},
+        {"status": "ok"}, metrics, monthly=True)
+    # branch still exists remotely, content updated on top of the leftover commit
+    assert "leftover.txt" in git(repo, "ls-tree", "-r", "--name-only", "origin/automation/settings-update-20260811")
+
+
 def test_existing_automation_pr_real_git_branch_reuse(tmp_path, monkeypatch):
     origin = tmp_path / "origin.git"
     work = tmp_path / "work"
