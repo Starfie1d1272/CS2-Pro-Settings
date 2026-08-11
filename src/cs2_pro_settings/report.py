@@ -32,6 +32,18 @@ def _dg(drift: Any, key: str, default=None):
     return getattr(drift, key, default)
 
 
+def _count_or_unavailable(value):
+    """Count an enumerable cohort-change list; 'unavailable' stays text.
+
+    The privacy model strips player identity lists from PUBLIC accepted
+    baselines, so drift.cohort_change.added/removed can legitimately be the
+    string "unavailable" (never len()-counted as a fake player count).
+    """
+    if value in (None, "unavailable") or not isinstance(value, (list, set, tuple)):
+        return "unavailable"
+    return len(value)
+
+
 def render_report(
     metrics: dict,
     drift: Any,
@@ -71,8 +83,8 @@ def render_report(
                  f"({series.get('cohort_semantics', 'n/a')})")
     lines.append(f"- Core ranking snapshot: {scope.get('core_snapshot') or 'none accepted yet'}")
     lines.append(f"- Core teams: {scope.get('core_team_count', 0)}")
-    lines.append(f"- Watchlist + Supplemental teams in universe: "
-                 f"{max(scope.get('tracked_team_count', 0) - scope.get('core_team_count', 0), 0)}")
+    non_core = max(scope.get('tracked_team_count', 0) - scope.get('core_team_count', 0), 0)
+    lines.append(f"- Non-Core tracked teams in universe: {non_core}")
     lines.append("- Core feeds headline statistics; Watchlist/Supplemental are "
                  "tracked as extended segments only (see segments below).")
     lines.append("")
@@ -145,7 +157,8 @@ def render_report(
         lines.append("")
         cc = _dg(drift, "cohort_change") or {}
         lines.append(f"- baseline players: {cc.get('baseline_players')}; current: {cc.get('current_players')}")
-        lines.append(f"- added: {len(cc.get('added') or [])}; removed: {len(cc.get('removed') or [])}")
+        lines.append(f"- added: {_count_or_unavailable(cc.get('added'))}; "
+                     f"removed: {_count_or_unavailable(cc.get('removed'))}")
         lines.append("")
         lines.append("### Matched panel")
         lines.append("")
