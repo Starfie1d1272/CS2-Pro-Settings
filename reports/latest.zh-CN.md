@@ -59,8 +59,11 @@
 ![crosshair_color.png](../figures/latest/crosshair_color.png)
 
 - Dot 与 Outline 同时关闭：**80.5%**（n=133）
-- 颜色类别：Custom 45.1% · Blue 26.3% · Green 22.6% · Yellow 6.0%（n=133）
-- 当前标准化快照仅按类别统计颜色，尚未包含 Custom RGB 具体色值的拆分。
+- 颜色类别：Custom 45.1% · Cyan 26.3% · Green 22.6% · Yellow 6.0%（n=133）
+
+![crosshair_custom_rgb.png](../figures/latest/crosshair_custom_rgb.png)
+
+- Custom RGB：**60/60** 名选手 RGB 三通道完整（100.0%）· 26 种精确颜色 · 最常用 **255,255,255**（25.0%）
 
 ## 5. Viewmodel
 
@@ -75,7 +78,16 @@
 
 - 开启比例：71.7%（n=120）
 
-## 7. 数据覆盖
+## 7. 扩展样本
+
+| Segment | 战队 | 选手 | eDPI 中位数 |
+|---|---:|---:|---:|
+| VRS ∩ HLTV Consensus | 27 | 134 | 800 |
+| Ranked Union | 32 | 158 | 800 |
+| Core + Watchlist | 33 | 163 | 800 |
+| All tracked | 35 | 172 | 800 |
+
+## 8. 数据覆盖
 
 | 字段 | valid_n / cohort |
 |---|---|
@@ -93,7 +105,7 @@
 
 当前 133/149 名 Core 选手至少有一项可用设置字段。
 
-## 8. 数据与代码
+## 9. 数据与代码
 
 - 数据日期：2026-08-11
 - 数据来源：cs2settings
