@@ -203,5 +203,10 @@ def create_or_update_candidate_pr(
         title = f"data: update CS2 settings conclusions {date.today().isoformat()}"
         if monthly:
             title = f"data: monthly CS2 settings snapshot {date.today().isoformat()}"
-        sh("gh", "pr", "create", "--title", title, "--body", body)
+        # explicit --head/--base: the Actions checkout creates the branch
+        # without upstream metadata, and gh's upstream inference then
+        # aborts ("you must first push the current branch") even though
+        # the branch WAS pushed
+        sh("gh", "pr", "create", "--title", title, "--body", body,
+           "--head", head, "--base", "main")
         print(f"created PR from {head}")
