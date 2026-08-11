@@ -192,7 +192,15 @@ def main() -> int:
     collection_publishable = (core_initialized and collection_complete and core_player_count > 0)
 
     month_file = AGG / f"{date.today().strftime('%Y-%m')}.json"
-    monthly_due = not month_file.exists()
+    # monthly_due: file missing OR stale (differs from the current
+    # candidate). A data correction (e.g. cohort-preservation fix) must
+    # propagate into the monthly archive even when the file already exists.
+    from cs2_pro_settings.metrics import public_aggregate
+
+    candidate_content = json.dumps(public_aggregate(metrics), indent=2,
+                                   ensure_ascii=False) + "\n"
+    monthly_due = (not month_file.exists()
+                   or month_file.read_text(encoding="utf-8") != candidate_content)
 
     rank = ranking_status()
     watch_due = watchlist_review_due()
