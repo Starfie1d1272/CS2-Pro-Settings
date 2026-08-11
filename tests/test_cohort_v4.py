@@ -101,6 +101,30 @@ def test_tracked_universe_is_union_plus_watchlist():
             assert item["settings_slug"] in slugs
 
 
+def test_tracked_slugs_never_use_team_id_namespace_for_core_teams():
+    """team_id and the cs2settings source slug are different namespaces.
+
+    Regression: team_id 'natus-vincere'/'team-spirit' leaked into the fetch
+    universe (via the old _slug_of fallback) alongside the correct source
+    slugs 'navi'/'spirit', producing meaningless 404s on
+    /teams/natus-vincere and /teams/team-spirit and polluting
+    all_tracked_roster_failures. The fetch universe must contain ONLY
+    source-specific slugs; ranking team_ids stay untouched.
+    """
+    cfg = load_cohort_cfg()
+    slugs = tracked_slugs(cfg)
+    # source slugs appear exactly once
+    assert slugs.count("navi") == 1
+    assert slugs.count("spirit") == 1
+    # team_id namespace never leaks into the fetch universe
+    assert "natus-vincere" not in slugs
+    assert "team-spirit" not in slugs
+    # ranking identifiers are untouched (team_id stays the ranking truth)
+    s = _sets()
+    assert "natus-vincere" in s["core_teams"]
+    assert "team-spirit" in s["core_teams"]
+
+
 # ---------------------------------------------------------------------------
 # 3. unresolved source mapping
 # ---------------------------------------------------------------------------
