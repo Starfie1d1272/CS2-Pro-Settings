@@ -1,7 +1,17 @@
 # Source configuration.
 #
-# enabled:            adapter may be used at all
-# enabled_for_schedule: adapter may be called by scheduled workflows
+# enabled:               adapter may be used at all
+# enabled_for_schedule:  adapter may be called by scheduled workflows
+#
+# capabilities (declared per adapter implementation — never aspirational):
+#   roster_discovery:      team page -> current active roster
+#   player_settings:       player page -> settings fields
+#   stable_identity:       SteamID resolvable from the page (true/false)
+#   targeted_player_lookup:can look up one player page by stable source id
+#
+# IMPORTANT: capability != permission. A source can have
+# enabled_for_schedule=false and still be used in LOCAL REVIEW mode
+# (user-triggered, never advances production state, never publishes).
 #
 # field_priority: per field group, ordered source preference used by
 # reconcile.py. Disabled sources are skipped automatically.
@@ -21,16 +31,31 @@ sources:
     enabled_for_schedule: true
     base_url: https://cs2settings.com
     timeout: 20
+    capabilities:
+      roster_discovery: true
+      player_settings: true
+      stable_identity: true
+      targeted_player_lookup: true
   prosettings:
     enabled: true
     enabled_for_schedule: false
     base_url: https://prosettings.net
     timeout: 20
+    capabilities:
+      roster_discovery: false
+      player_settings: true
+      stable_identity: true
+      targeted_player_lookup: true
   proconfig:
     enabled: false
     enabled_for_schedule: false
     base_url: https://proconfig.net
     timeout: 20
+    capabilities:
+      roster_discovery: false
+      player_settings: true
+      stable_identity: true
+      targeted_player_lookup: true
 
 field_priority:
   crosshair:

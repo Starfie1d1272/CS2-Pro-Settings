@@ -224,8 +224,16 @@ def compute_drift(
     # cohort_change: the PUBLIC accepted aggregate carries NO player identity
     # lists (privacy model). Only counts/deltas are derivable here; real
     # player IN/OUT lives in the runtime roster state (roster_report).
+    # Identity set is used ONLY when the panel is genuinely identity-bearing
+    # (status=available AND a real id list); otherwise counts come from the
+    # aggregate player_count (legacy latest has player_ids=[] with 198
+    # players — it must NOT read as 0).
     current_ids = set(current_panel.get("player_ids", []))
-    if baseline_panel.get("player_ids") is not None:
+    baseline_has_ids = (
+        baseline_panel.get("status") == "available"
+        and bool(baseline_panel.get("player_ids"))
+    )
+    if baseline_has_ids:
         baseline_ids = set(baseline_panel["player_ids"])
         cohort_change = {
             "baseline_players": len(baseline_ids),
@@ -264,19 +272,25 @@ def compute_drift(
         if base_players and cur_players:
             per_field: dict[str, dict] = {}
             for fld in ("dpi", "edpi", "resolution", "polling_rate"):
-                compared = changed_count = missing_transition = 0
+                compared = changed_count = missing_to_value = value_to_missing = 0
                 for pid in runtime_matched:
                     bv = (base_players.get(pid) or {}).get(fld)
                     cv = (cur_players.get(pid) or {}).get(fld)
                     if bv is None or cv is None:
                         if bv is None and cv is not None:
-                            missing_transition += 1
+                            missing_to_value += 1
+                        elif bv is not None and cv is None:
+                            value_to_missing += 1
                         continue
                     compared += 1
                     if bv != cv:
                         changed_count += 1
-                per_field[fld] = {"changed": changed_count, "compared": compared,
-                                  "missing_transition": missing_transition}
+                per_field[fld] = {
+                    "changed": changed_count, "compared": compared,
+                    "missing_transition": missing_to_value + value_to_missing,
+                    "missing_to_value": missing_to_value,
+                    "value_to_missing": value_to_missing,
+                }
             matched_change = {
                 "status": "available",
                 "matched_count": len(runtime_matched),

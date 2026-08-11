@@ -89,12 +89,18 @@ def load_cohort_sets(cohort_config: Optional[dict] = None) -> dict:
     ref = load_snapshot(ref_cfg.get("provider", "hltv"), ref_snap) if ref_snap else {}
     sets = compute_cohort_sets(vrs, ref if ref else {"teams": []})
     sets["core_scope_hash"] = _scope_hash(sets["core_teams"])
-    # team_id -> settings_slug map across both snapshots (None = unresolved)
+    # team_id -> cs2settings slug map resolved from team-mappings
+    # (source_refs), NOT from ranking truth — ranking and source locators
+    # are fully separated
+    from .rankings import DEFAULT_MAPPINGS, load_mappings, resolve_team_source_ref
+
+    mappings = load_mappings(DEFAULT_MAPPINGS)
     slug_map: dict[str, Optional[str]] = {}
     for snap in (vrs, ref):
         for t in snap.get("teams", []):
             if t.get("team_id") and not t.get("unresolved"):
-                slug_map[t["team_id"]] = t.get("settings_slug")
+                slug_map[t["team_id"]] = resolve_team_source_ref(
+                    t["team_id"], "cs2settings", mappings)
     sets["slug_map"] = slug_map
     return sets
 
@@ -161,6 +167,29 @@ def tracked_slugs(cohort_config: dict) -> list[str]:
     return sorted(slugs)
 
 
+def _cs2_slug_of(item, mappings: Optional[dict] = None) -> Optional[str]:
+    """cs2settings locator for a core team entry.
+
+    Entries carry rank/team_id (source-independent). The cs2settings slug
+    is resolved from team-mappings source_refs — NEVER stored in ranking
+    truth. None = 'no cs2settings page', which does NOT make the team
+    unobservable.
+    """
+    if isinstance(item, str):
+        return item  # legacy inline slug
+    tid = item.get("team_id") if isinstance(item, dict) else None
+    if not tid:
+        return None
+    if mappings is None:
+        from .rankings import DEFAULT_MAPPINGS, load_mappings
+
+        mappings = load_mappings(DEFAULT_MAPPINGS)
+    from .rankings import resolve_team_source_ref
+
+    return resolve_team_source_ref(tid, "cs2settings", mappings)
+
+
 def core_slugs(cohort_config: dict) -> list[str]:
     core = cohort_config.get("cohort", {}).get("core", {})
-    return sorted(s for s in (_slug_of(t) for t in (core.get("teams") or [])) if s)
+    mappings = None
+    return sorted(s for s in (_cs2_slug_of(t, mappings) for t in (core.get("teams") or [])) if s)

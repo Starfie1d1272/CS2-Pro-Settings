@@ -87,13 +87,23 @@ class ProSettingsSource:
             if value:
                 fields[text.lower()] = value.get_text(" ", strip=True)
 
+        # stable identity: ONLY numeric /profiles/<id> links count. Vanity
+        # /id/<name> links cannot be resolved to a numeric SteamID without
+        # the Steam API, so they are NOT used as identity evidence.
+        steam_id: Optional[str] = None
+        for a in soup.find_all("a", href=True):
+            m = re.search(r"steamcommunity\.com/profiles/(\d{15,17})", str(a.get("href") or ""))
+            if m:
+                steam_id = m.group(1)
+                break
+
         return ParsedPlayer(
             source=self.name,
             source_id=source_id,
             name=source_id,
             source_url=url,
             retrieved_at=date.today().isoformat(),
-            steam_id=None,
+            steam_id=steam_id,
             fields=fields,
         )
 

@@ -44,6 +44,18 @@ terms is NOT represented as affirmative legal permission. Adapters fail
 closed; no anti-bot bypass, CAPTCHA solving, proxy rotation, or browser
 automation is used. See `docs/source-audit/` for per-source policy audits.
 
+- **Source availability != permission.** An adapter capability never by
+  itself enables scheduled use; `enabled_for_schedule` is an explicit
+  policy decision kept in `config/sources.yaml`.
+- ProSettings stays **local / user-triggered only**; it is not opened as a
+  scheduled mirror even where it could serve as a settings fallback.
+- Local coverage audits (probe scripts) never commit raw row-level data and
+  never advance production runtime state.
+- Stable identities (SteamIDs) are used for runtime reconciliation only;
+  identity crosswalks are not committed to the public tree.
+- Public aggregates contain no player-level settings records or identity
+  lists.
+
 ## Runtime state
 
 Cross-run operational state (roster baseline, roster confirmation window,

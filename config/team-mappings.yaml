@@ -1,146 +1,383 @@
-# Team mapping: ranking display name -> canonical team id -> source slug.
+# Team mapping: ranking display name -> canonical team id -> per-source refs.
 #
-# Used by the HLTV ranking importer (python -m cs2_pro_settings ranking
-# import-hltv). The importer NEVER guesses: an unmapped display name is
-# reported as UNRESOLVED and the import fails (or is emitted with explicit
-# unresolved status and not activated).
+# Used by the ranking importers (import-vrs / import-hltv) and by the
+# pipeline to resolve SOURCE-SPECIFIC locators. Ranking truth (rank,
+# display_name, team_id) is fully source-independent; source_refs map a
+# team to each settings/roster source's own locator.
+#
+# Rules:
+# - settings_slug is DEPRECATED (legacy alias for source_refs.cs2settings.
+#   team_slug); new entries only use source_refs.
+# - A null team_slug means the source has no page for this team — it does
+#   NOT make the team unobservable (another source may still cover it).
+# - Never guess a slug; unresolved stays null.
 
 teams:
-  - display_names: [Vitality, "Team Vitality"]
+
+  - display_names: ["Vitality", "Team Vitality"]
     team_id: vitality
-    settings_slug: vitality
-  - display_names: [Spirit, "Team Spirit"]
+    source_refs:
+      cs2settings:
+        team_slug: vitality
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Spirit", "Team Spirit"]
     team_id: team-spirit
-    settings_slug: spirit
-  - display_names: [NAVI, "Natus Vincere"]
+    source_refs:
+      cs2settings:
+        team_slug: spirit
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["NAVI", "Natus Vincere"]
     team_id: natus-vincere
-    settings_slug: navi
-  - display_names: [Falcons, "Team Falcons"]
+    source_refs:
+      cs2settings:
+        team_slug: navi
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Falcons", "Team Falcons"]
     team_id: falcons
-    settings_slug: falcons
-  - display_names: [FURIA]
+    source_refs:
+      cs2settings:
+        team_slug: falcons
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["FURIA"]
     team_id: furia
-    settings_slug: furia
-  - display_names: [The MongolZ, "The Mongolz"]
+    source_refs:
+      cs2settings:
+        team_slug: furia
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["The MongolZ", "The Mongolz"]
     team_id: the-mongolz
-    settings_slug: the-mongolz
-  - display_names: [Astralis]
+    source_refs:
+      cs2settings:
+        team_slug: the-mongolz
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Astralis"]
     team_id: astralis
-    settings_slug: astralis
-  - display_names: [MOUZ]
+    source_refs:
+      cs2settings:
+        team_slug: astralis
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["MOUZ"]
     team_id: mouz
-    settings_slug: mouz
+    source_refs:
+      cs2settings:
+        team_slug: mouz
+      prosettings: {}
+      proconfig: {}
+
   - display_names: ["G2", "G2 Esports"]
     team_id: g2
-    settings_slug: g2
-  - display_names: [FaZe, "FaZe Clan"]
+    source_refs:
+      cs2settings:
+        team_slug: g2
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["FaZe", "FaZe Clan"]
     team_id: faze
-    settings_slug: faze
-  - display_names: [GamerLegion]
+    source_refs:
+      cs2settings:
+        team_slug: faze
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["GamerLegion"]
     team_id: gamerlegion
-    settings_slug: gamerlegion
-  - display_names: [3DMAX]
+    source_refs:
+      cs2settings:
+        team_slug: gamerlegion
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["3DMAX"]
     team_id: 3dmax
-    settings_slug: 3dmax
-  - display_names: [PARIVISION]
+    source_refs:
+      cs2settings:
+        team_slug: 3dmax
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["PARIVISION"]
     team_id: parivision
-    settings_slug: parivision
-  - display_names: [Heroic, HEROIC]
+    source_refs:
+      cs2settings:
+        team_slug: parivision
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Heroic", "HEROIC"]
     team_id: heroic
-    settings_slug: heroic
-  - display_names: ["Team Liquid", Liquid]
+    source_refs:
+      cs2settings:
+        team_slug: heroic
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Team Liquid", "Liquid"]
     team_id: liquid
-    settings_slug: liquid
-  - display_names: [FUT]
+    source_refs:
+      cs2settings:
+        team_slug: liquid
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["FUT"]
     team_id: fut
-    settings_slug: fut
-  - display_names: [Monte]
+    source_refs:
+      cs2settings:
+        team_slug: fut
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Monte"]
     team_id: monte
-    settings_slug: monte
-  - display_names: [B8]
+    source_refs:
+      cs2settings:
+        team_slug: monte
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["B8"]
     team_id: b8
-    settings_slug: b8
-  - display_names: [BetBoom]
+    source_refs:
+      cs2settings:
+        team_slug: b8
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["BetBoom"]
     team_id: betboom
-    settings_slug: betboom
-  - display_names: [MIBR]
+    source_refs:
+      cs2settings:
+        team_slug: betboom
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["MIBR"]
     team_id: mibr
-    settings_slug: mibr
-  - display_names: [9z]
+    source_refs:
+      cs2settings:
+        team_slug: mibr
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["9z"]
     team_id: 9z
-    settings_slug: 9z
-  - display_names: [Ninjas in Pyjamas, NIP]
+    source_refs:
+      cs2settings:
+        team_slug: 9z
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Ninjas in Pyjamas", "NIP"]
     team_id: ninjas-in-pyjamas
-    settings_slug: ninjas-in-pyjamas
-  - display_names: [Alliance]
+    source_refs:
+      cs2settings:
+        team_slug: ninjas-in-pyjamas
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Alliance"]
     team_id: alliance
-    settings_slug: alliance
-  - display_names: [paiN]
+    source_refs:
+      cs2settings:
+        team_slug: alliance
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["paiN"]
     team_id: pain
-    settings_slug: pain
-  - display_names: [Lynn Vision]
+    source_refs:
+      cs2settings:
+        team_slug: pain
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Lynn Vision"]
     team_id: lynn-vision
-    settings_slug: lynn-vision
+    source_refs:
+      cs2settings:
+        team_slug: lynn-vision
+      prosettings: {}
+      proconfig: {}
+
   - display_names: ["100 Thieves"]
     team_id: 100-thieves
-    settings_slug: 100-thieves
-  - display_names: [TyLoo]
+    source_refs:
+      cs2settings:
+        team_slug: 100-thieves
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["TyLoo"]
     team_id: tyloo
-    settings_slug: tyloo
-  - display_names: [BC.Game]
+    source_refs:
+      cs2settings:
+        team_slug: tyloo
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["BC.Game"]
     team_id: bc-game
-    settings_slug: null          # unresolved: cs2settings has no BC.Game page
-  - display_names: [Legacy]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Legacy"]
     team_id: legacy
-    settings_slug: legacy
-  - display_names: [EYEBALLERS]
+    source_refs:
+      cs2settings:
+        team_slug: legacy
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["EYEBALLERS"]
     team_id: eyeballers
-    settings_slug: eyeballers
-  - display_names: [M80]
+    source_refs:
+      cs2settings:
+        team_slug: eyeballers
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["M80"]
     team_id: m80
-    settings_slug: m80
-  - display_names: [Rare Atom]
+    source_refs:
+      cs2settings:
+        team_slug: m80
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Rare Atom"]
     team_id: rare-atom
-    settings_slug: null          # unresolved: no cs2settings team page
-  - display_names: [FlyQuest]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["FlyQuest"]
     team_id: flyquest
-    settings_slug: null          # unresolved
-  - display_names: [Aurora]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Aurora"]
     team_id: aurora
-    settings_slug: null          # unresolved
-  - display_names: [Fnatic]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Fnatic"]
     team_id: fnatic
-    settings_slug: null          # unresolved
-  - display_names: [BIG]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["BIG"]
     team_id: big
-    settings_slug: null          # unresolved
-  - display_names: [OG]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["OG"]
     team_id: og
-    settings_slug: null          # unresolved
-  - display_names: [Imperial]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Imperial"]
     team_id: imperial
-    settings_slug: null          # unresolved
-  - display_names: [Passion UA]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Passion UA"]
     team_id: passion-ua
-    settings_slug: null          # unresolved
-  - display_names: [Gentle Mates]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Gentle Mates"]
     team_id: gentle-mates
-    settings_slug: null          # unresolved
-  - display_names: [NRG]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["NRG"]
     team_id: nrg
-    settings_slug: null          # unresolved
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
   - display_names: ["Inner Circle"]
     team_id: inner-circle
-    settings_slug: null          # unresolved: no cs2settings team page
-  - display_names: [HOTU]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["HOTU"]
     team_id: hotu
-    settings_slug: null          # unresolved
-  - display_names: [DENDELE]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["DENDELE"]
     team_id: dendele
-    settings_slug: null          # unresolved
-  - display_names: [magic]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["magic"]
     team_id: magic
-    settings_slug: null          # unresolved
-  - display_names: [Luminosity]
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}
+
+  - display_names: ["Luminosity"]
     team_id: luminosity
-    settings_slug: null          # unresolved
+    source_refs:
+      cs2settings:
+        team_slug: null
+      prosettings: {}
+      proconfig: {}

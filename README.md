@@ -171,13 +171,30 @@ source health → ranking/core scope → roster → settings:
   **planned extension only**; no ranking website is a live dependency until
   it has its own source/policy audit and explicit opt-in.
 
-## 6. Sources and provenance
+## 6. Multi-source model and provenance
 
-| Source | Role | Schedule |
-|---|---|---|
-| cs2settings.com | primary (roster + settings) | enabled |
-| prosettings.net | compatibility / local reconciliation | disabled for schedule |
-| proconfig.net | secondary editorial cross-check | disabled (opt-in) |
+"Multi-source" means the pipeline is multi-source at **independent layers**
+— ranking scope, roster discovery, player identity, player settings and
+source policy are separate concerns:
+
+- **Ranking scope** — VRS Core (primary) + HLTV reference, manual
+  snapshots, never scraped; ranking truth is `rank / team_id` + provenance
+  and never carries source locators.
+- **Roster discovery** — only sources with `roster_discovery: true` can
+  list a team's current active roster. A missing team page in one source is
+  a *roster discovery gap in that source*, never "the team has no data".
+- **Player identity** — SteamID-safe merging only; nicknames are lookup
+  hints, never identity. Identity crosswalks stay in runtime state.
+- **Player settings** — reconciled by `field_priority` after identity-safe
+  alignment; conflicts are surfaced, never silently overwritten.
+- **Source policy** — `enabled` vs `enabled_for_schedule` vs
+  local-review-only are separate; capability never grants permission.
+
+| Source | Roster discovery | Player settings | Stable identity | Scheduled | Local review |
+|---|---|---|---|---|---|
+| cs2settings.com | yes | yes | yes | yes | yes |
+| prosettings.net | no | yes | yes (numeric /profiles/) | **no** | yes |
+| proconfig.net | no | yes | yes | no (disabled) | opt-in |
 
 Per-source audits: `docs/source-audit/`. Adapters fail closed; no anti-bot
 bypass, CAPTCHA solving, proxy rotation, or browser automation. Third-party

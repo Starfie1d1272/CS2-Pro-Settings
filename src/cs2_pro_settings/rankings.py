@@ -87,6 +87,27 @@ def map_team(display_name: str, mappings: dict) -> Optional[dict]:
     return None
 
 
+def resolve_team_source_ref(team_id: str, source: str, mappings: dict) -> Optional[str]:
+    """Source-specific locator for a team (e.g. cs2settings team slug).
+
+    Reads source_refs.<source>.team_slug; falls back to the DEPRECATED
+    top-level settings_slug (= cs2settings slug) for legacy mappings.
+    A None return means 'no locator in this source' — it never means the
+    team is unobservable (another source may still cover it).
+    """
+    for entry in mappings.get("teams") or []:
+        if entry.get("team_id") != team_id:
+            continue
+        refs = entry.get("source_refs") or {}
+        ref = refs.get(source)
+        if isinstance(ref, dict) and ref.get("team_slug") is not None:
+            return str(ref["team_slug"])
+        if source == "cs2settings" and entry.get("settings_slug") is not None:
+            return str(entry["settings_slug"])  # legacy alias
+        return None
+    return None
+
+
 def build_snapshot(
     entries: list[tuple[int, str]],
     source_url: str,
@@ -98,11 +119,12 @@ def build_snapshot(
 ) -> dict:
     """Validate + map; returns the snapshot dict (raises RankingError).
 
-    An unresolved SETTINGS source mapping does NOT invalidate the ranking:
-    the team stays with `settings_slug: null` and affects collection
-    coverage only. `unresolved: true` marks a missing team mapping (no
-    canonical team_id), which blocks activation but can still be saved as
-    an explicit candidate with --allow-unresolved.
+    The snapshot is the COMPETITIVE SCOPE control plane: it stores only
+    rank / display_name / team_id plus ranking provenance. Source-specific
+    locators (settings_slug etc.) never belong in ranking truth — they live
+    in config/team-mappings.yaml (source_refs). `unresolved: true` marks a
+    missing team mapping (no canonical team_id), which blocks activation
+    but can still be saved as an explicit candidate with --allow-unresolved.
     """
     validate_entries(entries, source_url, snapshot_date)
     mappings = mappings or load_mappings()
@@ -118,7 +140,6 @@ def build_snapshot(
             "rank": rank,
             "display_name": name,
             "team_id": m["team_id"],
-            "settings_slug": m.get("settings_slug"),
         })
     if unresolved_ids and not allow_unresolved:
         raise RankingError(
@@ -290,7 +311,7 @@ def activate_snapshot(
     block["ranking_type"] = snapshot.get("ranking_type", "global")
     block["snapshot"] = snapshot["date"]
     block["teams"] = [
-        {"rank": t["rank"], "team_id": t["team_id"], "settings_slug": t.get("settings_slug")}
+        {"rank": t["rank"], "team_id": t["team_id"]}
         for t in snapshot["teams"]
     ]
     with open(cohort_path, "w", encoding="utf-8") as f:

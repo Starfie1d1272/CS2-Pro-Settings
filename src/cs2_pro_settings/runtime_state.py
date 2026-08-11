@@ -88,13 +88,15 @@ def compare_panels(previous: dict, current: dict) -> dict:
     cur_players = current.get("players") or {}
     per_field: dict[str, dict] = {}
     for fld in PANEL_FIELDS:
-        compared, changed, missing_transition = 0, 0, 0
+        compared, changed, missing_to_value, value_to_missing = 0, 0, 0, 0
         for pid in matched:
             pv = (prev_players.get(pid) or {}).get(fld)
             cv = (cur_players.get(pid) or {}).get(fld)
             if pv is None or cv is None:
                 if pv is None and cv is not None:
-                    missing_transition += 1
+                    missing_to_value += 1
+                elif pv is not None and cv is None:
+                    value_to_missing += 1
                 continue  # not counted in compared
             compared += 1
             if pv != cv:
@@ -102,7 +104,9 @@ def compare_panels(previous: dict, current: dict) -> dict:
         per_field[fld] = {
             "compared": compared,
             "changed": changed,
-            "missing_transition": missing_transition,
+            "missing_transition": missing_to_value + value_to_missing,
+            "missing_to_value": missing_to_value,
+            "value_to_missing": value_to_missing,
         }
     return {
         "status": "available" if matched else "unavailable",

@@ -20,5 +20,10 @@ def proconfig_fixture_dir() -> Path:
 
 
 @pytest.fixture
+def prosettings_fixture_dir() -> Path:
+    return FIXTURES / "prosettings"
+
+
+@pytest.fixture
 def repo_root() -> Path:
     return REPO

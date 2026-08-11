@@ -30,7 +30,7 @@ from actions_common import (
 )
 
 ISSUE_QUALITY = "[data-quality] CS2 Pro Settings pipeline health"
-ISSUE_MAINTENANCE = "[maintenance] HLTV ranking snapshot may need refresh"
+ISSUE_MAINTENANCE = "[maintenance] CS2 ranking snapshots may need refresh"
 MISSINGNESS_PP = 10.0
 CONFLICT_RATE = 0.10
 
@@ -140,6 +140,12 @@ def main() -> int:
         problems.append(f"conflict rate >= 10%: {n_conflicts}/{n_players}")
 
     agg = metrics.get("aggregate", {})
+    # missingness spike vs baseline ONLY when the series are comparable AND
+    # the current collection is complete (legacy 2026-05 vs vrs-core-v2 must
+    # never produce a longitudinal missingness warning)
+    manifest = load("collection-manifest.json")
+    cur_series = (agg.get("series") or {}).get("series_id")
+    manifest_ok = bool(manifest.get("collection_complete", False)) if manifest else False
     baseline_agg = None
     bp = AGG / "latest.json"
     if bp.exists():
@@ -147,7 +153,9 @@ def main() -> int:
         baseline_agg = json.loads(bp.read_text(encoding="utf-8"))
         if isinstance(baseline_agg, dict) and "aggregate" in baseline_agg:
             baseline_agg = baseline_agg["aggregate"]
-    if baseline_agg:
+    base_series = (baseline_agg or {}).get("series", {}).get("series_id")
+    series_compatible = bool(cur_series and cur_series == base_series)
+    if baseline_agg and series_compatible and manifest_ok:
         for field in ("dpi", "resolution", "refresh_rate", "fps_max"):
             cur = agg.get(field, {})
             base = baseline_agg.get(field, {})
@@ -162,6 +170,10 @@ def main() -> int:
                     problems.append(
                         f"missingness spike >= 10pp in {field}: "
                         f"{base_miss*100:.1f}% -> {cur_miss*100:.1f}%")
+    elif baseline_agg and not series_compatible:
+        print(f"series incompatible ({base_series} -> {cur_series}): "
+              "no longitudinal missingness comparison; current absolute "
+              f"field coverage reported only ({agg.get('player_count', 0)} players)")
 
     # Core-only turnover drives the headline quality guard; all-tracked
     # turnover is reported separately for monitoring (Watchlist / HLTV-only
@@ -174,7 +186,6 @@ def main() -> int:
 
     # monthly snapshot publishability: Core initialized + collection
     # complete + core players present (no 0-player / incomplete snapshot)
-    manifest = load("collection-manifest.json")
     collection_complete = bool(manifest.get("collection_complete", False)) if manifest else False
     core_player_count = metrics.get("aggregate", {}).get("player_count", 0)
     core_initialized = bool((metrics.get("aggregate", {}).get("scope") or {}).get("core_snapshot"))

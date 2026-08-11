@@ -152,17 +152,17 @@ def cohort_scope() -> dict:
     observability. The scope block carries both: ranking membership truth
     (core/consensus/union by team_id) and source-resolved slugs.
     """
-    from .cohort import load_cohort_sets, tracked_slugs
+    from .cohort import _cs2_slug_of, load_cohort_sets, tracked_slugs
 
     cfg = load_cohort_config()
     sets = load_cohort_sets(cfg)
     universe = tracked_slugs(cfg)
     core_cfg = cfg.get("cohort", {}).get("core", {})
     ref_cfg = cfg.get("cohort", {}).get("reference", {})
-    core_slugs_set = {t.get("settings_slug") for t in (core_cfg.get("teams") or [])
-                      if t.get("settings_slug")}
+    core_slugs_set = {s for s in (_cs2_slug_of(t) for t in (core_cfg.get("teams") or [])) if s}
     core_unresolved = sorted(
-        t["team_id"] for t in (core_cfg.get("teams") or []) if not t.get("settings_slug"))
+        t["team_id"] for t in (core_cfg.get("teams") or [])
+        if not _cs2_slug_of(t))
     return {
         "scope_id": "vrs-core-v2",
         "cohort_model": "vrs-core-hltv-reference-v4",
@@ -200,26 +200,33 @@ def build_collection_manifest(
     all_tracked_player_failures: list[str],
     reference_player_failures: list[str],
     watchlist_player_failures: list[str],
+    mode: str = "scheduled",
+    core_membership_ambiguities: Optional[list] = None,
 ) -> dict:
     """Deterministic collection manifest — fail closed on partial Core.
 
     Four INDEPENDENT layers (never conflated):
       1. ranking Core membership (requested_core_teams, e.g. 30)
-      2. source resolution (which Core teams have a settings page)
+      2. source resolution (which Core teams have a settings/roster page)
       3. roster collection (roster fetch success among resolved teams)
       4. player collection (settings fetch success among expected players)
 
     Expected players are determined from ROSTER LISTINGS (pre-fetch), never
     from fetch success. Each rate uses an explicit, named denominator.
-    collection_complete requires ALL of: requested > 0, no unresolved Core
-    source teams, no failed Core rosters, expected players > 0, no failed
-    Core players, and successful == expected.
+
+    scheduled_collection_complete = the production gate: scheduled-policy
+    sources only AND no Core roster-membership ambiguity.
+    review_collection_complete = the local/manual gate: sources allowed for
+    user-triggered review (may include local-only sources) AND no Core
+    ambiguity. A review-complete state NEVER advances production state or
+    publishes automation.
     """
     n_requested = requested_core_teams
     n_resolved = len(source_resolved_core_teams)
     n_unresolved = len(source_unresolved_core_teams)
     n_roster_ok = len(successful_core_team_rosters)
     n_roster_failed = len(failed_core_team_rosters)
+    core_ambig = [a for a in (core_membership_ambiguities or []) if a.get("involves_core")]
     reasons: list[str] = []
     if n_requested <= 0:
         reasons.append("no requested core teams")
@@ -234,7 +241,16 @@ def build_collection_manifest(
     if successful_core_players != expected_core_players:
         reasons.append(f"core player collection mismatch: "
                        f"{successful_core_players} != expected {expected_core_players}")
+    scheduled_complete = not reasons
+    review_complete = not reasons  # review mode may add local-only sources later
+    if core_ambig:
+        ambig_reason = (f"core roster membership ambiguities: "
+                        f"{[a['source_id'] for a in core_ambig]}")
+        reasons.append(ambig_reason)
+        scheduled_complete = False
+        review_complete = False
     return {
+        "mode": mode,
         "requested_core_teams": n_requested,
         "source_resolved_core_teams": n_resolved,
         "source_unresolved_core_teams": sorted(source_unresolved_core_teams),
@@ -248,8 +264,11 @@ def build_collection_manifest(
         "resolved_core_roster_success_rate": round(n_roster_ok / n_resolved, 4) if n_resolved else 0.0,
         "core_player_collection_rate": round(successful_core_players / expected_core_players, 4)
         if expected_core_players else 0.0,
-        "collection_complete": not reasons,
+        "collection_complete": scheduled_complete,  # legacy alias == scheduled gate
+        "scheduled_collection_complete": scheduled_complete,
+        "review_collection_complete": review_complete,
         "incomplete_reasons": reasons,
+        "roster_membership_ambiguities": core_membership_ambiguities or [],
         "all_tracked_requested_teams": all_tracked_requested,
         "all_tracked_roster_failures": sorted(all_tracked_roster_failures),
         "all_tracked_player_failures": sorted(all_tracked_player_failures),
@@ -275,11 +294,13 @@ def step_collect(
     core_source_slugs: list[str] = []
     core_unresolved_ids: list[str] = []
     if not (players or offline):
+        from .cohort import _cs2_slug_of
+
         core_source_slugs = sorted(
-            t["settings_slug"] for t in (core_cfg.get("teams") or [])
-            if t.get("settings_slug"))
+            s for s in (_cs2_slug_of(t) for t in (core_cfg.get("teams") or [])) if s)
         core_unresolved_ids = sorted(
-            t["team_id"] for t in (core_cfg.get("teams") or []) if not t.get("settings_slug"))
+            t["team_id"] for t in (core_cfg.get("teams") or [])
+            if not _cs2_slug_of(t))
     requested_core_teams = len(core_cfg.get("teams") or []) if not (players or offline) else 0
     core_roster_ok: list[str] = []
     core_roster_failures: list[str] = []
@@ -292,6 +313,7 @@ def step_collect(
     reference_player_failures: list[str] = []
     watchlist_player_failures: list[str] = []
     team_membership_conflicts: list[dict] = []
+    roster_membership_ambiguities: list[dict] = []
 
     # tier of each roster team slug: core / watchlist / reference / supplemental
     watch_slugs = set()
@@ -333,11 +355,12 @@ def step_collect(
                 roster = src.list_players()
             else:
                 # cohort v4: scheduled universe = ranked union ∪ watchlist;
-                # team page origin defines CURRENT ROSTER MEMBERSHIP evidence
+                # team page origin defines CURRENT ROSTER MEMBERSHIP evidence.
+                # All team pages are collected FIRST (source_id -> teams),
+                # then membership ambiguity is resolved — never first-seen-wins.
                 roster_fn = getattr(src, "list_team_roster", None)
                 if roster_fn is not None:
-                    roster = []
-                    seen: set[str] = set()
+                    entries_by_id: dict[str, list[dict]] = {}
                     for slug in tracked_slugs(cohort_cfg):
                         all_tracked_requested.append(slug)
                         try:
@@ -353,9 +376,26 @@ def step_collect(
                         for entry in entries:
                             entry["roster_team_slug"] = slug
                             entry["cohort_membership"] = _tier_of(slug)
-                            if entry["source_id"] not in seen:
-                                seen.add(entry["source_id"])
-                                roster.append(entry)
+                            entries_by_id.setdefault(entry["source_id"], []).append(entry)
+                    # membership resolution: a source_id on exactly ONE team
+                    # page -> that team; on MULTIPLE team pages -> ambiguity
+                    # (recorded; if it involves Core, scheduled fails closed).
+                    # Nothing decides membership by crawl order or slug order.
+                    roster = []
+                    for sid, entries in entries_by_id.items():
+                        teams = sorted({e["roster_team_slug"] for e in entries})
+                        if len(teams) > 1:
+                            involves_core = any(
+                                e["cohort_membership"] == "core" for e in entries)
+                            roster_membership_ambiguities.append({
+                                "source_id": sid,
+                                "teams": teams,
+                                "involves_core": involves_core,
+                            })
+                            print(f"  [!] ambiguous roster membership {sid}: "
+                                  f"{teams} (involves_core={involves_core})")
+                            continue  # NOT assigned to any team
+                        roster.append(entries[0])
                 else:
                     roster = src.list_players()
         except SourceError as exc:
@@ -388,8 +428,11 @@ def step_collect(
                 else:
                     all_tracked_player_failures.append(source_id)
                 continue
-            # cohort policy: role filter (coach/retired/content_creator excluded)
-            allowed, reason = player_allowed(parsed.role, cohort_cfg)
+            # cohort policy: role filter uses the SINGLE effective_role —
+            # roster page role wins, player page role fills gaps; both
+            # stages (expected & fetch) use the SAME inclusion criterion
+            effective_role = entry.get("role") or parsed.role
+            allowed, reason = player_allowed(effective_role, cohort_cfg)
             if not allowed:
                 print(f"  [-] {name}/{source_id}: {reason} (excluded)")
                 continue
@@ -412,7 +455,7 @@ def step_collect(
                 team=membership_team,
                 steam_id=parsed.steam_id,
                 country=parsed.country,
-                role=parsed.role or entry.get("role"),
+                role=effective_role,
             )
             # roster snapshot: stable player_id per team (roster ORIGIN team)
             if membership_team:
@@ -450,6 +493,8 @@ def step_collect(
         all_tracked_player_failures=all_tracked_player_failures,
         reference_player_failures=reference_player_failures,
         watchlist_player_failures=watchlist_player_failures,
+        mode="scheduled",
+        core_membership_ambiguities=roster_membership_ambiguities,
     )
     _write_work("observations.json", [obs.__dict__ for obs in observations])
     _write_work("identities.json", {
@@ -458,6 +503,7 @@ def step_collect(
     })
     _write_work("collection-manifest.json", manifest)
     _write_work("team-membership-conflicts.json", team_membership_conflicts)
+    _write_work("roster-membership-ambiguities.json", roster_membership_ambiguities)
     return observations, roster_by_team, manifest
 
 
@@ -638,7 +684,7 @@ def cmd_collect(args) -> int:
     print(f"collected {len(obs)} observations; {len(roster)} teams in roster")
     print(f"manifest: collection_complete={manifest['collection_complete']} "
           f"core_teams={manifest['requested_core_teams']} "
-          f"players={manifest['successful_players']}/{manifest['expected_core_players']}")
+          f"players={manifest['successful_core_players']}/{manifest['expected_core_players']}")
     return 0
 
 
@@ -699,8 +745,9 @@ def step_roster(roster_by_team: dict[str, list[str]], observed_at: str) -> dict:
 
     # Core-only roster: headline stability uses ONLY VRS Core team memberships
     core_cfg = load_cohort_config().get("cohort", {}).get("core", {})
-    core_slugs_set = {t.get("settings_slug") for t in (core_cfg.get("teams") or [])
-                      if t.get("settings_slug")}
+    from .cohort import _cs2_slug_of
+
+    core_slugs_set = {s for s in (_cs2_slug_of(t) for t in (core_cfg.get("teams") or [])) if s}
     current_core = {k: v for k, v in current.items() if k in core_slugs_set}
 
     def _core_turnover(prev_all: Optional[dict]) -> Optional[float]:
