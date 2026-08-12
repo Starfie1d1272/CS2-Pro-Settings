@@ -1,8 +1,9 @@
 """Deterministic aggregate metrics.
 
-Output schema matches data/aggregate/2026-05.json so snapshots are comparable
-across time.  Every share/count is accompanied by its valid_n; a missing field
-never falls back to the full cohort size as denominator.
+The schema remains backward-compatible with data/aggregate/2026-05.json and
+adds field-specific reporting blocks over time. Every share/count is paired
+with its valid_n; a missing field never falls back to the full cohort size as
+denominator.
 
 Determinism: category ordering is count-desc then key-asc; no dict-ordering
 dependencies are left to chance.
@@ -25,6 +26,13 @@ _SETTINGS_FIELDS = tuple(
 EDPI_BINS = [(0, 400, "0-400"), (400, 600, "400-600"), (600, 800, "600-800"),
              (800, 1000, "800-1000"), (1000, 1200, "1000-1200"), (1200, 1600, "1200-1600"),
              (1600, float("inf"), "1600+")]
+
+# eDPI is usually source-provided alongside DPI and sensitivity.  Treat it as
+# arithmetically inconsistent only when the difference exceeds BOTH ordinary
+# rounding noise (2 eDPI) and 1% of the calculated value.  This is a QC flag,
+# not a replacement rule: the reconciled source value remains unchanged.
+EDPI_QC_ABS_TOLERANCE = 2.0
+EDPI_QC_REL_TOLERANCE = 0.01
 
 
 def _counts(values: list[Any]) -> dict[str, int]:
@@ -58,6 +66,42 @@ def _top(cats: dict[str, int]) -> Optional[str]:
     return next(iter(cats)) if cats else None
 
 
+def _categorical_block(values: list[Any]) -> dict:
+    """Additive aggregate block for a categorical field."""
+    cats = _counts(values)
+    return {
+        "valid_n": _valid_n(values),
+        "categories": cats,
+        "top_category": _top(cats),
+    }
+
+
+def _numeric_block(values: list[Optional[float]]) -> dict:
+    """Additive aggregate block for source-provided numeric values."""
+    valid = [v for v in values if v is not None]
+    cats = _counts(values)
+    return {
+        "valid_n": len(valid),
+        "categories": cats,
+        "median": round(statistics.median(valid), 4) if valid else None,
+        "top_category": _top(cats),
+    }
+
+
+def _boolean_block(values: list[Optional[bool]], cohort_n: int) -> dict:
+    """Known/unknown-aware summary; missing never enters the share."""
+    valid_n = _valid_n(values)
+    enabled = sum(1 for value in values if value is True)
+    disabled = sum(1 for value in values if value is False)
+    return {
+        "valid_n": valid_n,
+        "missing_n": cohort_n - valid_n,
+        "enabled_count": enabled,
+        "disabled_count": disabled,
+        "enabled_share": _share(enabled, valid_n),
+    }
+
+
 def compute_metrics(
     players: list[NormalizedPlayerSettings],
     snapshot_date: str,
@@ -80,6 +124,28 @@ def compute_metrics(
     for lo, hi, label in EDPI_BINS:
         edpi_dist[label] = sum(1 for v in edpi_valid if lo <= v < hi)
 
+    edpi_comparable = [
+        p for p in players
+        if p.dpi is not None and p.sensitivity is not None and p.edpi is not None
+    ]
+    edpi_anomalies = 0
+    for p in edpi_comparable:
+        assert p.dpi is not None and p.sensitivity is not None and p.edpi is not None
+        calculated = p.dpi * p.sensitivity
+        tolerance = max(EDPI_QC_ABS_TOLERANCE,
+                        abs(calculated) * EDPI_QC_REL_TOLERANCE)
+        if abs(p.edpi - calculated) > tolerance:
+            edpi_anomalies += 1
+    edpi_qc = {
+        "comparable_n": len(edpi_comparable),
+        "consistent_n": len(edpi_comparable) - edpi_anomalies,
+        "anomaly_count": edpi_anomalies,
+        "anomaly_share": _share(edpi_anomalies, len(edpi_comparable)),
+        "missing_inputs_n": n - len(edpi_comparable),
+        "absolute_tolerance": EDPI_QC_ABS_TOLERANCE,
+        "relative_tolerance": EDPI_QC_REL_TOLERANCE,
+    }
+
     dpi_cats = _counts([p.dpi for p in players])
     dpi_valid = _valid_n([p.dpi for p in players])
 
@@ -88,6 +154,10 @@ def compute_metrics(
 
     aspect_cats = _counts([p.aspect_ratio for p in players])
     aspect_valid = _valid_n([p.aspect_ratio for p in players])
+
+    scaling_mode = _categorical_block([p.scaling_mode for p in players])
+    zoom_sensitivity = _numeric_block([p.zoom_sensitivity for p in players])
+    boost_player = _boolean_block([p.boost_player for p in players], n)
 
     rr_cats = _counts([p.refresh_rate for p in players])
     rr_valid = _valid_n([p.refresh_rate for p in players])
@@ -100,6 +170,16 @@ def compute_metrics(
 
     color_cats = _counts([p.crosshair_color for p in players])
     color_valid = _valid_n([p.crosshair_color for p in players])
+
+    crosshair_geometry = {
+        "style": _categorical_block([p.crosshair_style for p in players]),
+        "size": _numeric_block([p.crosshair_size for p in players]),
+        "gap": _numeric_block([p.crosshair_gap for p in players]),
+        "thickness": _numeric_block([p.crosshair_thickness for p in players]),
+        "alpha": _numeric_block([p.crosshair_alpha for p in players]),
+        "dot": _boolean_block([p.crosshair_dot for p in players], n),
+        "outline": _boolean_block([p.crosshair_outline for p in players], n),
+    }
 
     # Custom RGB: interpreted ONLY when the raw crosshair mode code is the
     # game's custom-RGB value (cl_crosshaircolor 5, CUSTOM_COLOR_CODE) AND
@@ -198,6 +278,7 @@ def compute_metrics(
             "median": round(statistics.median(edpi_valid), 1) if edpi_valid else None,
             "mean": round(sum(edpi_valid) / len(edpi_valid), 1) if edpi_valid else None,
             "distribution": edpi_dist,
+            "consistency_qc": edpi_qc,
         },
         "dpi": {
             "valid_n": dpi_valid,
@@ -218,6 +299,9 @@ def compute_metrics(
             "categories": aspect_cats,
             "share_4_3": _share(aspect_cats.get("4:3", 0), aspect_valid),
         },
+        "scaling_mode": scaling_mode,
+        "zoom_sensitivity": zoom_sensitivity,
+        "boost_player": boost_player,
         "refresh_rate": {
             "valid_n": rr_valid,
             "categories": rr_cats,
@@ -235,9 +319,11 @@ def compute_metrics(
         "crosshair": {
             "valid_n": ch_valid,
             "dot_outline_off_share": _share(both_off, ch_valid),
+            "color_valid_n": color_valid,
             "color_categories": color_cats,
             "top_color": _top(color_cats),
             "custom_rgb": custom_rgb,
+            "geometry": crosshair_geometry,
         },
         "viewmodel": {
             "valid_n": fov_valid,
@@ -255,6 +341,7 @@ def compute_metrics(
             "centered_valid_n": radar_cent_valid,
             "rotating_share": _share(radar_rot_yes, radar_rot_valid),
             "centered_share": _share(radar_cent_yes, radar_cent_valid),
+            "zoom": _numeric_block([p.radar_zoom for p in players]),
         },
         "mouse_polling": {
             "valid_n": hz_valid,

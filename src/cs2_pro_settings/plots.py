@@ -1,239 +1,304 @@
-"""Headline metric figures (deterministic, matplotlib only).
+"""Deterministic production figures with a restrained editorial style.
 
-Migrates the most important chart logic from notebooks/v1/03_final_report.ipynb:
-eDPI, DPI, resolution, refresh rate, crosshair color, FOV, radar, polling rate.
-
-Output: figures/latest/*.png — no AI-generated images.
+The report uses five information-dense figures rather than one chart per
+field: mouse, display, crosshair geometry, crosshair color, and radar.
+All bars show shares of the field's own valid_n.  Empty blocks do not create
+figures, and no chart implies semantics beyond the source-provided values.
 """
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Optional
+from typing import Any
 
 import matplotlib
 
 matplotlib.use("Agg")
 import matplotlib.pyplot as plt  # noqa: E402
-import numpy as np  # noqa: E402
 
-DARK_BG = "#0d0d0d"
-ACCENT = "#00ff66"
-CYAN = "#00e5ff"
-MAGENTA = "#ff00ff"
-ORANGE = "#ff4500"
+PAPER = "#f7f6f3"
+INK = "#17212b"
+MUTED = "#64707d"
+GRID = "#d9dde2"
+ACCENT = "#2864a8"
+ACCENT_2 = "#5f8f86"
+SOFT = "#aeb8c2"
+
+PRODUCTION_FILES = {
+    "mouse.png", "display.png", "crosshair_geometry.png",
+    "crosshair_color.png", "radar.png",
+}
+LEGACY_FILES = {
+    "edpi.png", "dpi.png", "polling_rate.png", "aspect_ratio.png",
+    "resolution.png", "refresh_rate.png", "crosshair_custom_rgb.png",
+    "fov.png",
+}
+
+_EDPI_ORDER = ["0-400", "400-600", "600-800", "800-1000",
+               "1000-1200", "1200-1600", "1600+"]
+_POLLING_ORDER = ["1000", "2000", "4000", "8000"]
 
 
 def _theme() -> None:
-    plt.rcParams.update(
-        {
-            "figure.facecolor": DARK_BG,
-            "axes.facecolor": DARK_BG,
-            "savefig.facecolor": DARK_BG,
-            "axes.edgecolor": "#333333",
-            "axes.labelcolor": "#cccccc",
-            "text.color": "#cccccc",
-            "xtick.color": "#999999",
-            "ytick.color": "#999999",
-            "axes.grid": True,
-            "grid.color": "#222222",
-            "grid.alpha": 0.6,
-            "font.size": 10,
-        }
-    )
+    plt.rcParams.update({
+        "figure.facecolor": PAPER,
+        "axes.facecolor": PAPER,
+        "savefig.facecolor": PAPER,
+        "axes.edgecolor": GRID,
+        "axes.labelcolor": MUTED,
+        "text.color": INK,
+        "xtick.color": MUTED,
+        "ytick.color": MUTED,
+        "font.family": "DejaVu Sans",
+        "font.size": 9,
+        "axes.titleweight": "bold",
+        "axes.titlesize": 10.5,
+    })
 
 
-def _counts(values: list) -> dict:
-    out: dict = {}
-    for v in values:
-        if v is None:
-            continue
-        key = int(v) if isinstance(v, float) and v.is_integer() else v
-        out[key] = out.get(key, 0) + 1
-    return dict(sorted(out.items(), key=lambda kv: (-kv[1], str(kv[0]))))
+def _numeric_key(value: Any) -> tuple[int, float, str]:
+    try:
+        return (0, float(value), str(value))
+    except (TypeError, ValueError):
+        return (1, 0.0, str(value))
 
 
-def _bar(ax, cats: dict, title: str, color: str, ylabel: str = "Player Count") -> None:
-    labels = [str(k) for k in cats]
-    counts = list(cats.values())
-    ax.bar(labels, counts, color=color, edgecolor="#121212", linewidth=1.2)
-    ax.set_title(title, fontsize=13, fontweight="bold", color=color, pad=12)
-    ax.set_ylabel(ylabel)
-    for i, c in enumerate(counts):
-        ax.text(i, c + 0.3, str(c), ha="center", fontsize=9, color="#bbbbbb")
-    ax.set_xticklabels(labels, rotation=30, ha="right")
+def _ordered(cats: dict, order: list[str] | None = None,
+             top_n: int | None = None) -> list[tuple[str, int]]:
+    items = [(str(k), int(v)) for k, v in cats.items() if v]
+    if top_n is not None and len(items) > top_n:
+        items = sorted(items, key=lambda item: (-item[1], item[0]))[:top_n]
+    if order:
+        pos = {key: i for i, key in enumerate(order)}
+        return sorted(items, key=lambda item: (pos.get(item[0], len(pos)),
+                                                _numeric_key(item[0])))
+    return sorted(items, key=lambda item: _numeric_key(item[0]))
 
 
-_EDPI_BIN_RANGES = [
-    ("0-400", 0, 400), ("400-600", 400, 600), ("600-800", 600, 800),
-    ("800-1000", 800, 1000), ("1000-1200", 1000, 1200), ("1200-1600", 1200, 1600),
-    ("1600+", 1600, float("inf")),
-]
+def _ranked(cats: dict, top_n: int = 8) -> list[tuple[str, int]]:
+    return sorted(((str(k), int(v)) for k, v in cats.items() if v),
+                  key=lambda item: (-item[1], item[0]))[:top_n]
+
+
+def _style_axis(ax) -> None:
+    ax.spines[["top", "right", "left"]].set_visible(False)
+    ax.spines["bottom"].set_color(GRID)
+    ax.grid(axis="y", color=GRID, linewidth=0.7, alpha=0.8)
+    ax.set_axisbelow(True)
+
+
+def _share_bars(ax, items: list[tuple[str, int]], valid_n: int, title: str,
+                horizontal: bool = False, colors: list[str] | None = None) -> None:
+    if not items or valid_n <= 0:
+        ax.set_visible(False)
+        return
+    labels = [key for key, _ in items]
+    shares = [count / valid_n * 100 for _, count in items]
+    bar_colors = colors or [ACCENT] * len(items)
+    if horizontal:
+        y = list(range(len(items)))
+        bars = ax.barh(y, shares, color=bar_colors, edgecolor=GRID, linewidth=0.8)
+        ax.set_yticks(y, labels)
+        ax.invert_yaxis()
+        ax.set_xlabel("Share of valid observations (%)")
+        for bar, share, (_label, count) in zip(bars, shares, items):
+            ax.text(share + 0.7, bar.get_y() + bar.get_height() / 2,
+                    f"{share:.1f}%  {count}/{valid_n}", va="center", fontsize=8,
+                    color=INK)
+        ax.grid(axis="x", color=GRID, linewidth=0.7, alpha=0.8)
+        ax.spines[["top", "right", "left"]].set_visible(False)
+        ax.set_xlim(0, max(shares) * 1.25 if shares else 1)
+    else:
+        x = list(range(len(items)))
+        bars = ax.bar(x, shares, color=bar_colors, edgecolor=PAPER, linewidth=0.6)
+        ax.set_xticks(x, labels, rotation=30, ha="right")
+        ax.set_ylabel("Share (%)")
+        for bar, share in zip(bars, shares):
+            ax.text(bar.get_x() + bar.get_width() / 2, share + 0.8,
+                    f"{share:.1f}%", ha="center", va="bottom", fontsize=7.5,
+                    color=INK)
+        _style_axis(ax)
+    ax.set_title(f"{title}  ·  n={valid_n}", loc="left", pad=8)
+    ax.set_ylim(0, max(shares) * 1.18 if shares else 1) if not horizontal else None
+
+
+def _finish(fig, path: Path) -> None:
+    fig.subplots_adjust(left=0.09, right=0.96, bottom=0.11, top=0.88,
+                        wspace=0.46, hspace=0.42)
+    fig.savefig(path, dpi=150, metadata={"Software": "cs2-pro-settings"})
+    plt.close(fig)
+
+
+def _figure_title(fig, title: str, subtitle: str) -> None:
+    fig.suptitle(title, x=0.055, y=0.985, ha="left", fontsize=15,
+                 fontweight="bold", color=INK)
+    fig.text(0.055, 0.945, subtitle, ha="left", va="top", fontsize=8.5,
+             color=MUTED)
+
+
+def _render_mouse(agg: dict, path: Path) -> bool:
+    edpi = agg.get("edpi") or {}
+    dpi = agg.get("dpi") or {}
+    polling = agg.get("mouse_polling") or {}
+    zoom = agg.get("zoom_sensitivity") or {}
+    if not any((edpi.get("count"), dpi.get("valid_n"), polling.get("valid_n"),
+                zoom.get("valid_n"))):
+        return False
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    _figure_title(fig, "Mouse settings", "Shares use each field's own valid denominator")
+    _share_bars(axes[0, 0], _ordered(edpi.get("distribution") or {}, _EDPI_ORDER),
+                int(edpi.get("count") or 0), "eDPI bins")
+    _share_bars(axes[0, 1], _ordered(dpi.get("categories") or {}, top_n=8),
+                int(dpi.get("valid_n") or 0), "DPI")
+    _share_bars(axes[1, 0], _ordered(polling.get("categories") or {}, _POLLING_ORDER),
+                int(polling.get("valid_n") or 0), "Polling rate (Hz)")
+    _share_bars(axes[1, 1], _ordered(zoom.get("categories") or {}, top_n=10),
+                int(zoom.get("valid_n") or 0), "Zoom sensitivity")
+    _finish(fig, path)
+    return True
+
+
+def _render_display(agg: dict, path: Path) -> bool:
+    resolution = agg.get("resolution") or {}
+    aspect = agg.get("aspect_ratio") or {}
+    scaling = agg.get("scaling_mode") or {}
+    boost = agg.get("boost_player") or {}
+    if not any((resolution.get("valid_n"), aspect.get("valid_n"),
+                scaling.get("valid_n"), boost.get("valid_n"))):
+        return False
+    fig, axes = plt.subplots(2, 2, figsize=(12, 8))
+    _figure_title(fig, "Display settings", "Resolution is ranked horizontally; all shares use field-level valid_n")
+    _share_bars(axes[0, 0], _ranked(resolution.get("categories") or {}, 8),
+                int(resolution.get("valid_n") or 0), "Resolution", horizontal=True)
+    _share_bars(axes[0, 1], _ranked(aspect.get("categories") or {}, 6),
+                int(aspect.get("valid_n") or 0), "Aspect ratio")
+    axes[0, 1].title.set_x(0.06)
+    _share_bars(axes[1, 0], _ranked(scaling.get("categories") or {}, 6),
+                int(scaling.get("valid_n") or 0), "Scaling mode")
+    boost_n = int(boost.get("valid_n") or 0)
+    boost_items = [("Enabled", int(boost.get("enabled_count") or 0)),
+                   ("Disabled", int(boost.get("disabled_count") or 0))]
+    _share_bars(axes[1, 1], boost_items, boost_n, "Boost Player Contrast",
+                colors=[ACCENT_2, SOFT])
+    if boost_n:
+        axes[1, 1].text(0.99, 0.98,
+                        f"Missing / unknown: {int(boost.get('missing_n') or 0)}",
+                        transform=axes[1, 1].transAxes, ha="right", va="top",
+                        fontsize=8, color=MUTED)
+    _finish(fig, path)
+    return True
+
+
+def _render_crosshair_geometry(agg: dict, path: Path) -> bool:
+    geometry = ((agg.get("crosshair") or {}).get("geometry") or {})
+    if not any((block or {}).get("valid_n") for block in geometry.values()):
+        return False
+    fig, axes = plt.subplots(2, 3, figsize=(13, 8))
+    _figure_title(fig, "Crosshair geometry", "Source-provided values; numeric categories remain in numeric order")
+    fields = (("style", "Style code"), ("size", "Size"), ("gap", "Gap"),
+              ("thickness", "Thickness"), ("alpha", "Alpha"))
+    for ax, (key, title) in zip(axes.flat[:5], fields):
+        block = geometry.get(key) or {}
+        _share_bars(ax, _ordered(block.get("categories") or {}, top_n=9),
+                    int(block.get("valid_n") or 0), title)
+    bool_ax = axes.flat[5]
+    bool_items = []
+    bool_labels = []
+    for key, label in (("dot", "Dot enabled"), ("outline", "Outline enabled")):
+        block = geometry.get(key) or {}
+        n = int(block.get("valid_n") or 0)
+        if n:
+            count = int(block.get("enabled_count") or 0)
+            bool_items.append((label, count / n * 100))
+            bool_labels.append(f"{count}/{n}")
+    if bool_items:
+        bars = bool_ax.bar([x[0] for x in bool_items], [x[1] for x in bool_items],
+                           color=[ACCENT_2, ACCENT], edgecolor=PAPER)
+        for bar, (_label, share), count_label in zip(bars, bool_items, bool_labels):
+            bool_ax.text(bar.get_x() + bar.get_width() / 2, share + 1,
+                         f"{share:.1f}%\n{count_label}", ha="center", va="bottom",
+                         fontsize=8)
+        bool_ax.set_ylabel("Enabled share (%)")
+        bool_ax.set_title("Boolean fields  ·  separate denominators", loc="left", pad=8)
+        _style_axis(bool_ax)
+        bool_ax.set_ylim(0, max(10.0, max(x[1] for x in bool_items) * 1.35))
+    else:
+        bool_ax.set_visible(False)
+    _finish(fig, path)
+    return True
+
+
+def _rgb_hex(key: str) -> str:
+    try:
+        r, g, b = (max(0, min(255, int(value))) for value in key.split(","))
+    except (TypeError, ValueError):
+        return MUTED
+    return f"#{r:02x}{g:02x}{b:02x}"
+
+
+def _render_crosshair_color(agg: dict, path: Path) -> bool:
+    crosshair = agg.get("crosshair") or {}
+    color_n = int(crosshair.get("color_valid_n", crosshair.get("valid_n", 0)) or 0)
+    custom = crosshair.get("custom_rgb") or {}
+    rgb_n = int(custom.get("valid_n") or 0)
+    if not color_n and not rgb_n:
+        return False
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.8))
+    _figure_title(fig, "Crosshair color", "Mode categories and exact Custom RGB values use separate denominators")
+    _share_bars(axes[0], _ranked(crosshair.get("color_categories") or {}, 8),
+                color_n, "Color mode", horizontal=True)
+    rgb_items = _ranked(custom.get("categories") or {}, 10)
+    rgb_colors = [_rgb_hex(key) for key, _ in rgb_items]
+    _share_bars(axes[1], rgb_items, rgb_n, "Custom RGB exact values (top 10)",
+                horizontal=True, colors=rgb_colors)
+    _finish(fig, path)
+    return True
+
+
+def _render_radar(agg: dict, path: Path) -> bool:
+    radar = agg.get("radar") or {}
+    zoom = radar.get("zoom") or {}
+    zoom_n = int(zoom.get("valid_n") or 0)
+    centered_n = int(radar.get("centered_valid_n", radar.get("valid_n", 0)) or 0)
+    if not zoom_n and not centered_n:
+        return False
+    fig, axes = plt.subplots(1, 2, figsize=(12, 5.5))
+    _figure_title(fig, "Radar settings", "Panels are independent; radar zoom is shown without directional interpretation")
+    _share_bars(axes[0], _ordered(zoom.get("categories") or {}, top_n=10),
+                zoom_n, "Radar zoom")
+    centered_share = radar.get("centered_share")
+    if centered_n and centered_share is not None:
+        yes = round(float(centered_share) * centered_n)
+        _share_bars(axes[1], [("Enabled", yes), ("Disabled", centered_n - yes)],
+                    centered_n, "Radar centered", colors=[ACCENT_2, SOFT])
+    else:
+        axes[1].set_visible(False)
+    _finish(fig, path)
+    return True
 
 
 def render_all(metrics: dict, out_dir: Path) -> list[Path]:
-    """Render the headline figures; returns the written paths."""
-    agg = metrics["aggregate"]
+    """Render production figures and return only files with real data."""
+    agg = metrics.get("aggregate") or {}
     out_dir.mkdir(parents=True, exist_ok=True)
-    written: list[Path] = []
     _theme()
 
-    # eDPI distribution (histogram + median line)
-    edpi = agg.get("edpi") or {}
-    dist = edpi.get("distribution") or {}
-    fig, ax = plt.subplots(figsize=(9, 5))
-    labels = list(dist.keys())
-    counts = list(dist.values())
-    ax.bar(labels, counts, color=ACCENT, edgecolor="#121212")
-    med = edpi.get("median")
-    # median marker: draw the line at the histogram bin that CONTAINS the
-    # current median (not a hard-coded 800-1000 bin)
-    if med is not None:
-        median_bin = None
-        for label, lo, hi in _EDPI_BIN_RANGES:
-            if lo <= med < hi:
-                median_bin = label
-                break
-        if median_bin and median_bin in labels:
-            ax.axvline(labels.index(median_bin), color=MAGENTA,
-                       linestyle="--", alpha=0.7)
-    ax.set_title(f"eDPI Distribution (median {med}, mean {edpi.get('mean')})",
-                 fontsize=13, fontweight="bold", color=ACCENT)
-    ax.set_ylabel("Player Count")
-    fig.tight_layout()
-    p = out_dir / "edpi.png"
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
+    # Known obsolete production names are removed so future candidate runs do
+    # not retain stale charts.  No file outside this explicit list is touched.
+    for name in sorted(PRODUCTION_FILES | LEGACY_FILES):
+        path = out_dir / name
+        if path.exists():
+            path.unlink()
 
-    # DPI
-    fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in ((agg.get("dpi") or {}).get("categories") or {}).items()},
-         "DPI Distribution", ACCENT)
-    p = out_dir / "dpi.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Resolution
-    fig, ax = plt.subplots(figsize=(10, 5))
-    _bar(ax, dict(list(((agg.get("resolution") or {}).get("categories") or {}).items())[:10]), "Resolution (top 10)", CYAN)
-    p = out_dir / "resolution.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Aspect ratio
-    fig, ax = plt.subplots(figsize=(8, 5))
-    _bar(ax, {k: v for k, v in ((agg.get("aspect_ratio") or {}).get("categories") or {}).items()}, "Aspect Ratio", ORANGE)
-    p = out_dir / "aspect_ratio.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Refresh rate
-    fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in ((agg.get("refresh_rate") or {}).get("categories") or {}).items()}, "Monitor Refresh Rate", ORANGE)
-    p = out_dir / "refresh_rate.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Crosshair color
-    fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, (agg.get("crosshair") or {}).get("color_categories") or {}, "Crosshair Color", MAGENTA)
-    p = out_dir / "crosshair_color.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Custom crosshair RGB: ONLY players in Custom mode with complete
-    # R/G/B channels (aggregate custom_rgb.valid_n). Preset-mode RGB is
-    # latent state and is never plotted here. Exact RGB categories, top N
-    # + Other, colored by the actual RGB value (v1 notebook style, no
-    # subjective nearest-color naming).
-    crgb = (agg.get("crosshair") or {}).get("custom_rgb") or {}
-    if (crgb.get("valid_n") or 0) > 0 and crgb.get("categories"):
-        cats = dict(crgb["categories"])
-        top_n = dict(list(cats.items())[:10])
-        rest = sum(v for k, v in list(cats.items())[10:])
-        if rest:
-            top_n["Other"] = rest
-        labels = list(top_n.keys())
-        counts = list(top_n.values())
-
-        def _hex_of(key: str) -> str:
-            try:
-                r, g, b = (int(x) for x in key.split(","))
-            except (TypeError, ValueError):
-                return "#888888"
-            return "#{:02x}{:02x}{:02x}".format(
-                max(0, min(r, 255)), max(0, min(g, 255)), max(0, min(b, 255)))
-
-        fig, ax = plt.subplots(figsize=(10, 5.5))
-        colors = [_hex_of(k) for k in labels]
-        y = range(len(labels))
-        ax.barh(list(y), counts, color=colors, edgecolor="#121212", linewidth=0.8)
-        ax.set_yticks(list(y))
-        ax.set_yticklabels(labels, fontsize=9)
-        ax.invert_yaxis()
-        ax.set_title(
-            f"Custom crosshair RGB (exact colors, n={crgb['valid_n']})",
-            fontsize=13, fontweight="bold", color=ACCENT)
-        ax.set_xlabel("Player Count")
-        ax.tick_params(axis="x", labelsize=9)
-        fig.tight_layout()
-        p = out_dir / "crosshair_custom_rgb.png"
-        fig.savefig(p, dpi=150)
-        plt.close(fig)
-        written.append(p)
-
-    # FOV
-    fig, ax = plt.subplots(figsize=(8, 5))
-    vm = agg.get("viewmodel") or {}
-    fov68_share = vm.get("fov68_share") or 0.0
-    ax.bar(["FOV 68", "Other"],
-           [fov68_share * vm.get("valid_n", 0), (1 - fov68_share) * vm.get("valid_n", 0)],
-           color=[ACCENT, "#555555"], edgecolor="#121212")
-    ax.set_title(f"Viewmodel FOV (68 share {fov68_share * 100:.1f}%, n={vm.get('valid_n', 0)})",
-                 fontsize=13, fontweight="bold", color=ACCENT)
-    ax.set_ylabel("Player Count")
-    fig.tight_layout()
-    p = out_dir / "fov.png"
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Radar: rotating and centered have INDEPENDENT denominators
-    radar = agg.get("radar") or {}
-    rot_valid = radar.get("rotating_valid_n", radar.get("valid_n", 0))
-    cent_valid = radar.get("centered_valid_n", radar.get("valid_n", 0))
-    rot_share = radar.get("rotating_share") or 0.0
-    cent_share = radar.get("centered_share") or 0.0
-    fig, ax = plt.subplots(figsize=(8, 5))
-    ax.bar(["Rotating", "Centered"],
-           [rot_share * rot_valid, cent_share * cent_valid],
-           color=[CYAN, ACCENT], edgecolor="#121212")
-    ax.set_title(f"Radar preferences (rotating n={rot_valid}, centered n={cent_valid})",
-                 fontsize=13, fontweight="bold", color=CYAN)
-    ax.set_ylabel("Player Count")
-    fig.tight_layout()
-    p = out_dir / "radar.png"
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
-    # Polling rate
-    fig, ax = plt.subplots(figsize=(9, 5))
-    _bar(ax, {k: v for k, v in ((agg.get("mouse_polling") or {}).get("categories") or {}).items()}, "Mouse Polling Rate", CYAN)
-    p = out_dir / "polling_rate.png"
-    fig.tight_layout()
-    fig.savefig(p, dpi=150)
-    plt.close(fig)
-    written.append(p)
-
+    renderers = (
+        ("mouse.png", _render_mouse),
+        ("display.png", _render_display),
+        ("crosshair_geometry.png", _render_crosshair_geometry),
+        ("crosshair_color.png", _render_crosshair_color),
+        ("radar.png", _render_radar),
+    )
+    written: list[Path] = []
+    for filename, renderer in renderers:
+        path = out_dir / filename
+        if renderer(agg, path):
+            written.append(path)
     return written

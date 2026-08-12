@@ -34,8 +34,8 @@ def test_report_byte_for_byte_deterministic():
 def test_report_contains_key_sections():
     metrics, drift = make_inputs()
     text = render_report(metrics, drift, {"cs2settings": "ok"}, [])
-    for section in ("## 1. Key numbers", "Mouse & sensitivity",
-                    "Data coverage", "Data & code"):
+    for section in ("## 1. Highlights", "Mouse",
+                    "Coverage & quality", "Data & code"):
         assert section in text
     assert "2026-08-01" in text
 

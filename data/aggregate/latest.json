@@ -209,6 +209,15 @@
         "1000-1200": 18,
         "1200-1600": 6,
         "1600+": 3
+      },
+      "consistency_qc": {
+        "comparable_n": 133,
+        "consistent_n": 131,
+        "anomaly_count": 2,
+        "anomaly_share": 0.015,
+        "missing_inputs_n": 16,
+        "absolute_tolerance": 2.0,
+        "relative_tolerance": 0.01
       }
     },
     "dpi": {
@@ -252,6 +261,42 @@
       },
       "share_4_3": 0.8195
     },
+    "scaling_mode": {
+      "valid_n": 133,
+      "categories": {
+        "Stretched": 119,
+        "Native": 9,
+        "Black Bars": 5
+      },
+      "top_category": "Stretched"
+    },
+    "zoom_sensitivity": {
+      "valid_n": 132,
+      "categories": {
+        "1": 103,
+        "1.1": 6,
+        "0.8": 5,
+        "0.9": 5,
+        "0.82": 3,
+        "1.2": 3,
+        "0.83": 1,
+        "0.93": 1,
+        "0.95": 1,
+        "0.98": 1,
+        "0.99": 1,
+        "0.999": 1,
+        "1.16": 1
+      },
+      "median": 1.0,
+      "top_category": "1"
+    },
+    "boost_player": {
+      "valid_n": 101,
+      "missing_n": 48,
+      "enabled_count": 85,
+      "disabled_count": 16,
+      "enabled_share": 0.8416
+    },
     "refresh_rate": {
       "valid_n": 0,
       "categories": {},
@@ -266,6 +311,7 @@
     "crosshair": {
       "valid_n": 133,
       "dot_outline_off_share": 0.8045,
+      "color_valid_n": 133,
       "color_categories": {
         "Custom": 60,
         "Cyan": 35,
@@ -308,6 +354,111 @@
         "unique_colors": 26,
         "top_rgb": "255,255,255",
         "top_rgb_share": 0.25
+      },
+      "geometry": {
+        "style": {
+          "valid_n": 133,
+          "categories": {
+            "4": 132,
+            "5": 1
+          },
+          "top_category": "4"
+        },
+        "size": {
+          "valid_n": 133,
+          "categories": {
+            "1": 65,
+            "2": 26,
+            "1.5": 13,
+            "0.9": 5,
+            "2.5": 5,
+            "0": 3,
+            "1.2": 3,
+            "0.5": 2,
+            "0.7": 2,
+            "1.1": 2,
+            "3": 2,
+            "0.8": 1,
+            "1.4": 1,
+            "1.7": 1,
+            "1.9": 1,
+            "25.5": 1
+          },
+          "median": 1.0,
+          "top_category": "1"
+        },
+        "gap": {
+          "valid_n": 133,
+          "categories": {
+            "-4": 53,
+            "-3": 30,
+            "-2": 8,
+            "-5": 8,
+            "-2.3": 3,
+            "-3.9": 3,
+            "-4.2": 3,
+            "-4.5": 3,
+            "-7": 3,
+            "-2.2": 2,
+            "-3.2": 2,
+            "-3.4": 2,
+            "-3.6": 2,
+            "-6": 2,
+            "-1": 1,
+            "-1.5": 1,
+            "-1.8": 1,
+            "-2.5": 1,
+            "-2.9": 1,
+            "-3.1": 1,
+            "-3.5": 1,
+            "-4.1": 1,
+            "0": 1
+          },
+          "median": -4.0,
+          "top_category": "-4"
+        },
+        "thickness": {
+          "valid_n": 133,
+          "categories": {
+            "1": 66,
+            "0": 43,
+            "0.5": 7,
+            "0.9": 7,
+            "0.1": 3,
+            "0.8": 2,
+            "1.5": 2,
+            "0.3": 1,
+            "0.6": 1,
+            "0.7": 1
+          },
+          "median": 1.0,
+          "top_category": "1"
+        },
+        "alpha": {
+          "valid_n": 133,
+          "categories": {
+            "255": 113,
+            "200": 18,
+            "235": 1,
+            "250": 1
+          },
+          "median": 255,
+          "top_category": "255"
+        },
+        "dot": {
+          "valid_n": 133,
+          "missing_n": 16,
+          "enabled_count": 13,
+          "disabled_count": 120,
+          "enabled_share": 0.0977
+        },
+        "outline": {
+          "valid_n": 133,
+          "missing_n": 16,
+          "enabled_count": 17,
+          "disabled_count": 116,
+          "enabled_share": 0.1278
+        }
       }
     },
     "viewmodel": {
@@ -359,7 +510,34 @@
       "rotating_valid_n": 0,
       "centered_valid_n": 120,
       "rotating_share": null,
-      "centered_share": 0.7167
+      "centered_share": 0.7167,
+      "zoom": {
+        "valid_n": 99,
+        "categories": {
+          "0.4": 29,
+          "0.7": 20,
+          "0.3": 10,
+          "0.35": 9,
+          "0.45": 7,
+          "0.25": 6,
+          "0.41": 4,
+          "0.445": 2,
+          "0.315": 1,
+          "0.454938": 1,
+          "0.498025": 1,
+          "0.548077": 1,
+          "0.6025": 1,
+          "0.63": 1,
+          "0.633826": 1,
+          "0.65": 1,
+          "0.701077": 1,
+          "0.8": 1,
+          "0.9": 1,
+          "1": 1
+        },
+        "median": 0.4,
+        "top_category": "0.4"
+      }
     },
     "mouse_polling": {
       "valid_n": 133,
