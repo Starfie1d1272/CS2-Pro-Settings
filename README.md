@@ -2,11 +2,15 @@
 
 [English](README.md) | [简体中文](./README.zh-CN.md)
 
-**What settings do top CS2 professionals actually use — and how do those choices change over time?**
+**How do top CS2 professionals configure the game — and how do those choices change over time?**
 
-CS2 Pro Settings Tracker turns professional-player settings into a reproducible longitudinal dataset.
+CS2 Pro Settings Tracker is a reproducible, roster-aware data project for continuously tracking how professional CS2 settings change.
 
 Instead of publishing another static settings table, the project tracks the current VRS Top 30, follows roster changes and stable player identities, records accepted monthly snapshots, and separates real same-player setting changes from changes caused by roster turnover.
+
+[![Crosshair geometry in the latest accepted snapshot](./figures/latest/crosshair_geometry.png)](./reports/latest.md)
+
+*Observed Gap × Size combinations in the latest accepted snapshot. Open the [full report](./reports/latest.md) for all five production figures and field-level denominators.*
 
 ## Current snapshot
 
@@ -26,6 +30,12 @@ From the current snapshot, 800 eDPI, 4:3, 1280x960 and FOV 68 still form a remar
 
 → [Latest report](./reports/latest.md) · [中文报告](./reports/latest.zh-CN.md) · [Monthly archive](./reports/2026-08.md)
 <!-- CURRENT_SNAPSHOT:END -->
+
+| Mouse settings | Display settings |
+|:---:|:---:|
+| [![Mouse settings in the latest accepted snapshot](./figures/latest/mouse.png)](./reports/latest.md#2-mouse) | [![Display settings in the latest accepted snapshot](./figures/latest/display.png)](./reports/latest.md#3-display) |
+
+The `latest` figures always follow the latest accepted snapshot; dated monthly figures remain archived alongside each report.
 
 ## Why this project exists
 
