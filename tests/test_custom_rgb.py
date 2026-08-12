@@ -349,8 +349,8 @@ def test_report_rgb_subsection_appears_with_data():
     assert "Custom RGB：**2/3** 名选手 RGB 三通道完整（66.7%）" in zh
     assert "2 unique exact colors" in en
     assert "2 种精确颜色" in zh
-    assert "crosshair_custom_rgb.png" in en
-    assert "crosshair_custom_rgb.png" in zh
+    assert "crosshair_color.png" in en
+    assert "crosshair_color.png" in zh
 
 
 def test_report_rgb_subsection_hidden_when_no_data():
@@ -379,24 +379,27 @@ def test_report_no_old_rgb_missing_sentence():
 # 17/18. plot: deterministic, only Custom valid RGB input
 # ---------------------------------------------------------------------------
 
-def test_plot_custom_rgb_generated_only_with_custom_data(tmp_path):
-    from cs2_pro_settings.plots import render_all
+def test_plot_custom_rgb_is_combined_with_color_and_deterministic(tmp_path):
+    from cs2_pro_settings.plots import _rgb_hex, render_all
 
     # with Custom data: figure is written
     m = _metrics_with(_custom_rgb_fixture_players())
     out1 = tmp_path / "fig1"
     render_all(m, out1)
-    p1 = out1 / "crosshair_custom_rgb.png"
+    p1 = out1 / "crosshair_color.png"
     assert p1.exists() and p1.stat().st_size > 0
 
     # deterministic: same input -> same bytes (same matplotlib env)
     out2 = tmp_path / "fig2"
     render_all(m, out2)
-    assert (out2 / "crosshair_custom_rgb.png").read_bytes() == p1.read_bytes()
+    assert (out2 / "crosshair_color.png").read_bytes() == p1.read_bytes()
+    assert _rgb_hex("0,255,145") == "#00ff91"
 
-    # preset-only: figure NOT written
+    # preset-only still has the color-mode panel, but no separate/stale RGB
+    # figure is created.
     m2 = _metrics_with([_player("steam:1", color="Blue", rgb=(255, 0, 255)),
                         _player("steam:2", color="Red")])
     out3 = tmp_path / "fig3"
     render_all(m2, out3)
+    assert (out3 / "crosshair_color.png").exists()
     assert not (out3 / "crosshair_custom_rgb.png").exists()

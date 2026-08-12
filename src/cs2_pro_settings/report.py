@@ -41,14 +41,25 @@ from typing import Any, Optional
 # ---------------------------------------------------------------------------
 
 FIELD_KEYS = [
-    "edpi", "dpi", "resolution", "aspect_ratio", "crosshair", "viewmodel",
-    "polling", "refresh", "fps", "radar_centered", "radar_rotating",
+    "edpi", "dpi", "zoom_sensitivity", "polling", "resolution",
+    "aspect_ratio", "scaling_mode", "boost_player", "crosshair_color",
+    "crosshair_style", "crosshair_size", "crosshair_gap",
+    "crosshair_thickness", "crosshair_alpha", "crosshair_dot",
+    "crosshair_outline", "viewmodel", "radar_zoom", "radar_centered",
+    "radar_rotating", "refresh", "fps",
 ]
 
 FIELD_LABELS_EN = {
     "edpi": "eDPI", "dpi": "DPI", "resolution": "Resolution",
     "aspect_ratio": "Aspect ratio", "crosshair": "Crosshair",
     "viewmodel": "Viewmodel FOV", "polling": "Mouse polling rate",
+    "zoom_sensitivity": "Zoom sensitivity", "scaling_mode": "Scaling mode",
+    "boost_player": "Boost Player Contrast",
+    "crosshair_color": "Crosshair color", "crosshair_style": "Crosshair style",
+    "crosshair_size": "Crosshair size", "crosshair_gap": "Crosshair gap",
+    "crosshair_thickness": "Crosshair thickness", "crosshair_alpha": "Crosshair alpha",
+    "crosshair_dot": "Crosshair dot", "crosshair_outline": "Crosshair outline",
+    "radar_zoom": "Radar zoom",
     "refresh": "Monitor refresh rate", "fps": "fps_max",
     "radar_centered": "Radar centered", "radar_rotating": "Radar rotating",
 }
@@ -57,20 +68,24 @@ FIELD_LABELS_ZH = {
     "edpi": "eDPI", "dpi": "DPI", "resolution": "分辨率",
     "aspect_ratio": "宽高比", "crosshair": "准星",
     "viewmodel": "Viewmodel FOV", "polling": "鼠标回报率",
+    "zoom_sensitivity": "开镜灵敏度", "scaling_mode": "缩放模式",
+    "boost_player": "Boost Player Contrast",
+    "crosshair_color": "准星颜色", "crosshair_style": "准星 style",
+    "crosshair_size": "准星 size", "crosshair_gap": "准星 gap",
+    "crosshair_thickness": "准星 thickness", "crosshair_alpha": "准星 alpha",
+    "crosshair_dot": "准星 dot", "crosshair_outline": "准星 outline",
+    "radar_zoom": "Radar zoom",
     "refresh": "显示器刷新率", "fps": "fps_max",
     "radar_centered": "Radar centered", "radar_rotating": "Radar rotating",
 }
 
 # logical figure name -> real file under figures/<scope>/
 FIGURE_FILES = {
-    "edpi": "edpi.png",
-    "dpi": "dpi.png",
-    "polling": "polling_rate.png",
-    "aspect_ratio": "aspect_ratio.png",
-    "resolution": "resolution.png",
+    "mouse": "mouse.png",
+    "display": "display.png",
+    "crosshair_geometry": "crosshair_geometry.png",
     "crosshair": "crosshair_color.png",
-    "custom_rgb": "crosshair_custom_rgb.png",
-    "viewmodel": "fov.png",
+    "radar": "radar.png",
 }
 
 # ---------------------------------------------------------------------------
@@ -254,6 +269,12 @@ class ReportView:
     edpi_core_label: str = ""
     edpi_core_count: int = 0
     edpi_core_total: int = 0
+    edpi_qc_comparable_n: int = 0
+    edpi_qc_consistent_n: int = 0
+    edpi_qc_anomaly_count: int = 0
+    edpi_qc_missing_inputs_n: int = 0
+    edpi_qc_abs_tolerance: str = "n/a"
+    edpi_qc_rel_tolerance: str = "n/a"
     dpi_top_category: str = "n/a"
     dpi_400_pct: str = "n/a"
     dpi_800_pct: str = "n/a"
@@ -268,14 +289,26 @@ class ReportView:
     polling_4000_plus_pct: str = "n/a"
     polling_4000_plus_count: Optional[int] = None
     polling_n: int = 0
+    zoom_n: int = 0
+    zoom_median: str = "n/a"
+    zoom_rank: list[tuple[str, int, int]] = field(default_factory=list)
     # dynamic category rankings (top / runner-up, never hard-coded labels)
     aspect_rank: list[tuple[str, int, int]] = field(default_factory=list)
     aspect_n: int = 0
     resolution_rank: list[tuple[str, int, int]] = field(default_factory=list)
     resolution_n: int = 0
+    scaling_rank: list[tuple[str, int, int]] = field(default_factory=list)
+    scaling_n: int = 0
+    boost_n: int = 0
+    boost_missing_n: int = 0
+    boost_enabled_count: int = 0
+    boost_disabled_count: int = 0
+    boost_enabled_pct: str = "n/a"
     crosshair_minimal_pct: str = "n/a"
     crosshair_n: int = 0
+    crosshair_color_n: int = 0
     crosshair_color_rows: list[tuple[str, int, int]] = field(default_factory=list)
+    crosshair_geometry: dict[str, dict] = field(default_factory=dict)
     # Custom RGB (valid_n = Custom-mode players with complete R/G/B)
     custom_rgb_valid_n: int = 0
     custom_rgb_players: int = 0
@@ -289,6 +322,9 @@ class ReportView:
     radar_centered_available: bool = False
     radar_centered_pct: str = "n/a"
     radar_centered_n: int = 0
+    radar_zoom_n: int = 0
+    radar_zoom_median: str = "n/a"
+    radar_zoom_rank: list[tuple[str, int, int]] = field(default_factory=list)
 
     # longitudinal (only when a same-series previous snapshot exists)
     previous_snapshot: str = "n/a"
@@ -319,16 +355,24 @@ def _field_rows(agg: dict, player_count: int) -> list[tuple[str, int, int]]:
     edpi_count = edpi.get("count") if edpi.get("count") is not None else (edpi.get("valid_n") or 0)
     rows.append(("edpi", _as_int(edpi_count), player_count))
     rows.append(("dpi", _as_int((agg.get("dpi") or {}).get("valid_n")), player_count))
+    rows.append(("zoom_sensitivity", _as_int((agg.get("zoom_sensitivity") or {}).get("valid_n")), player_count))
+    rows.append(("polling", _as_int((agg.get("mouse_polling") or {}).get("valid_n")), player_count))
     rows.append(("resolution", _as_int((agg.get("resolution") or {}).get("valid_n")), player_count))
     rows.append(("aspect_ratio", _as_int((agg.get("aspect_ratio") or {}).get("valid_n")), player_count))
-    rows.append(("crosshair", _as_int((agg.get("crosshair") or {}).get("valid_n")), player_count))
+    rows.append(("scaling_mode", _as_int((agg.get("scaling_mode") or {}).get("valid_n")), player_count))
+    rows.append(("boost_player", _as_int((agg.get("boost_player") or {}).get("valid_n")), player_count))
+    crosshair = agg.get("crosshair") or {}
+    geometry = crosshair.get("geometry") or {}
+    rows.append(("crosshair_color", _as_int(crosshair.get("color_valid_n", crosshair.get("valid_n"))), player_count))
+    for key in ("style", "size", "gap", "thickness", "alpha", "dot", "outline"):
+        rows.append((f"crosshair_{key}", _as_int((geometry.get(key) or {}).get("valid_n")), player_count))
     rows.append(("viewmodel", _as_int((agg.get("viewmodel") or {}).get("valid_n")), player_count))
-    rows.append(("polling", _as_int((agg.get("mouse_polling") or {}).get("valid_n")), player_count))
-    rows.append(("refresh", _as_int((agg.get("refresh_rate") or {}).get("valid_n")), player_count))
-    rows.append(("fps", _as_int((agg.get("fps_max") or {}).get("valid_n")), player_count))
     radar = agg.get("radar") or {}
+    rows.append(("radar_zoom", _as_int((radar.get("zoom") or {}).get("valid_n")), player_count))
     rows.append(("radar_centered", _as_int(radar.get("centered_valid_n", radar.get("valid_n"))), player_count))
     rows.append(("radar_rotating", _as_int(radar.get("rotating_valid_n", radar.get("valid_n"))), player_count))
+    rows.append(("refresh", _as_int((agg.get("refresh_rate") or {}).get("valid_n")), player_count))
+    rows.append(("fps", _as_int((agg.get("fps_max") or {}).get("valid_n")), player_count))
     return rows
 
 
@@ -427,6 +471,14 @@ def build_report_view(
         rng = _dominant_range(edpi.get("distribution") or {}, edpi.get("median"))
         if rng:
             v.edpi_core_label, v.edpi_core_count, v.edpi_core_total = rng
+    qc = edpi.get("consistency_qc") or {}
+    v.edpi_qc_comparable_n = _as_int(qc.get("comparable_n"))
+    v.edpi_qc_consistent_n = _as_int(qc.get("consistent_n"))
+    v.edpi_qc_anomaly_count = _as_int(qc.get("anomaly_count"))
+    v.edpi_qc_missing_inputs_n = _as_int(qc.get("missing_inputs_n"))
+    v.edpi_qc_abs_tolerance = _num(qc.get("absolute_tolerance"))
+    rel_tol = qc.get("relative_tolerance")
+    v.edpi_qc_rel_tolerance = _pct(rel_tol if isinstance(rel_tol, (int, float)) else None)
 
     dpi = agg.get("dpi") or {}
     v.dpi_n = _as_int(dpi.get("valid_n"))
@@ -449,6 +501,11 @@ def build_report_view(
     if pcats:
         v.polling_4000_plus_count = sum(c for k, c in pcats.items() if _numeric_key(k) >= 4000)
 
+    zoom = agg.get("zoom_sensitivity") or {}
+    v.zoom_n = _as_int(zoom.get("valid_n"))
+    v.zoom_median = _num(zoom.get("median"))
+    v.zoom_rank = _cats_top_rows(zoom.get("categories") or {})
+
     aspect = agg.get("aspect_ratio") or {}
     v.aspect_n = _as_int(aspect.get("valid_n"))
     v.aspect_rank = _cats_top_rows(aspect.get("categories") or {})
@@ -457,10 +514,36 @@ def build_report_view(
     v.resolution_n = _as_int(res.get("valid_n"))
     v.resolution_rank = _cats_top_rows(res.get("categories") or {})
 
+    scaling = agg.get("scaling_mode") or {}
+    v.scaling_n = _as_int(scaling.get("valid_n"))
+    v.scaling_rank = _cats_top_rows(scaling.get("categories") or {})
+
+    boost = agg.get("boost_player") or {}
+    v.boost_n = _as_int(boost.get("valid_n"))
+    v.boost_missing_n = _as_int(boost.get("missing_n"))
+    v.boost_enabled_count = _as_int(boost.get("enabled_count"))
+    v.boost_disabled_count = _as_int(boost.get("disabled_count"))
+    v.boost_enabled_pct = _pct(
+        boost.get("enabled_share") if isinstance(boost.get("enabled_share"), (int, float)) else None)
+
     ch = agg.get("crosshair") or {}
     v.crosshair_n = _as_int(ch.get("valid_n"))
+    v.crosshair_color_n = _as_int(ch.get("color_valid_n", ch.get("valid_n")))
     v.crosshair_minimal_pct = _pct(ch.get("dot_outline_off_share"))
     v.crosshair_color_rows = _cats_top_rows(ch.get("color_categories") or {})
+    for key, block in (ch.get("geometry") or {}).items():
+        valid_n = _as_int((block or {}).get("valid_n"))
+        v.crosshair_geometry[key] = {
+            "valid_n": valid_n,
+            "missing_n": _as_int((block or {}).get("missing_n")),
+            "median": _num((block or {}).get("median")),
+            "rows": _cats_top_rows((block or {}).get("categories") or {}),
+            "enabled_count": _as_int((block or {}).get("enabled_count")),
+            "disabled_count": _as_int((block or {}).get("disabled_count")),
+            "enabled_pct": _pct(
+                (block or {}).get("enabled_share")
+                if isinstance((block or {}).get("enabled_share"), (int, float)) else None),
+        }
     crgb = ch.get("custom_rgb") or {}
     v.custom_rgb_valid_n = _as_int(crgb.get("valid_n"))
     v.custom_rgb_players = _as_int(crgb.get("custom_players"))
@@ -480,6 +563,10 @@ def build_report_view(
     v.radar_centered_n = _as_int(radar.get("centered_valid_n", radar.get("valid_n")))
     v.radar_centered_available = v.radar_centered_n > 0
     v.radar_centered_pct = _pct(radar.get("centered_share"))
+    radar_zoom = radar.get("zoom") or {}
+    v.radar_zoom_n = _as_int(radar_zoom.get("valid_n"))
+    v.radar_zoom_median = _num(radar_zoom.get("median"))
+    v.radar_zoom_rank = _cats_top_rows(radar_zoom.get("categories") or {})
 
     # ---- longitudinal (only rendered when NOT the first snapshot) -------
     v.previous_snapshot = str(baseline_date) if baseline_date else "n/a"
@@ -570,54 +657,54 @@ def _figure(view: ReportView, key: str) -> str:
 def _key_numbers_en(v: ReportView) -> list[str]:
     rows = []
     if v.edpi_n:
-        rows.append(f"- Median eDPI: **{v.edpi_median}** (n={v.edpi_n})")
-    if v.dpi_n:
-        rows.append(f"- DPI: 800 at {v.dpi_800_pct} · 400 at {v.dpi_400_pct} (n={v.dpi_n})")
-    if v.aspect_rank:
-        top, _c, _t = v.aspect_rank[0]
-        rows.append(f"- {top}: **{_cats_pct_from_row(v.aspect_rank[0])}** (n={v.aspect_n})")
-    if v.resolution_rank:
-        top, _c, _t = v.resolution_rank[0]
-        rows.append(f"- {top}: **{_cats_pct_from_row(v.resolution_rank[0])}** (n={v.resolution_n})")
+        rows.append(f"- **{v.edpi_median} median eDPI** (n={v.edpi_n})")
+    if v.aspect_rank and v.resolution_rank:
+        rows.append(
+            f"- **{v.aspect_rank[0][0]}** at {_cats_pct_from_row(v.aspect_rank[0])}; "
+            f"**{v.resolution_rank[0][0]}** at {_cats_pct_from_row(v.resolution_rank[0])} "
+            f"(n={v.aspect_n} / {v.resolution_n})")
+    if v.scaling_rank:
+        rows.append(f"- **{v.scaling_rank[0][0]} scaling** at {_cats_pct_from_row(v.scaling_rank[0])} (n={v.scaling_n})")
     if v.polling_n:
-        rows.append(f"- Polling: 1000 Hz at {v.polling_1000_pct} · 4000 Hz+ at {v.polling_4000_plus_pct} (n={v.polling_n})")
-    if v.crosshair_n and v.crosshair_color_rows:
-        top_color, _c, _t = v.crosshair_color_rows[0]
-        rows.append(f"- Crosshair: minimal at {v.crosshair_minimal_pct} · top color category {top_color} at {_cats_pct_from_row(v.crosshair_color_rows[0])} (n={v.crosshair_n})")
-    if v.fov_n:
-        rows.append(f"- `viewmodel_fov 68`: **{v.fov68_pct}** (n={v.fov_n})")
-    if v.radar_centered_available:
-        rows.append(f"- Radar centered: {v.radar_centered_pct} (n={v.radar_centered_n})")
+        rows.append(f"- **1000 Hz polling** at {v.polling_1000_pct}; 4000 Hz+ at {v.polling_4000_plus_pct} (n={v.polling_n})")
+    if v.crosshair_n:
+        rows.append(f"- **Dot + outline both off** for {v.crosshair_minimal_pct} (n={v.crosshair_n})")
     return rows
 
 
 def _key_numbers_zh(v: ReportView) -> list[str]:
     rows = []
     if v.edpi_n:
-        rows.append(f"- 中位 eDPI：**{v.edpi_median}**（n={v.edpi_n}）")
-    if v.dpi_n:
-        rows.append(f"- DPI：800 占 {v.dpi_800_pct} · 400 占 {v.dpi_400_pct}（n={v.dpi_n}）")
-    if v.aspect_rank:
-        top, _c, _t = v.aspect_rank[0]
-        rows.append(f"- {top}：**{_cats_pct_from_row(v.aspect_rank[0])}**（n={v.aspect_n}）")
-    if v.resolution_rank:
-        top, _c, _t = v.resolution_rank[0]
-        rows.append(f"- {top}：**{_cats_pct_from_row(v.resolution_rank[0])}**（n={v.resolution_n}）")
+        rows.append(f"- **eDPI 中位数 {v.edpi_median}**（n={v.edpi_n}）")
+    if v.aspect_rank and v.resolution_rank:
+        rows.append(
+            f"- **{v.aspect_rank[0][0]}** 占 {_cats_pct_from_row(v.aspect_rank[0])}；"
+            f"**{v.resolution_rank[0][0]}** 占 {_cats_pct_from_row(v.resolution_rank[0])}"
+            f"（n={v.aspect_n} / {v.resolution_n}）")
+    if v.scaling_rank:
+        rows.append(f"- **{v.scaling_rank[0][0]} 缩放**占 {_cats_pct_from_row(v.scaling_rank[0])}（n={v.scaling_n}）")
     if v.polling_n:
-        rows.append(f"- 回报率：1000 Hz 占 {v.polling_1000_pct} · 4000 Hz+ 占 {v.polling_4000_plus_pct}（n={v.polling_n}）")
-    if v.crosshair_n and v.crosshair_color_rows:
-        top_color, _c, _t = v.crosshair_color_rows[0]
-        rows.append(f"- 准星：极简占 {v.crosshair_minimal_pct} · 颜色类别 {top_color} 占 {_cats_pct_from_row(v.crosshair_color_rows[0])}（n={v.crosshair_n}）")
-    if v.fov_n:
-        rows.append(f"- `viewmodel_fov 68`：**{v.fov68_pct}**（n={v.fov_n}）")
-    if v.radar_centered_available:
-        rows.append(f"- Radar centered：开启 {v.radar_centered_pct}（n={v.radar_centered_n}）")
+        rows.append(f"- **1000 Hz 回报率**占 {v.polling_1000_pct}；4000 Hz+ 占 {v.polling_4000_plus_pct}（n={v.polling_n}）")
+    if v.crosshair_n:
+        rows.append(f"- **Dot 与 outline 同时关闭**占 {v.crosshair_minimal_pct}（n={v.crosshair_n}）")
     return rows
 
 
 def _cats_pct_from_row(row: tuple[str, int, int]) -> str:
     _k, c, t = row
     return f"{c / t * 100:.1f}%" if t else "n/a"
+
+
+def _top_values(rows: list[tuple[str, int, int]], limit: int = 3) -> str:
+    return " · ".join(
+        f"{key} {_cats_pct_from_row((key, count, total))}"
+        for key, count, total in rows[:limit]
+    )
+
+
+def _geometry_available(v: ReportView) -> bool:
+    return any(_as_int(block.get("valid_n")) > 0
+               for block in v.crosshair_geometry.values())
 
 
 def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
@@ -643,88 +730,81 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
     lines.append(meta)
     lines.append("")
 
-    # 1. key numbers
     key_rows = _key_numbers_en(v)
     if key_rows:
-        lines.append(heading("Key numbers"))
+        lines.append(heading("Highlights"))
         lines.append("")
         lines.extend(key_rows)
         lines.append("")
 
-    # 2. mouse & sensitivity
-    if v.edpi_n or v.dpi_n or v.polling_n:
-        lines.append(heading("Mouse & sensitivity"))
+    if v.edpi_n or v.dpi_n or v.zoom_n or v.polling_n:
+        lines.append(heading("Mouse"))
+        lines.append("")
+        lines.append(fig("mouse"))
         lines.append("")
         if v.edpi_n:
-            lines.append("### eDPI")
-            lines.append("")
-            lines.append(fig("edpi"))
-            lines.append("")
             lines.append(f"- Median: **{v.edpi_median}** · Mean: **{v.edpi_mean}** · n={v.edpi_n}")
             if v.edpi_core_label:
                 lines.append(f"- {v.edpi_core_label} eDPI covers {v.edpi_core_count / v.edpi_core_total * 100:.1f}% of valid observations ({v.edpi_core_count}/{v.edpi_core_total}).")
-            lines.append("")
+            if v.edpi_qc_comparable_n:
+                lines.append(
+                    f"- Arithmetic QC: {v.edpi_qc_consistent_n}/{v.edpi_qc_comparable_n} "
+                    f"consistent; **{v.edpi_qc_anomaly_count} flagged** using "
+                    f"max({v.edpi_qc_abs_tolerance} eDPI, {v.edpi_qc_rel_tolerance}) tolerance.")
         if v.dpi_n:
-            lines.append("### DPI")
-            lines.append("")
-            lines.append(fig("dpi"))
-            lines.append("")
-            lines.append(f"- 800: **{v.dpi_800_pct}** · 400: {v.dpi_400_pct} · 1600+: {v.dpi_1600_plus_pct} (n={v.dpi_n})")
-            if v.dpi_400_count is not None and v.dpi_800_count is not None:
-                combo = v.dpi_400_count + v.dpi_800_count
-                lines.append(f"- 400 + 800 DPI together: {combo}/{v.dpi_n} ({combo / v.dpi_n * 100:.1f}%).")
-            lines.append("")
+            lines.append(f"- DPI — 800: **{v.dpi_800_pct}** · 400: {v.dpi_400_pct} · 1600+: {v.dpi_1600_plus_pct} (n={v.dpi_n})")
+        if v.zoom_n:
+            lines.append(f"- Zoom sensitivity — median **{v.zoom_median}**; {_top_values(v.zoom_rank)} (n={v.zoom_n})")
         if v.polling_n:
-            lines.append("### Mouse polling rate")
-            lines.append("")
-            lines.append(fig("polling"))
-            lines.append("")
-            lines.append(f"- 1000 Hz: {v.polling_1000_pct} · 2000 Hz: {v.polling_2000_pct} · 4000 Hz: {v.polling_4000_pct} · 8000 Hz: {v.polling_8000_pct} (n={v.polling_n})")
-            if v.polling_4000_plus_count is not None:
-                lines.append(f"- 4000 Hz and above: {v.polling_4000_plus_count}/{v.polling_n} ({v.polling_4000_plus_pct}).")
-            lines.append("")
+            lines.append(f"- Polling — 1000: {v.polling_1000_pct} · 2000: {v.polling_2000_pct} · 4000: {v.polling_4000_pct} · 8000 Hz: {v.polling_8000_pct} (n={v.polling_n})")
+        lines.append("")
 
-    # 3. resolution & display
-    if v.aspect_n or v.resolution_n:
-        lines.append(heading("Resolution & display"))
+    if v.aspect_n or v.resolution_n or v.scaling_n or v.boost_n:
+        lines.append(heading("Display"))
+        lines.append("")
+        lines.append(fig("display"))
         lines.append("")
         if v.aspect_rank:
-            lines.append("### Aspect ratio")
-            lines.append("")
-            lines.append(fig("aspect_ratio"))
-            lines.append("")
-            top, tc, tt = v.aspect_rank[0]
-            lines.append(f"- {top}: **{_cats_pct_from_row(v.aspect_rank[0])}** (n={v.aspect_n})")
-            if len(v.aspect_rank) > 1:
-                runner, rc, rt = v.aspect_rank[1]
-                lines.append(f"- {runner} is the next tier at {rc}/{rt} ({_cats_pct_from_row(v.aspect_rank[1])}).")
-            lines.append("")
+            lines.append(f"- Aspect ratio — {_top_values(v.aspect_rank)} (n={v.aspect_n})")
         if v.resolution_rank:
-            lines.append("### Resolution")
-            lines.append("")
-            lines.append(fig("resolution"))
-            lines.append("")
-            top, tc, tt = v.resolution_rank[0]
-            lines.append(f"- Most common: **{top}** ({_cats_pct_from_row(v.resolution_rank[0])}, n={v.resolution_n})")
-            if len(v.resolution_rank) > 1:
-                runner, rc, rt = v.resolution_rank[1]
-                lines.append(f"- {runner} is next at {rc}/{rt} ({_cats_pct_from_row(v.resolution_rank[1])}).")
-            lines.append("")
+            lines.append(f"- Resolution — {_top_values(v.resolution_rank)} (n={v.resolution_n})")
+        if v.scaling_rank:
+            lines.append(f"- Scaling mode — {_top_values(v.scaling_rank)} (n={v.scaling_n})")
+        if v.boost_n:
+            lines.append(
+                f"- Boost Player Contrast — enabled **{v.boost_enabled_pct}** "
+                f"({v.boost_enabled_count}/{v.boost_n} known); disabled "
+                f"{v.boost_disabled_count}/{v.boost_n}; missing/unknown "
+                f"{v.boost_missing_n}/{v.player_count}.")
+        lines.append("")
 
-    # 4. crosshair
-    if v.crosshair_n:
+    if v.crosshair_n or v.crosshair_color_n or _geometry_available(v):
         lines.append(heading("Crosshair"))
         lines.append("")
-        lines.append(fig("crosshair"))
-        lines.append("")
-        lines.append(f"- Dot and Outline both disabled: **{v.crosshair_minimal_pct}** (n={v.crosshair_n})")
+        if _geometry_available(v):
+            lines.append(fig("crosshair_geometry"))
+            lines.append("")
+            style = v.crosshair_geometry.get("style") or {}
+            if style.get("valid_n"):
+                lines.append(f"- Style codes — {_top_values(style['rows'])} (n={style['valid_n']}); source-provided codes, with no mechanism interpretation.")
+            for key, label in (("size", "Size"), ("gap", "Gap"),
+                               ("thickness", "Thickness"), ("alpha", "Alpha")):
+                block = v.crosshair_geometry.get(key) or {}
+                if block.get("valid_n"):
+                    lines.append(f"- {label} — median **{block['median']}**; {_top_values(block['rows'])} (n={block['valid_n']})")
+            for key, label in (("dot", "Dot"), ("outline", "Outline")):
+                block = v.crosshair_geometry.get(key) or {}
+                if block.get("valid_n"):
+                    lines.append(f"- {label} enabled — **{block['enabled_pct']}** ({block['enabled_count']}/{block['valid_n']} known)")
+        if v.crosshair_n:
+            lines.append(f"- Dot and outline both disabled: **{v.crosshair_minimal_pct}** (n={v.crosshair_n}, both fields known)")
         if v.crosshair_color_rows:
+            lines.append("")
+            lines.append(fig("crosshair"))
+            lines.append("")
             color_txt = " · ".join(f"{k} {_cats_pct_from_row((k, c, t))}" for k, c, t in v.crosshair_color_rows)
-            lines.append(f"- Color categories: {color_txt} (n={v.crosshair_n})")
+            lines.append(f"- Color categories: {color_txt} (n={v.crosshair_color_n})")
             if v.custom_rgb_valid_n:
-                lines.append("")
-                lines.append(fig("custom_rgb"))
-                lines.append("")
                 top_txt = (f" · top **{v.custom_rgb_top}** ({v.custom_rgb_top_pct})"
                            if v.custom_rgb_top != "n/a" else "")
                 lines.append(
@@ -733,23 +813,22 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
                     f"{v.custom_rgb_unique} unique exact colors{top_txt}")
         lines.append("")
 
-    # 5. viewmodel
     if v.fov_n:
         lines.append(heading("Viewmodel"))
-        lines.append("")
-        lines.append(fig("viewmodel"))
         lines.append("")
         lines.append(f"- `viewmodel_fov 68`: **{v.fov68_pct}** (n={v.fov_n})")
         lines.append(f"- Dominant offset: **{v.viewmodel_dominant_offset}**")
         lines.append("")
 
-    # 6. radar / other
-    if v.radar_centered_available:
-        lines.append(heading("Radar / Other"))
+    if v.radar_centered_available or v.radar_zoom_n:
+        lines.append(heading("Radar"))
         lines.append("")
-        lines.append("### Radar centered")
+        lines.append(fig("radar"))
         lines.append("")
-        lines.append(f"- Enabled: {v.radar_centered_pct} (n={v.radar_centered_n})")
+        if v.radar_zoom_n:
+            lines.append(f"- Radar zoom — median **{v.radar_zoom_median}**; {_top_values(v.radar_zoom_rank)} (n={v.radar_zoom_n}). Values are descriptive; no directional interpretation is applied.")
+        if v.radar_centered_available:
+            lines.append(f"- Radar centered enabled: {v.radar_centered_pct} (n={v.radar_centered_n})")
         lines.append("")
 
     # 7. extended segments (real values only)
@@ -785,8 +864,7 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
                 lines.append(f"- {s}")
         lines.append("")
 
-    # 8. data coverage
-    lines.append(heading("Data coverage"))
+    lines.append(heading("Coverage & quality"))
     lines.append("")
     lines.append("| Field | valid_n / cohort |")
     lines.append("|---|---|")
@@ -794,6 +872,8 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
         lines.append(f"| {FIELD_LABELS_EN[key]} | {valid_n} / {cohort_n} |")
     lines.append("")
     lines.append(f"{v.players_with_any_setting} Core players currently have at least one usable settings field.")
+    if v.edpi_qc_comparable_n:
+        lines.append(f"eDPI arithmetic QC flags {v.edpi_qc_anomaly_count}/{v.edpi_qc_comparable_n} comparable observations; flags remain quality signals and do not overwrite source values.")
     lines.append("")
 
     # source conflicts (only when real conflicts exist)
@@ -838,82 +918,79 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
 
     key_rows = _key_numbers_zh(v)
     if key_rows:
-        lines.append(heading("本期核心数据"))
+        lines.append(heading("本期要点"))
         lines.append("")
         lines.extend(key_rows)
         lines.append("")
 
-    if v.edpi_n or v.dpi_n or v.polling_n:
-        lines.append(heading("鼠标与灵敏度"))
+    if v.edpi_n or v.dpi_n or v.zoom_n or v.polling_n:
+        lines.append(heading("鼠标"))
+        lines.append("")
+        lines.append(fig("mouse"))
         lines.append("")
         if v.edpi_n:
-            lines.append("### eDPI")
-            lines.append("")
-            lines.append(fig("edpi"))
-            lines.append("")
             lines.append(f"- 中位数：**{v.edpi_median}** · 平均值：**{v.edpi_mean}** · 有效样本：{v.edpi_n}")
             if v.edpi_core_label:
                 lines.append(f"- {v.edpi_core_label} eDPI 覆盖 {v.edpi_core_count / v.edpi_core_total * 100:.1f}% 的有效样本（{v.edpi_core_count}/{v.edpi_core_total}）。")
-            lines.append("")
+            if v.edpi_qc_comparable_n:
+                lines.append(
+                    f"- 算术 QC：{v.edpi_qc_consistent_n}/{v.edpi_qc_comparable_n} 一致；"
+                    f"按 max({v.edpi_qc_abs_tolerance} eDPI, {v.edpi_qc_rel_tolerance}) "
+                    f"容差标记 **{v.edpi_qc_anomaly_count} 项**。")
         if v.dpi_n:
-            lines.append("### DPI")
-            lines.append("")
-            lines.append(fig("dpi"))
-            lines.append("")
-            lines.append(f"- 800：**{v.dpi_800_pct}** · 400：{v.dpi_400_pct} · 1600+：{v.dpi_1600_plus_pct}（n={v.dpi_n}）")
-            if v.dpi_400_count is not None and v.dpi_800_count is not None:
-                combo = v.dpi_400_count + v.dpi_800_count
-                lines.append(f"- 400 与 800 DPI 合计 {combo}/{v.dpi_n}（{combo / v.dpi_n * 100:.1f}%）。")
-            lines.append("")
+            lines.append(f"- DPI — 800：**{v.dpi_800_pct}** · 400：{v.dpi_400_pct} · 1600+：{v.dpi_1600_plus_pct}（n={v.dpi_n}）")
+        if v.zoom_n:
+            lines.append(f"- 开镜灵敏度 — 中位数 **{v.zoom_median}**；{_top_values(v.zoom_rank)}（n={v.zoom_n}）")
         if v.polling_n:
-            lines.append("### 鼠标回报率")
-            lines.append("")
-            lines.append(fig("polling"))
-            lines.append("")
-            lines.append(f"- 1000 Hz：{v.polling_1000_pct} · 2000 Hz：{v.polling_2000_pct} · 4000 Hz：{v.polling_4000_pct} · 8000 Hz：{v.polling_8000_pct}（n={v.polling_n}）")
-            if v.polling_4000_plus_count is not None:
-                lines.append(f"- 4000 Hz 及以上合计 {v.polling_4000_plus_count}/{v.polling_n}（{v.polling_4000_plus_pct}）。")
-            lines.append("")
+            lines.append(f"- 回报率 — 1000：{v.polling_1000_pct} · 2000：{v.polling_2000_pct} · 4000：{v.polling_4000_pct} · 8000 Hz：{v.polling_8000_pct}（n={v.polling_n}）")
+        lines.append("")
 
-    if v.aspect_n or v.resolution_n:
-        lines.append(heading("分辨率与显示"))
+    if v.aspect_n or v.resolution_n or v.scaling_n or v.boost_n:
+        lines.append(heading("显示"))
+        lines.append("")
+        lines.append(fig("display"))
         lines.append("")
         if v.aspect_rank:
-            lines.append("### 宽高比")
-            lines.append("")
-            lines.append(fig("aspect_ratio"))
-            lines.append("")
-            top, tc, tt = v.aspect_rank[0]
-            lines.append(f"- {top}：**{_cats_pct_from_row(v.aspect_rank[0])}**（n={v.aspect_n}）")
-            if len(v.aspect_rank) > 1:
-                runner, rc, rt = v.aspect_rank[1]
-                lines.append(f"- {runner} 次之，占 {rc}/{rt}（{_cats_pct_from_row(v.aspect_rank[1])}）。")
-            lines.append("")
+            lines.append(f"- 宽高比 — {_top_values(v.aspect_rank)}（n={v.aspect_n}）")
         if v.resolution_rank:
-            lines.append("### 分辨率")
-            lines.append("")
-            lines.append(fig("resolution"))
-            lines.append("")
-            top, tc, tt = v.resolution_rank[0]
-            lines.append(f"- 最常见：**{top}**（{_cats_pct_from_row(v.resolution_rank[0])}，n={v.resolution_n}）")
-            if len(v.resolution_rank) > 1:
-                runner, rc, rt = v.resolution_rank[1]
-                lines.append(f"- {runner} 次之，占 {rc}/{rt}（{_cats_pct_from_row(v.resolution_rank[1])}）。")
-            lines.append("")
+            lines.append(f"- 分辨率 — {_top_values(v.resolution_rank)}（n={v.resolution_n}）")
+        if v.scaling_rank:
+            lines.append(f"- 缩放模式 — {_top_values(v.scaling_rank)}（n={v.scaling_n}）")
+        if v.boost_n:
+            lines.append(
+                f"- Boost Player Contrast — 已开启 **{v.boost_enabled_pct}** "
+                f"（{v.boost_enabled_count}/{v.boost_n} 项已知）；关闭 "
+                f"{v.boost_disabled_count}/{v.boost_n}；缺失/未知 "
+                f"{v.boost_missing_n}/{v.player_count}。")
+        lines.append("")
 
-    if v.crosshair_n:
+    if v.crosshair_n or v.crosshair_color_n or _geometry_available(v):
         lines.append(heading("准星"))
         lines.append("")
-        lines.append(fig("crosshair"))
-        lines.append("")
-        lines.append(f"- Dot 与 Outline 同时关闭：**{v.crosshair_minimal_pct}**（n={v.crosshair_n}）")
+        if _geometry_available(v):
+            lines.append(fig("crosshair_geometry"))
+            lines.append("")
+            style = v.crosshair_geometry.get("style") or {}
+            if style.get("valid_n"):
+                lines.append(f"- Style 原始代码 — {_top_values(style['rows'])}（n={style['valid_n']}）；仅按来源值报告，不解释机制。")
+            for key, label in (("size", "Size"), ("gap", "Gap"),
+                               ("thickness", "Thickness"), ("alpha", "Alpha")):
+                block = v.crosshair_geometry.get(key) or {}
+                if block.get("valid_n"):
+                    lines.append(f"- {label} — 中位数 **{block['median']}**；{_top_values(block['rows'])}（n={block['valid_n']}）")
+            for key, label in (("dot", "Dot"), ("outline", "Outline")):
+                block = v.crosshair_geometry.get(key) or {}
+                if block.get("valid_n"):
+                    lines.append(f"- {label} 开启 — **{block['enabled_pct']}**（{block['enabled_count']}/{block['valid_n']} 项已知）")
+        if v.crosshair_n:
+            lines.append(f"- Dot 与 outline 同时关闭：**{v.crosshair_minimal_pct}**（n={v.crosshair_n}，两字段均已知）")
         if v.crosshair_color_rows:
+            lines.append("")
+            lines.append(fig("crosshair"))
+            lines.append("")
             color_txt = " · ".join(f"{k} {_cats_pct_from_row((k, c, t))}" for k, c, t in v.crosshair_color_rows)
-            lines.append(f"- 颜色类别：{color_txt}（n={v.crosshair_n}）")
+            lines.append(f"- 颜色类别：{color_txt}（n={v.crosshair_color_n}）")
             if v.custom_rgb_valid_n:
-                lines.append("")
-                lines.append(fig("custom_rgb"))
-                lines.append("")
                 top_txt = (f" · 最常用 **{v.custom_rgb_top}**（{v.custom_rgb_top_pct}）"
                            if v.custom_rgb_top != "n/a" else "")
                 lines.append(
@@ -925,18 +1002,19 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
     if v.fov_n:
         lines.append(heading("Viewmodel"))
         lines.append("")
-        lines.append(fig("viewmodel"))
-        lines.append("")
         lines.append(f"- `viewmodel_fov 68`：**{v.fov68_pct}**（n={v.fov_n}）")
         lines.append(f"- 最常见三轴偏移：**{v.viewmodel_dominant_offset}**")
         lines.append("")
 
-    if v.radar_centered_available:
-        lines.append(heading("Radar / 其他"))
+    if v.radar_centered_available or v.radar_zoom_n:
+        lines.append(heading("Radar"))
         lines.append("")
-        lines.append("### Radar centered")
+        lines.append(fig("radar"))
         lines.append("")
-        lines.append(f"- 开启比例：{v.radar_centered_pct}（n={v.radar_centered_n}）")
+        if v.radar_zoom_n:
+            lines.append(f"- Radar zoom — 中位数 **{v.radar_zoom_median}**；{_top_values(v.radar_zoom_rank)}（n={v.radar_zoom_n}）。仅报告数值分布，不作方向性解释。")
+        if v.radar_centered_available:
+            lines.append(f"- Radar centered 开启：{v.radar_centered_pct}（n={v.radar_centered_n}）")
         lines.append("")
 
     if v.segment_rows:
@@ -970,7 +1048,7 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
                 lines.append(f"- {s}")
         lines.append("")
 
-    lines.append(heading("数据覆盖"))
+    lines.append(heading("覆盖与质量"))
     lines.append("")
     lines.append("| 字段 | valid_n / cohort |")
     lines.append("|---|---|")
@@ -978,6 +1056,8 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
         lines.append(f"| {FIELD_LABELS_ZH[key]} | {valid_n} / {cohort_n} |")
     lines.append("")
     lines.append(f"当前 {v.players_with_any_setting} 名 Core 选手至少有一项可用设置字段。")
+    if v.edpi_qc_comparable_n:
+        lines.append(f"eDPI 算术 QC 在 {v.edpi_qc_comparable_n} 项可比较记录中标记 {v.edpi_qc_anomaly_count} 项；标记仅作为质量信号，不覆盖来源值。")
     lines.append("")
 
     if v.conflict_count:

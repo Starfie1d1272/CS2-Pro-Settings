@@ -80,7 +80,12 @@ def _accepted_shaped_metrics(date_="2026-08-11") -> dict:
     agg["edpi"] = {"count": 133, "median": 800.0, "mean": 844.3,
                    "distribution": {"0-400": 0, "400-600": 13, "600-800": 32,
                                     "800-1000": 61, "1000-1200": 18,
-                                    "1200-1600": 6, "1600+": 3}}
+                                    "1200-1600": 6, "1600+": 3},
+                   "consistency_qc": {"comparable_n": 133, "consistent_n": 131,
+                                      "anomaly_count": 2, "anomaly_share": 0.015,
+                                      "missing_inputs_n": 16,
+                                      "absolute_tolerance": 2.0,
+                                      "relative_tolerance": 0.01}}
     agg["dpi"] = {"valid_n": 133, "top_category": "800",
                   "categories": {"800": 67, "400": 60, "1600": 4,
                                  "1000": 1, "3200": 1},
@@ -97,18 +102,49 @@ def _accepted_shaped_metrics(date_="2026-08-11") -> dict:
                            "categories": {"4:3": 109, "16:9": 11,
                                           "5:4": 8, "16:10": 5},
                            "share_4_3": 0.8195}
+    agg["scaling_mode"] = {"valid_n": 133,
+                           "categories": {"Stretched": 119, "Native": 9,
+                                          "Black Bars": 5},
+                           "top_category": "Stretched"}
+    agg["zoom_sensitivity"] = {"valid_n": 132, "median": 1.0,
+                               "categories": {"1": 103, "1.1": 6, "0.8": 5},
+                               "top_category": "1"}
+    agg["boost_player"] = {"valid_n": 101, "missing_n": 48,
+                           "enabled_count": 85, "disabled_count": 16,
+                           "enabled_share": 0.8416}
     agg["mouse_polling"] = {"valid_n": 133,
                             "categories": {"1000": 83, "2000": 26,
                                            "4000": 21, "8000": 3},
                             "share_4000_plus": 0.1805}
     agg["crosshair"] = {"valid_n": 133, "dot_outline_off_share": 0.8045,
+                        "color_valid_n": 133,
                         "top_color": "Custom",
                         "color_categories": {"Custom": 60, "Blue": 35,
-                                             "Green": 30, "Yellow": 8}}
+                                             "Green": 30, "Yellow": 8},
+                        "geometry": {
+                            "style": {"valid_n": 133, "categories": {"4": 132, "5": 1}},
+                            "size": {"valid_n": 133, "median": 1.0,
+                                     "categories": {"1": 65, "2": 26, "1.5": 13}},
+                            "gap": {"valid_n": 133, "median": -4.0,
+                                    "categories": {"-4": 53, "-3": 30, "-5": 8}},
+                            "thickness": {"valid_n": 133, "median": 1.0,
+                                          "categories": {"1": 66, "0": 43, "0.5": 7}},
+                            "alpha": {"valid_n": 133, "median": 255,
+                                      "categories": {"255": 113, "200": 18}},
+                            "dot": {"valid_n": 133, "missing_n": 16,
+                                    "enabled_count": 13, "disabled_count": 120,
+                                    "enabled_share": 0.0977},
+                            "outline": {"valid_n": 133, "missing_n": 16,
+                                        "enabled_count": 17, "disabled_count": 116,
+                                        "enabled_share": 0.1278},
+                        }}
     agg["viewmodel"] = {"valid_n": 125, "fov68_share": 0.912,
                         "dominant_offset": [2.5, 0.0, -1.5]}
     agg["radar"] = {"valid_n": 0, "rotating_valid_n": 0, "centered_valid_n": 120,
-                    "rotating_share": None, "centered_share": 0.7167}
+                    "rotating_share": None, "centered_share": 0.7167,
+                    "zoom": {"valid_n": 99, "median": 0.4,
+                             "categories": {"0.4": 29, "0.7": 20, "0.3": 10},
+                             "top_category": "0.4"}}
     agg["refresh_rate"] = {"valid_n": 0, "categories": {},
                            "share_360": None, "share_540_plus": None}
     agg["fps_max"] = {"valid_n": 0, "categories": {}, "unlimited_share": None}
@@ -156,13 +192,13 @@ def _render_pair(metrics=None, drift=None, baseline=None, locale=None,
 def test_english_report_renders():
     en, _ = _render_pair()
     assert en.startswith("# CS2 Professional Settings Snapshot")
-    assert "## 1. Key numbers" in en
+    assert "## 1. Highlights" in en
 
 
 def test_chinese_report_renders():
     _, zh = _render_pair()
     assert zh.startswith("# CS2 职业选手设置月度快照")
-    assert "## 1. 本期核心数据" in zh
+    assert "## 1. 本期要点" in zh
 
 
 # ---------------------------------------------------------------------------
@@ -212,9 +248,12 @@ def test_shared_view_model_drives_both_locales():
     for attr in ("snapshot_date", "series_id", "team_count", "player_count",
                  "players_with_any_setting", "any_setting_pct",
                  "edpi_median", "edpi_mean", "edpi_n",
-                 "dpi_n", "polling_n", "aspect_n", "resolution_n",
-                 "crosshair_n", "fov_n", "radar_centered_available",
-                 "radar_centered_n", "field_rows", "first_snapshot",
+                 "edpi_qc_comparable_n", "edpi_qc_anomaly_count",
+                 "dpi_n", "polling_n", "zoom_n", "aspect_n", "resolution_n",
+                 "scaling_n", "boost_n", "boost_missing_n",
+                 "crosshair_n", "crosshair_color_n", "crosshair_geometry",
+                 "fov_n", "radar_centered_available", "radar_centered_n",
+                 "radar_zoom_n", "radar_zoom_median", "field_rows", "first_snapshot",
                  "conflict_count", "segment_rows", "previous_snapshot",
                  "roster_turnover", "matched_count"):
         assert getattr(view_en, attr) == getattr(view_zh, attr), attr
@@ -324,6 +363,40 @@ def test_zero_valid_n_sections_hidden():
     assert "| 显示器刷新率 | 0 / 149 |" in zh
 
 
+def test_new_reporting_fields_and_denominators_are_exposed_in_both_locales():
+    en, zh = _render_pair()
+    shared_numbers = ("89.5%", "132", "101", "48/149", "99", "131/133", "2")
+    for value in shared_numbers:
+        assert value in en
+        assert value in zh
+    assert "Boost Player Contrast" in en and "missing/unknown 48/149" in en
+    assert "Boost Player Contrast" in zh and "缺失/未知 48/149" in zh
+    for field in ("Style codes", "Size", "Gap", "Thickness", "Alpha",
+                  "Dot enabled", "Outline enabled"):
+        assert field in en
+    assert "Radar zoom" in en and "no directional interpretation" in en
+    assert "Radar zoom" in zh and "不作方向性解释" in zh
+
+
+def test_new_zero_valid_sections_and_figure_links_are_hidden():
+    metrics = _accepted_shaped_metrics()
+    agg = metrics["aggregate"]
+    agg["scaling_mode"] = {"valid_n": 0, "categories": {}, "top_category": None}
+    agg["boost_player"] = {"valid_n": 0, "missing_n": 149,
+                           "enabled_count": 0, "disabled_count": 0,
+                           "enabled_share": None}
+    agg["radar"]["zoom"] = {"valid_n": 0, "categories": {}, "median": None}
+    agg["radar"]["centered_valid_n"] = 0
+    agg["radar"]["centered_share"] = None
+    en, zh = _render_pair(metrics=metrics)
+    assert "Boost Player Contrast — enabled" not in en
+    assert "Boost Player Contrast — 已开启" not in zh
+    assert "Radar zoom —" not in en
+    assert "Radar zoom —" not in zh
+    assert "radar.png" not in en
+    assert "radar.png" not in zh
+
+
 # ---------------------------------------------------------------------------
 # 5b. extended segments: only real values; otherwise section omitted
 # ---------------------------------------------------------------------------
@@ -407,8 +480,8 @@ def test_monthly_candidate_writes_four_reports(_candidate_env):
     assert month_en.read_text() == "EN monthly v1\n"
     assert month_zh.read_text() == "ZH monthly v1\n"
     # both figure scopes are written for a monthly candidate
-    assert (fake_root / "figures" / "latest" / "edpi.png").exists()
-    assert (fake_root / "figures" / month / "edpi.png").exists()
+    assert (fake_root / "figures" / "latest" / "mouse.png").exists()
+    assert (fake_root / "figures" / month / "mouse.png").exists()
     assert "data/aggregate/latest.json" in changed
     assert f"{month}.json" in changed
     assert f"figures/{month}/*" in changed
@@ -446,10 +519,10 @@ def test_next_month_does_not_touch_previous_month_figures(_candidate_env):
         (work / name).write_text("x\n", encoding="utf-8")
     metrics = _metrics_for_candidate()
     actions_common.write_candidate_files(metrics, monthly=True, month="2026-08")
-    prev_bytes = (fake_root / "figures" / "2026-08" / "edpi.png").read_bytes()
+    prev_bytes = (fake_root / "figures" / "2026-08" / "mouse.png").read_bytes()
     actions_common.write_candidate_files(metrics, monthly=True, month="2026-09")
-    assert (fake_root / "figures" / "2026-09" / "edpi.png").exists()
-    assert (fake_root / "figures" / "2026-08" / "edpi.png").read_bytes() == prev_bytes
+    assert (fake_root / "figures" / "2026-09" / "mouse.png").exists()
+    assert (fake_root / "figures" / "2026-08" / "mouse.png").read_bytes() == prev_bytes
 
 
 def test_monthly_report_figure_links_point_to_month_scope():
@@ -462,8 +535,8 @@ def test_monthly_report_figure_links_point_to_month_scope():
     zh = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics,
                        locale="zh-CN", figure_scope=month, cross_link_base=month)
-    assert f"../figures/{month}/edpi.png" in en
-    assert f"../figures/{month}/fov.png" in zh
+    assert f"../figures/{month}/mouse.png" in en
+    assert f"../figures/{month}/radar.png" in zh
     assert f"[中文版](./{month}.zh-CN.md)" in en
     assert f"[English version](./{month}.md)" in zh
     assert "../figures/latest/" not in en
@@ -476,8 +549,8 @@ def test_latest_report_figure_links_point_to_latest_scope():
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
     zh = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
-    assert "../figures/latest/edpi.png" in en
-    assert "../figures/latest/fov.png" in zh
+    assert "../figures/latest/mouse.png" in en
+    assert "../figures/latest/radar.png" in zh
     assert "[中文版](./latest.zh-CN.md)" in en
     assert "[English version](./latest.md)" in zh
     assert "../figures/2026-08/" not in en
@@ -539,8 +612,7 @@ def test_figure_links_resolve(tmp_path):
     scope = "testfig"
     fig_dir = tmp_path / "figures" / scope
     fig_dir.mkdir(parents=True)
-    referenced = {"edpi", "dpi", "polling", "aspect_ratio", "resolution",
-                  "crosshair", "viewmodel"}
+    referenced = {"mouse", "display", "crosshair_geometry", "crosshair", "radar"}
     for key in referenced:
         (fig_dir / FIGURE_FILES[key]).write_bytes(b"png")
     for locale in ("en", "zh-CN"):
@@ -552,7 +624,7 @@ def test_figure_links_resolve(tmp_path):
         for link in links:
             assert (fig_dir / link).exists(), f"broken figure link: {link}"
             assert link != "refresh_rate.png", "empty refresh chart must not be referenced"
-            assert link != "radar.png", "no radar figure is referenced by the template"
+            assert link in FIGURE_FILES.values()
 
 
 # ---------------------------------------------------------------------------
@@ -633,14 +705,14 @@ def test_resolution_top_flip_uses_real_top_and_share():
         "1920x1080": 91, "1280x960": 12}
     en = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
-    assert "Most common: **1920x1080**" in en
+    assert "Resolution — 1920x1080 88.3%" in en
     # 91 / 103 = 88.3%; runner-up is 1280x960 at 12/103
-    assert "1280x960 is next at 12/103" in en
+    assert "1280x960 11.7%" in en
     assert "**1280x960** (68.4%" not in en
     zh = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
-    assert "最常见：**1920x1080**" in zh
-    assert "1280x960 次之" in zh
+    assert "分辨率 — 1920x1080 88.3%" in zh
+    assert "1280x960 11.7%" in zh
 
 
 def test_aspect_runner_up_is_dynamic():
@@ -650,12 +722,10 @@ def test_aspect_runner_up_is_dynamic():
         "4:3": 109, "5:4": 11, "16:9": 8}
     en = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
-    assert "5:4 is the next tier at 11/128" in en
-    assert "16:9 is the next tier" not in en
+    assert "Aspect ratio — 4:3 85.2% · 5:4 8.6% · 16:9 6.2%" in en
     zh = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="zh-CN")
-    assert "5:4 次之" in zh
-    assert "16:9 次之" not in zh
+    assert "宽高比 — 4:3 85.2% · 5:4 8.6% · 16:9 6.2%" in zh
 
 
 def test_key_numbers_use_real_top_share():
@@ -665,19 +735,16 @@ def test_key_numbers_use_real_top_share():
     en = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
     # Key numbers line uses the REAL top with the REAL share (91/103)
-    assert "- 1920x1080: **88.3%**" in en
-    assert "- 1280x960: **68.4%**" not in en
+    assert "**1920x1080** at 88.3%" in en
+    assert "**1280x960** at 68.4%" not in en
 
 
-def test_default_top_rendering_unchanged():
-    """1280x960 first / 4:3 first / 16:9 second keeps the previous output."""
+def test_default_top_rendering_uses_real_rank_and_denominator():
     metrics = _accepted_shaped_metrics()
     en = render_report(metrics, _self_baseline_drift(metrics),
                        {"cs2settings": "ok"}, [], baseline=metrics, locale="en")
-    assert "Most common: **1280x960** (68.4%, n=133)" in en
-    assert "1920x1080 is next at 12/133 (9.0%)." in en
-    assert "- 4:3: **82.0%** (n=133)" in en
-    assert "16:9 is the next tier at 11/133 (8.3%)." in en
+    assert "Resolution — 1280x960 68.4% · 1920x1080 9.0% · 1024x768 7.5% (n=133)" in en
+    assert "Aspect ratio — 4:3 82.0% · 16:9 8.3% · 5:4 6.0% (n=133)" in en
 
 
 # ---------------------------------------------------------------------------

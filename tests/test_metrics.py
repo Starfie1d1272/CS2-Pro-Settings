@@ -148,3 +148,84 @@ def test_dominant_offset_deterministic_tie():
         b["aggregate"]["viewmodel"]["dominant_offset"]
     # tie -> lexicographically smallest tuple wins deterministically
     assert a["aggregate"]["viewmodel"]["dominant_offset"] == [1.0, 1.0, 1.0]
+
+
+def test_additive_reporting_metrics_keep_field_denominators():
+    players = [
+        p("steam:1", scaling_mode="Stretched", zoom_sensitivity=1.0,
+          boost_player=True, crosshair_style="4", crosshair_size=1.0,
+          crosshair_gap=-3.0, crosshair_thickness=1.0, crosshair_alpha=255,
+          crosshair_dot=False, crosshair_outline=False, radar_zoom=0.4),
+        p("steam:2", scaling_mode="Native", zoom_sensitivity=None,
+          boost_player=False, crosshair_style="4", crosshair_size=2.0,
+          crosshair_gap=-4.0, crosshair_thickness=0.0, crosshair_alpha=200,
+          crosshair_dot=True, crosshair_outline=None, radar_zoom=None),
+        p("steam:3", scaling_mode=None, zoom_sensitivity=1.0,
+          boost_player=None, crosshair_style=None, crosshair_size=None,
+          crosshair_gap=None, crosshair_thickness=None, crosshair_alpha=None,
+          crosshair_dot=None, crosshair_outline=True, radar_zoom=0.7),
+    ]
+    agg = compute_metrics(players, "2026-08-01")["aggregate"]
+
+    assert agg["scaling_mode"]["valid_n"] == 2
+    assert agg["zoom_sensitivity"]["valid_n"] == 2
+    assert agg["zoom_sensitivity"]["median"] == 1.0
+    assert agg["boost_player"] == {
+        "valid_n": 2, "missing_n": 1, "enabled_count": 1,
+        "disabled_count": 1, "enabled_share": 0.5,
+    }
+    geometry = agg["crosshair"]["geometry"]
+    assert geometry["style"]["valid_n"] == 2
+    assert geometry["size"]["categories"] == {"1": 1, "2": 1}
+    assert geometry["dot"]["valid_n"] == 2
+    assert geometry["dot"]["enabled_share"] == 0.5
+    assert geometry["outline"]["valid_n"] == 2
+    assert geometry["outline"]["missing_n"] == 1
+    assert compute_metrics(players, "2026-08-01")["figure_data"] == {
+        "crosshair_gap_size": {
+            "valid_n": 2,
+            "combinations": [
+                {"gap": -4.0, "size": 2.0, "count": 1},
+                {"gap": -3.0, "size": 1.0, "count": 1},
+            ],
+        },
+    }
+    assert agg["radar"]["zoom"]["valid_n"] == 2
+    assert agg["radar"]["zoom"]["categories"] == {"0.4": 1, "0.7": 1}
+
+
+def test_figure_data_is_identity_free_and_not_publicly_exposed():
+    players = [
+        p("steam:1", crosshair_gap=-4.0, crosshair_size=1.0),
+        p("steam:2", crosshair_gap=-4.0, crosshair_size=1.0),
+        p("steam:3", crosshair_gap=-3.0, crosshair_size=None),
+    ]
+    metrics = compute_metrics(players, "2026-08-01")
+    joint = metrics["figure_data"]["crosshair_gap_size"]
+    assert joint == {
+        "valid_n": 2,
+        "combinations": [{"gap": -4.0, "size": 1.0, "count": 2}],
+    }
+    assert "steam:" not in str(joint)
+    assert "figure_data" not in public_aggregate(metrics)
+
+
+def test_edpi_consistency_qc_tolerance_and_missing_inputs():
+    players = [
+        p("steam:1", dpi=800.0, sensitivity=1.0, edpi=800.0),
+        # 0.75% difference: within the 1% relative tolerance.
+        p("steam:2", dpi=800.0, sensitivity=1.0, edpi=806.0),
+        # 5% difference: an obvious arithmetic anomaly.
+        p("steam:3", dpi=800.0, sensitivity=1.0, edpi=840.0),
+        p("steam:4", dpi=800.0, sensitivity=None, edpi=800.0),
+    ]
+    qc = compute_metrics(players, "2026-08-01")["aggregate"]["edpi"]["consistency_qc"]
+    assert qc == {
+        "comparable_n": 3,
+        "consistent_n": 2,
+        "anomaly_count": 1,
+        "anomaly_share": round(1 / 3, 4),
+        "missing_inputs_n": 1,
+        "absolute_tolerance": 2.0,
+        "relative_tolerance": 0.01,
+    }

@@ -406,25 +406,14 @@ def test_radar_report_and_plot_use_separate_denominators(tmp_path):
 
 
 # ---------------------------------------------------------------------------
-# 18. eDPI median bin marker
+# 18. eDPI production bin order (categorical; no median marker)
 # ---------------------------------------------------------------------------
 
-def test_edpi_median_bin_selection(tmp_path):
-    from cs2_pro_settings.plots import _EDPI_BIN_RANGES
+def test_edpi_categorical_bins_have_fixed_numeric_order(tmp_path):
+    from cs2_pro_settings.plots import _EDPI_ORDER
 
-    def bin_of(med):
-        if med is None:
-            return None
-        for label, lo, hi in _EDPI_BIN_RANGES:
-            if lo <= med < hi:
-                return label
-        return None
-
-    assert bin_of(700) == "600-800"
-    assert bin_of(900) == "800-1000"
-    assert bin_of(1500) == "1200-1600"
-    assert bin_of(2000) == "1600+"
-    assert bin_of(None) is None
+    assert _EDPI_ORDER == ["0-400", "400-600", "600-800", "800-1000",
+                           "1000-1200", "1200-1600", "1600+"]
 
 
 # ---------------------------------------------------------------------------

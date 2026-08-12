@@ -1,61 +1,119 @@
-"""Regression: render_all with NON-EMPTY category dicts.
+"""Production-figure regressions: real categories, empty fields, determinism."""
+import hashlib
 
-The `X or {}.items()` precedence bug made the iteration source the dict
-ITSELF (keys) whenever categories was a non-empty dict — unpacking a key
-string like "800" into (k, v) raised 'too many values to unpack'. Local
-offline fixtures had EMPTY categories (falsy), so the bug only surfaced on
-live data in the weekly workflow.
-"""
-import json
-
-import pytest
-
-from cs2_pro_settings.plots import render_all
+from cs2_pro_settings.plots import _active_color_rows, _ordered, render_all
 
 
 def _full_metrics() -> dict:
-    """Aggregate shaped like a real live run (non-empty categories)."""
     agg = {
         "player_count": 149,
-        "team_count": 30,
-        "series": {"series_id": "vrs-core-v2", "cohort_semantics": "core"},
-        "scope": {"scope_id": "vrs-core-v2", "core_snapshot": "2026-08-10"},
-        "edpi": {
-            "valid_n": 149, "median": 800.0,
-            "distribution": {"600-800": 90, "800-1000": 40, "1600+": 19},
-        },
+        "edpi": {"count": 149, "median": 800.0,
+                 "distribution": {"600-800": 90, "800-1000": 40,
+                                  "1600+": 19}},
         "dpi": {"valid_n": 149,
-                "categories": {"400": 30, "800": 99, "1600": 20},
-                "top_category": "800"},
+                "categories": {"400": 30, "800": 99, "1600": 20}},
+        "zoom_sensitivity": {"valid_n": 148,
+                             "categories": {"0.8": 10, "1": 130, "1.1": 8}},
+        "mouse_polling": {"valid_n": 149,
+                          "categories": {"8000": 9, "1000": 100,
+                                         "4000": 30, "2000": 10}},
         "resolution": {"valid_n": 149,
                        "categories": {"1280x960": 70, "1920x1080": 50,
                                       "1024x768": 29}},
-        "aspect_ratio": {"valid_n": 149, "categories": {"4:3": 80, "16:9": 69}},
-        "refresh_rate": {"valid_n": 149, "categories": {"240": 60, "360": 89}},
-        "fps_max": {"valid_n": 149, "categories": {"400": 99, "unlimited": 50}},
-        "crosshair": {"valid_n": 149, "top_category": "default"},
-        "viewmodel": {"valid_n": 149, "top_category": "classic"},
-        "radar": {"valid_n": 149},
-        "mouse_polling": {"valid_n": 149, "categories": {"1000": 100, "8000": 49}},
+        "aspect_ratio": {"valid_n": 149,
+                         "categories": {"4:3": 80, "16:9": 69}},
+        "scaling_mode": {"valid_n": 149,
+                         "categories": {"Stretched": 120, "Native": 29}},
+        "boost_player": {"valid_n": 100, "missing_n": 49,
+                         "enabled_count": 80, "disabled_count": 20,
+                         "enabled_share": 0.8},
+        "crosshair": {
+            "valid_n": 149, "color_valid_n": 149,
+            "color_categories": {"Custom": 80, "Green": 45, "Cyan": 24},
+            "custom_rgb": {"valid_n": 3, "custom_players": 80,
+                           "categories": {"255,255,255": 2, "0,255,145": 1}},
+            "geometry": {
+                "style": {"valid_n": 149, "categories": {"4": 148, "5": 1}},
+                "size": {"valid_n": 149, "categories": {"1": 90, "2": 59}},
+                "gap": {"valid_n": 149, "categories": {"-4": 90, "-3": 59}},
+                "thickness": {"valid_n": 149, "categories": {"0": 60, "1": 89}},
+                "alpha": {"valid_n": 149, "categories": {"200": 20, "255": 129}},
+                "dot": {"valid_n": 120, "enabled_count": 12},
+                "outline": {"valid_n": 130, "enabled_count": 26},
+            },
+        },
+        "radar": {"centered_valid_n": 120, "centered_share": 0.75,
+                  "zoom": {"valid_n": 99,
+                           "categories": {"0.3": 20, "0.4": 60, "0.7": 19}}},
     }
-    return {"aggregate": agg, "panel": {"status": "available", "player_count": 149}}
+    return {
+        "aggregate": agg,
+        "figure_data": {
+            "crosshair_gap_size": {
+                "valid_n": 149,
+                "combinations": [
+                    {"gap": -4.0, "size": 1.0, "count": 90},
+                    {"gap": -3.0, "size": 2.0, "count": 59},
+                ],
+            },
+        },
+        "panel": {"status": "available", "player_count": 149},
+    }
 
 
-def test_render_all_with_nonempty_categories(tmp_path):
+def test_render_all_produces_compact_production_set(tmp_path):
     written = render_all(_full_metrics(), tmp_path)
-    names = {p.name for p in written}
-    assert "dpi.png" in names
-    assert "resolution.png" in names
-    assert "refresh_rate.png" in names
-    assert "polling_rate.png" in names
-    assert "edpi.png" in names
-    for p in written:
-        assert p.stat().st_size > 0
+    assert {p.name for p in written} == {
+        "mouse.png", "display.png", "crosshair_geometry.png",
+        "crosshair_color.png", "radar.png",
+    }
+    for path in written:
+        assert path.stat().st_size > 10_000
 
 
-def test_render_all_with_empty_categories_still_ok(tmp_path):
-    m = _full_metrics()
-    for k in ("dpi", "resolution", "refresh_rate", "mouse_polling"):
-        m["aggregate"][k]["categories"] = {}
-    written = render_all(m, tmp_path)
-    assert written  # no crash, no exception
+def test_zero_valid_blocks_do_not_create_empty_figures(tmp_path):
+    metrics = {"aggregate": {"player_count": 3,
+                              "edpi": {"count": 0, "distribution": {}},
+                              "dpi": {"valid_n": 0, "categories": {}},
+                              "zoom_sensitivity": {"valid_n": 0, "categories": {}},
+                              "mouse_polling": {"valid_n": 0, "categories": {}},
+                              "radar": {"centered_valid_n": 0,
+                                        "zoom": {"valid_n": 0, "categories": {}}}}}
+    assert render_all(metrics, tmp_path) == []
+    assert list(tmp_path.glob("*.png")) == []
+
+
+def test_render_all_is_byte_identical_across_consecutive_runs(tmp_path):
+    first_dir = tmp_path / "first"
+    second_dir = tmp_path / "second"
+    first = render_all(_full_metrics(), first_dir)
+    second = render_all(_full_metrics(), second_dir)
+    assert [p.name for p in first] == [p.name for p in second]
+    first_hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in first}
+    second_hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in second}
+    assert first_hashes == second_hashes
+
+
+def test_active_color_ranking_keeps_preset_and_exact_rgb_distinct():
+    rows, resolved_n, tail_n, tail_unique, rgb_n, custom_players = \
+        _active_color_rows({
+            "color_categories": {"Custom": 4, "Green": 3, "Cyan": 2},
+            "custom_rgb": {
+                "valid_n": 3,
+                "custom_players": 4,
+                "categories": {"0,255,0": 2, "255,255,255": 1},
+            },
+        })
+    labels = [row[0] for row in rows]
+    assert "Preset · Green" in labels
+    assert "Custom · RGB 0,255,0" in labels
+    assert resolved_n == 8  # five preset players + three resolved Custom RGB
+    assert (tail_n, tail_unique, rgb_n, custom_players) == (1, 1, 3, 4)
+
+
+def test_fixed_edpi_bins_retain_zero_count_categories():
+    bins = {"0-400": 0, "400-600": 3, "600-800": 2}
+    assert _ordered(bins, ["0-400", "400-600", "600-800"],
+                    include_zero=True) == [
+        ("0-400", 0), ("400-600", 3), ("600-800", 2),
+    ]
