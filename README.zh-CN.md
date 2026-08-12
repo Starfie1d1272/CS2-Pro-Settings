@@ -2,15 +2,19 @@
 
 [English](./README.md) | 简体中文
 
-**顶级职业选手究竟都在怎么设置 CS2？这些"职业标准答案"又会随着版本、硬件和选手更替发生什么变化？**
+**顶级职业选手究竟如何设置 CS2？这些“职业标准答案”又会怎样随时间变化？**
 
-CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪项目。
+CS2 Pro Settings Tracker 是一个可复现、感知阵容变化、持续追踪职业 CS2 设置变化的数据项目。
 
 它不只是再爬一张职业选手设置表，而是以当前 VRS 世界 Top 30 为核心样本，持续追踪战队阵容、稳定玩家身份和各项设置，并按月保存可复现快照，从而区分：
 
 - 职业赛场整体偏好真的发生了变化；
 - 只是 Top 战队换了一批选手；
 - 还是同一名职业选手真的修改了设置。
+
+[![最新正式快照中的准星几何分布](./figures/latest/crosshair_geometry.png)](./reports/latest.zh-CN.md)
+
+*最新正式快照中的 Gap × Size 真实组合。打开[完整报告](./reports/latest.zh-CN.md)，可查看全部五张 production figures 及各字段独立分母。*
 
 ## 最新一期
 
@@ -30,6 +34,12 @@ CS2 Pro Settings Tracker 是一个面向职业赛场的长期设置数据追踪�
 
 → [最新中文报告](./reports/latest.zh-CN.md) · [English report](./reports/latest.md) · [月度存档](./reports/2026-08.zh-CN.md)
 <!-- CURRENT_SNAPSHOT:END -->
+
+| 鼠标设置 | 显示设置 |
+|:---:|:---:|
+| [![最新正式快照中的鼠标设置](./figures/latest/mouse.png)](./reports/latest.zh-CN.md#2-鼠标) | [![最新正式快照中的显示设置](./figures/latest/display.png)](./reports/latest.zh-CN.md#3-显示) |
+
+`latest` 图表始终跟随最新正式快照；每期带日期的图表则与对应月报一同保留。
 
 ## 为什么要做这个项目？
 
