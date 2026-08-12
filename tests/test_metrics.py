@@ -181,8 +181,33 @@ def test_additive_reporting_metrics_keep_field_denominators():
     assert geometry["dot"]["enabled_share"] == 0.5
     assert geometry["outline"]["valid_n"] == 2
     assert geometry["outline"]["missing_n"] == 1
+    assert compute_metrics(players, "2026-08-01")["figure_data"] == {
+        "crosshair_gap_size": {
+            "valid_n": 2,
+            "combinations": [
+                {"gap": -4.0, "size": 2.0, "count": 1},
+                {"gap": -3.0, "size": 1.0, "count": 1},
+            ],
+        },
+    }
     assert agg["radar"]["zoom"]["valid_n"] == 2
     assert agg["radar"]["zoom"]["categories"] == {"0.4": 1, "0.7": 1}
+
+
+def test_figure_data_is_identity_free_and_not_publicly_exposed():
+    players = [
+        p("steam:1", crosshair_gap=-4.0, crosshair_size=1.0),
+        p("steam:2", crosshair_gap=-4.0, crosshair_size=1.0),
+        p("steam:3", crosshair_gap=-3.0, crosshair_size=None),
+    ]
+    metrics = compute_metrics(players, "2026-08-01")
+    joint = metrics["figure_data"]["crosshair_gap_size"]
+    assert joint == {
+        "valid_n": 2,
+        "combinations": [{"gap": -4.0, "size": 1.0, "count": 2}],
+    }
+    assert "steam:" not in str(joint)
+    assert "figure_data" not in public_aggregate(metrics)
 
 
 def test_edpi_consistency_qc_tolerance_and_missing_inputs():

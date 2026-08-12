@@ -10,6 +10,7 @@ dependencies are left to chance.
 """
 from __future__ import annotations
 
+from collections import Counter
 import statistics
 from typing import Any, Optional
 
@@ -179,6 +180,27 @@ def compute_metrics(
         "alpha": _numeric_block([p.crosshair_alpha for p in players]),
         "dot": _boolean_block([p.crosshair_dot for p in players], n),
         "outline": _boolean_block([p.crosshair_outline for p in players], n),
+    }
+
+    # Figure-only joint counts.  The public aggregate intentionally keeps the
+    # backward-compatible marginal geometry blocks above; this identity-free
+    # work-state block lets production figures show the observed Gap x Size
+    # structure without reconstructing a false joint distribution from those
+    # marginals.  public_aggregate() does not expose figure_data.
+    gap_size_counts = Counter(
+        (p.crosshair_gap, p.crosshair_size)
+        for p in players
+        if p.crosshair_gap is not None and p.crosshair_size is not None
+    )
+    crosshair_gap_size = {
+        "valid_n": sum(gap_size_counts.values()),
+        "combinations": [
+            {"gap": gap, "size": size, "count": count}
+            for (gap, size), count in sorted(
+                gap_size_counts.items(),
+                key=lambda item: (-item[1], item[0][0], item[0][1]),
+            )
+        ],
     }
 
     # Custom RGB: interpreted ONLY when the raw crosshair mode code is the
@@ -366,7 +388,11 @@ def compute_metrics(
         },
     }
 
-    return {"aggregate": aggregate, "panel": panel}
+    return {
+        "aggregate": aggregate,
+        "panel": panel,
+        "figure_data": {"crosshair_gap_size": crosshair_gap_size},
+    }
 
 
 def public_aggregate(metrics: dict) -> dict:

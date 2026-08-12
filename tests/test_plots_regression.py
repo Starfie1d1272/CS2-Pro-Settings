@@ -1,7 +1,7 @@
 """Production-figure regressions: real categories, empty fields, determinism."""
 import hashlib
 
-from cs2_pro_settings.plots import render_all
+from cs2_pro_settings.plots import _active_color_rows, _ordered, render_all
 
 
 def _full_metrics() -> dict:
@@ -30,7 +30,7 @@ def _full_metrics() -> dict:
         "crosshair": {
             "valid_n": 149, "color_valid_n": 149,
             "color_categories": {"Custom": 80, "Green": 45, "Cyan": 24},
-            "custom_rgb": {"valid_n": 3,
+            "custom_rgb": {"valid_n": 3, "custom_players": 80,
                            "categories": {"255,255,255": 2, "0,255,145": 1}},
             "geometry": {
                 "style": {"valid_n": 149, "categories": {"4": 148, "5": 1}},
@@ -46,8 +46,19 @@ def _full_metrics() -> dict:
                   "zoom": {"valid_n": 99,
                            "categories": {"0.3": 20, "0.4": 60, "0.7": 19}}},
     }
-    return {"aggregate": agg, "panel": {"status": "available",
-                                          "player_count": 149}}
+    return {
+        "aggregate": agg,
+        "figure_data": {
+            "crosshair_gap_size": {
+                "valid_n": 149,
+                "combinations": [
+                    {"gap": -4.0, "size": 1.0, "count": 90},
+                    {"gap": -3.0, "size": 2.0, "count": 59},
+                ],
+            },
+        },
+        "panel": {"status": "available", "player_count": 149},
+    }
 
 
 def test_render_all_produces_compact_production_set(tmp_path):
@@ -81,3 +92,28 @@ def test_render_all_is_byte_identical_across_consecutive_runs(tmp_path):
     first_hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in first}
     second_hashes = {p.name: hashlib.sha256(p.read_bytes()).hexdigest() for p in second}
     assert first_hashes == second_hashes
+
+
+def test_active_color_ranking_keeps_preset_and_exact_rgb_distinct():
+    rows, resolved_n, tail_n, tail_unique, rgb_n, custom_players = \
+        _active_color_rows({
+            "color_categories": {"Custom": 4, "Green": 3, "Cyan": 2},
+            "custom_rgb": {
+                "valid_n": 3,
+                "custom_players": 4,
+                "categories": {"0,255,0": 2, "255,255,255": 1},
+            },
+        })
+    labels = [row[0] for row in rows]
+    assert "Preset · Green" in labels
+    assert "Custom · RGB 0,255,0" in labels
+    assert resolved_n == 8  # five preset players + three resolved Custom RGB
+    assert (tail_n, tail_unique, rgb_n, custom_players) == (1, 1, 3, 4)
+
+
+def test_fixed_edpi_bins_retain_zero_count_categories():
+    bins = {"0-400": 0, "400-600": 3, "600-800": 2}
+    assert _ordered(bins, ["0-400", "400-600", "600-800"],
+                    include_zero=True) == [
+        ("0-400", 0), ("400-600", 3), ("600-800", 2),
+    ]

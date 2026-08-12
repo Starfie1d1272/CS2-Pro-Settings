@@ -554,11 +554,13 @@ def step_metrics(players: dict) -> dict:
     watch_slugs = set(watchlist_slugs(cohort_cfg))
     core_watch_players = [p for p in objs if p.team in core_slugs_set or p.team in watch_slugs]
 
-    core_agg = compute_metrics(
+    core_metrics = compute_metrics(
         core_players, today, source_note="v2-vrs-core", scope=scope,
-        series={"series_id": "vrs-core-v2", "cohort_semantics": "core_top30"})["aggregate"]
+        series={"series_id": "vrs-core-v2", "cohort_semantics": "core_top30"})
+    core_agg = core_metrics["aggregate"]
     metrics = {
         "aggregate": core_agg,
+        "figure_data": core_metrics["figure_data"],
         "segments": {
             "vrs_core": core_agg,
             "consensus": compute_metrics(
