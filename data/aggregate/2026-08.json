@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-08-11",
+    "snapshot_date": "2026-08-16",
     "player_count": 149,
     "team_count": 30,
     "settings_availability": {
       "cohort_players": 149,
-      "players_with_any_setting": 133,
-      "players_with_zero_settings": 16,
-      "any_setting_share": 0.8926
+      "players_with_any_setting": 132,
+      "players_with_zero_settings": 17,
+      "any_setting_share": 0.8859
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -198,48 +198,48 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 133,
+      "count": 132,
       "median": 800.0,
-      "mean": 844.3,
+      "mean": 843.7,
       "distribution": {
         "0-400": 0,
         "400-600": 13,
         "600-800": 32,
-        "800-1000": 61,
-        "1000-1200": 18,
-        "1200-1600": 6,
+        "800-1000": 60,
+        "1000-1200": 19,
+        "1200-1600": 5,
         "1600+": 3
       },
       "consistency_qc": {
-        "comparable_n": 133,
-        "consistent_n": 131,
+        "comparable_n": 132,
+        "consistent_n": 130,
         "anomaly_count": 2,
-        "anomaly_share": 0.015,
-        "missing_inputs_n": 16,
+        "anomaly_share": 0.0152,
+        "missing_inputs_n": 17,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "800": 67,
+        "800": 66,
         "400": 60,
         "1600": 4,
         "1000": 1,
         "3200": 1
       },
       "top_category": "800",
-      "share_800": 0.5038,
-      "share_400": 0.4511,
-      "share_1600_plus": 0.0376
+      "share_800": 0.5,
+      "share_400": 0.4545,
+      "share_1600_plus": 0.0379
     },
     "resolution": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
         "1280x960": 91,
         "1920x1080": 12,
-        "1024x768": 10,
+        "1024x768": 9,
         "1280x1024": 7,
         "1152x864": 4,
         "1280x768": 2,
@@ -249,36 +249,36 @@
         "1350x1080": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6842
+      "share_1280x960": 0.6894
     },
     "aspect_ratio": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "4:3": 109,
+        "4:3": 108,
         "16:9": 11,
         "5:4": 8,
         "16:10": 5
       },
-      "share_4_3": 0.8195
+      "share_4_3": 0.8182
     },
     "scaling_mode": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "Stretched": 119,
+        "Stretched": 118,
         "Native": 9,
         "Black Bars": 5
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 132,
+      "valid_n": 131,
       "categories": {
-        "1": 103,
+        "1": 102,
         "1.1": 6,
         "0.8": 5,
-        "0.9": 5,
+        "0.9": 4,
+        "1.2": 4,
         "0.82": 3,
-        "1.2": 3,
         "0.83": 1,
         "0.93": 1,
         "0.95": 1,
@@ -291,11 +291,11 @@
       "top_category": "1"
     },
     "boost_player": {
-      "valid_n": 101,
-      "missing_n": 48,
-      "enabled_count": 85,
+      "valid_n": 100,
+      "missing_n": 49,
+      "enabled_count": 84,
       "disabled_count": 16,
-      "enabled_share": 0.8416
+      "enabled_share": 0.84
     },
     "refresh_rate": {
       "valid_n": 0,
@@ -309,161 +309,160 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 133,
-      "dot_outline_off_share": 0.8045,
-      "color_valid_n": 133,
+      "valid_n": 132,
+      "dot_outline_off_share": 0.8182,
+      "color_valid_n": 131,
       "color_categories": {
-        "Custom": 60,
-        "Cyan": 35,
+        "Custom": 49,
+        "Cyan": 42,
         "Green": 30,
-        "Yellow": 8
+        "Yellow": 10
       },
       "top_color": "Custom",
       "custom_rgb": {
-        "valid_n": 60,
-        "custom_players": 60,
+        "valid_n": 49,
+        "custom_players": 49,
         "coverage": 1.0,
         "categories": {
-          "255,255,255": 15,
-          "0,255,0": 9,
           "0,255,255": 8,
+          "255,255,255": 8,
+          "0,255,0": 7,
+          "0,255,135": 3,
           "0,255,145": 3,
-          "0,0,0": 2,
-          "0,255,135": 2,
-          "250,250,250": 2,
-          "0,255,127": 1,
+          "0,255,165": 2,
+          "0,255,167": 2,
+          "0,0,0": 1,
+          "0,255,125": 1,
           "0,255,144": 1,
-          "0,255,150": 1,
           "0,255,160": 1,
-          "0,255,165": 1,
+          "0,255,163": 1,
           "0,255,168": 1,
-          "0,255,170": 1,
           "0,255,175": 1,
+          "0,255,185": 1,
           "0,255,190": 1,
-          "0,255,194": 1,
-          "0,255,53": 1,
+          "0,255,192": 1,
           "150,255,50": 1,
-          "161,255,201": 1,
+          "250,250,250": 1,
           "255,0,127": 1,
-          "255,0,255": 1,
           "255,0,79": 1,
           "255,255,0": 1,
-          "255,50,129": 1,
-          "83,255,255": 1
+          "255,50,129": 1
         },
-        "unique_colors": 26,
-        "top_rgb": "255,255,255",
-        "top_rgb_share": 0.25
+        "unique_colors": 23,
+        "top_rgb": "0,255,255",
+        "top_rgb_share": 0.1633
       },
       "geometry": {
         "style": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "4": 132,
+            "4": 131,
             "5": 1
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "1": 65,
-            "2": 26,
-            "1.5": 13,
-            "0.9": 5,
-            "2.5": 5,
-            "0": 3,
+            "1": 74,
+            "2": 24,
+            "1.5": 9,
+            "0.5": 4,
+            "0.9": 4,
             "1.2": 3,
-            "0.5": 2,
-            "0.7": 2,
-            "1.1": 2,
+            "2.5": 3,
+            "1.4": 2,
             "3": 2,
+            "0": 1,
+            "0.7": 1,
             "0.8": 1,
-            "1.4": 1,
-            "1.7": 1,
-            "1.9": 1,
-            "25.5": 1
+            "1.1": 1,
+            "1.6": 1,
+            "25.5": 1,
+            "3.5": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "gap": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "-4": 53,
-            "-3": 30,
+            "-4": 56,
+            "-3": 31,
             "-2": 8,
-            "-5": 8,
-            "-2.3": 3,
+            "-5": 6,
             "-3.9": 3,
-            "-4.2": 3,
             "-4.5": 3,
             "-7": 3,
-            "-2.2": 2,
-            "-3.2": 2,
+            "-2.3": 2,
+            "-2.7": 2,
+            "-3.1": 2,
             "-3.4": 2,
-            "-3.6": 2,
-            "-6": 2,
+            "-3.5": 2,
+            "-4.1": 2,
             "-1": 1,
             "-1.5": 1,
-            "-1.8": 1,
+            "-2.2": 1,
             "-2.5": 1,
-            "-2.9": 1,
-            "-3.1": 1,
-            "-3.5": 1,
-            "-4.1": 1,
+            "-3.2": 1,
+            "-3.6": 1,
+            "-4.2": 1,
+            "-4.3": 1,
+            "-6": 1,
             "0": 1
           },
           "median": -4.0,
           "top_category": "-4"
         },
         "thickness": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "1": 66,
-            "0": 43,
+            "1": 71,
+            "0": 34,
             "0.5": 7,
-            "0.9": 7,
-            "0.1": 3,
-            "0.8": 2,
-            "1.5": 2,
+            "0.1": 5,
+            "0.6": 4,
+            "0.9": 3,
+            "1.5": 3,
             "0.3": 1,
-            "0.6": 1,
-            "0.7": 1
+            "0.4": 1,
+            "0.7": 1,
+            "1.2": 1,
+            "2": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "alpha": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "255": 113,
-            "200": 18,
-            "235": 1,
+            "255": 103,
+            "200": 27,
+            "175": 1,
             "250": 1
           },
-          "median": 255,
+          "median": 255.0,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 133,
-          "missing_n": 16,
+          "valid_n": 132,
+          "missing_n": 17,
           "enabled_count": 13,
-          "disabled_count": 120,
-          "enabled_share": 0.0977
+          "disabled_count": 119,
+          "enabled_share": 0.0985
         },
         "outline": {
-          "valid_n": 133,
-          "missing_n": 16,
-          "enabled_count": 17,
-          "disabled_count": 116,
-          "enabled_share": 0.1278
+          "valid_n": 132,
+          "missing_n": 17,
+          "enabled_count": 12,
+          "disabled_count": 120,
+          "enabled_share": 0.0909
         }
       }
     },
     "viewmodel": {
-      "valid_n": 125,
-      "fov68_share": 0.912,
+      "valid_n": 124,
+      "fov68_share": 0.9113,
       "dominant_offset": [
         2.5,
         0.0,
@@ -471,13 +470,13 @@
       ]
     },
     "brightness": {
-      "valid_n": 117,
+      "valid_n": 116,
       "categories": {
-        "100": 37,
+        "100": 36,
         "93": 14,
-        "80": 7,
         "90": 7,
         "70": 6,
+        "80": 6,
         "75": 5,
         "85": 5,
         "130": 4,
@@ -493,6 +492,7 @@
         "114": 1,
         "119": 1,
         "120": 1,
+        "126": 1,
         "45": 1,
         "65": 1,
         "77": 1,
@@ -508,15 +508,15 @@
     "radar": {
       "valid_n": 0,
       "rotating_valid_n": 0,
-      "centered_valid_n": 120,
+      "centered_valid_n": 119,
       "rotating_share": null,
-      "centered_share": 0.7167,
+      "centered_share": 0.7143,
       "zoom": {
-        "valid_n": 99,
+        "valid_n": 98,
         "categories": {
-          "0.4": 29,
-          "0.7": 20,
-          "0.3": 10,
+          "0.4": 28,
+          "0.7": 19,
+          "0.3": 11,
           "0.35": 9,
           "0.45": 7,
           "0.25": 6,
@@ -540,14 +540,14 @@
       }
     },
     "mouse_polling": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "1000": 83,
+        "1000": 82,
         "2000": 26,
         "4000": 21,
         "8000": 3
       },
-      "share_4000_plus": 0.1805
+      "share_4000_plus": 0.1818
     }
   },
   "panel": {
