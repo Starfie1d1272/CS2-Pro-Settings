@@ -19,7 +19,7 @@ CS2 Pro Settings Tracker 是一个可复现、感知阵容变化、持续追踪�
 ## 最新一期
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-09-07 · VRS Top 30 · 30 支战队 · 146 名选手** · `vrs-core-v2`
+**2026-09-08 · VRS Top 30 · 30 支战队 · 146 名选手** · `vrs-core-v2`
 
 - 127/146 名选手有可用设置数据（87.0%）
 - 中位 eDPI 800

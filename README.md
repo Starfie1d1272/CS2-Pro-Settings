@@ -15,7 +15,7 @@ Instead of publishing another static settings table, the project tracks the curr
 ## Current snapshot
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-09-07 · VRS Top 30 · 30 teams · 146 players** · `vrs-core-v2`
+**2026-09-08 · VRS Top 30 · 30 teams · 146 players** · `vrs-core-v2`
 
 - 127/146 players with usable settings (87.0%)
 - median eDPI 800

@@ -2,7 +2,7 @@
 
 [中文版](./latest.zh-CN.md)
 
-2026-09-07 · VRS Top 30 (2026-08-10) · 30 teams · 146 players · 127/146 settings · `vrs-core-v2`
+2026-09-08 · VRS Top 30 (2026-08-10) · 30 teams · 146 players · 127/146 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
@@ -118,7 +118,7 @@ eDPI arithmetic QC flags 1/127 comparable observations; flags remain quality sig
 
 ## 10. Data & code
 
-- Snapshot date: 2026-09-07
+- Snapshot date: 2026-09-08
 - Source: cs2settings
 - Snapshot data: [`data/aggregate/2026-09.json`](../data/aggregate/2026-09.json)
 - Project & methodology: [`README.md`](../README.md)
