@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-09-06",
-    "player_count": 147,
+    "snapshot_date": "2026-09-13",
+    "player_count": 150,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 147,
-      "players_with_any_setting": 128,
-      "players_with_zero_settings": 19,
-      "any_setting_share": 0.8707
+      "cohort_players": 150,
+      "players_with_any_setting": 130,
+      "players_with_zero_settings": 20,
+      "any_setting_share": 0.8667
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -198,83 +198,84 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 128,
+      "count": 130,
       "median": 800.0,
-      "mean": 841.0,
+      "mean": 839.6,
       "distribution": {
         "0-400": 0,
-        "400-600": 13,
+        "400-600": 14,
         "600-800": 31,
         "800-1000": 59,
         "1000-1200": 18,
-        "1200-1600": 4,
+        "1200-1600": 5,
         "1600+": 3
       },
       "consistency_qc": {
-        "comparable_n": 128,
-        "consistent_n": 127,
-        "anomaly_count": 1,
-        "anomaly_share": 0.0078,
-        "missing_inputs_n": 19,
+        "comparable_n": 130,
+        "consistent_n": 128,
+        "anomaly_count": 2,
+        "anomaly_share": 0.0154,
+        "missing_inputs_n": 20,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 128,
+      "valid_n": 130,
       "categories": {
-        "800": 65,
+        "800": 67,
         "400": 57,
         "1600": 4,
         "1000": 1,
         "3200": 1
       },
       "top_category": "800",
-      "share_800": 0.5078,
-      "share_400": 0.4453,
-      "share_1600_plus": 0.0391
+      "share_800": 0.5154,
+      "share_400": 0.4385,
+      "share_1600_plus": 0.0385
     },
     "resolution": {
-      "valid_n": 128,
+      "valid_n": 130,
       "categories": {
-        "1280x960": 88,
+        "1280x960": 87,
         "1920x1080": 12,
-        "1024x768": 9,
+        "1024x768": 10,
         "1280x1024": 7,
-        "1152x864": 4,
+        "1152x864": 5,
         "1280x768": 2,
         "1280x800": 2,
         "1440x1080": 2,
-        "1680x1050": 2
+        "1680x1050": 2,
+        "1350x1080": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6875
+      "share_1280x960": 0.6692
     },
     "aspect_ratio": {
-      "valid_n": 128,
+      "valid_n": 130,
       "categories": {
-        "4:3": 105,
+        "4:3": 106,
         "16:9": 11,
-        "5:4": 7,
+        "5:4": 8,
         "16:10": 5
       },
-      "share_4_3": 0.8203
+      "share_4_3": 0.8154
     },
     "scaling_mode": {
-      "valid_n": 128,
+      "valid_n": 130,
       "categories": {
-        "Stretched": 113,
+        "Stretched": 115,
         "Native": 9,
         "Black Bars": 6
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 127,
+      "valid_n": 129,
       "categories": {
-        "1": 99,
+        "1": 101,
         "1.1": 7,
-        "0.8": 5,
+        "0.8": 4,
         "0.9": 4,
         "1.2": 4,
         "0.82": 3,
@@ -282,17 +283,18 @@
         "0.93": 1,
         "0.98": 1,
         "0.99": 1,
-        "0.999": 1
+        "0.999": 1,
+        "1.16": 1
       },
       "median": 1.0,
       "top_category": "1"
     },
     "boost_player": {
-      "valid_n": 96,
-      "missing_n": 51,
-      "enabled_count": 80,
+      "valid_n": 98,
+      "missing_n": 52,
+      "enabled_count": 82,
       "disabled_count": 16,
-      "enabled_share": 0.8333
+      "enabled_share": 0.8367
     },
     "refresh_rate": {
       "valid_n": 0,
@@ -306,154 +308,157 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 128,
-      "dot_outline_off_share": 0.8203,
-      "color_valid_n": 128,
+      "valid_n": 130,
+      "dot_outline_off_share": 0.8308,
+      "color_valid_n": 130,
       "color_categories": {
-        "Custom": 43,
-        "Green": 43,
-        "Cyan": 35,
+        "Custom": 51,
+        "Cyan": 43,
+        "Green": 29,
         "Yellow": 7
       },
       "top_color": "Custom",
       "custom_rgb": {
-        "valid_n": 43,
-        "custom_players": 43,
+        "valid_n": 51,
+        "custom_players": 51,
         "coverage": 1.0,
         "categories": {
-          "255,255,255": 9,
-          "0,255,0": 5,
-          "0,255,255": 5,
-          "0,255,135": 3,
-          "0,255,145": 3,
-          "0,255,165": 3,
-          "0,255,155": 2,
-          "0,255,167": 2,
+          "0,255,0": 12,
+          "255,255,255": 11,
+          "0,255,255": 7,
+          "0,255,165": 4,
+          "0,255,135": 2,
           "0,0,0": 1,
-          "0,255,150": 1,
-          "0,255,154": 1,
-          "0,255,160": 1,
-          "0,255,168": 1,
-          "0,255,185": 1,
-          "161,255,201": 1,
+          "0,210,67": 1,
+          "0,255,125": 1,
+          "0,255,127": 1,
+          "0,255,144": 1,
+          "0,255,145": 1,
+          "0,255,155": 1,
+          "0,255,167": 1,
+          "0,255,170": 1,
+          "0,255,178": 1,
+          "0,255,190": 1,
           "250,250,250": 1,
           "255,0,127": 1,
           "255,0,79": 1,
           "255,50,129": 1
         },
-        "unique_colors": 19,
-        "top_rgb": "255,255,255",
-        "top_rgb_share": 0.2093
+        "unique_colors": 20,
+        "top_rgb": "0,255,0",
+        "top_rgb_share": 0.2353
       },
       "geometry": {
         "style": {
-          "valid_n": 128,
+          "valid_n": 130,
           "categories": {
-            "4": 127,
+            "4": 129,
             "5": 1
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 128,
+          "valid_n": 130,
           "categories": {
-            "1": 66,
-            "2": 29,
-            "1.5": 9,
-            "0": 4,
-            "0.9": 3,
-            "3": 3,
-            "0.5": 2,
-            "0.8": 2,
-            "1.1": 2,
+            "1": 80,
+            "2": 22,
+            "1.5": 7,
+            "0.9": 4,
+            "2.5": 4,
+            "0": 2,
             "1.2": 2,
-            "2.5": 2,
+            "3": 2,
+            "0.5": 1,
             "0.7": 1,
-            "1.9": 1,
-            "2.1": 1,
-            "2.9": 1
+            "0.8": 1,
+            "1.1": 1,
+            "1.4": 1,
+            "1.8": 1,
+            "4.5": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "gap": {
-          "valid_n": 128,
+          "valid_n": 130,
           "categories": {
-            "-4": 56,
-            "-3": 32,
+            "-4": 59,
+            "-3": 24,
+            "-5": 12,
             "-2": 7,
-            "-5": 6,
             "-2.5": 3,
-            "-1": 2,
-            "-2.3": 2,
+            "-7": 3,
+            "-2.2": 2,
             "-3.6": 2,
             "-3.9": 2,
-            "-4.2": 2,
-            "-7": 2,
-            "0": 2,
+            "-4.1": 2,
+            "-4.5": 2,
+            "-1": 1,
             "-1.5": 1,
-            "-1.6": 1,
+            "-2.7": 1,
             "-3.1": 1,
             "-3.2": 1,
-            "-3.3": 1,
             "-3.4": 1,
             "-3.5": 1,
-            "-3.7": 1,
-            "-4.9": 1,
-            "-6": 1
+            "-4.2": 1,
+            "-4.3": 1,
+            "-6": 1,
+            "0": 1,
+            "2": 1
           },
           "median": -4.0,
           "top_category": "-4"
         },
         "thickness": {
-          "valid_n": 128,
+          "valid_n": 130,
           "categories": {
-            "1": 66,
-            "0": 41,
-            "0.5": 5,
-            "0.1": 4,
-            "0.9": 3,
-            "2": 3,
-            "0.8": 2,
-            "0.3": 1,
-            "0.6": 1,
-            "1.5": 1,
-            "2.1": 1
+            "1": 69,
+            "0": 32,
+            "0.5": 6,
+            "0.1": 5,
+            "0.6": 4,
+            "0.9": 4,
+            "1.5": 3,
+            "0.4": 2,
+            "0.7": 1,
+            "0.8": 1,
+            "1.2": 1,
+            "1.4": 1,
+            "2": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "alpha": {
-          "valid_n": 128,
+          "valid_n": 130,
           "categories": {
-            "255": 117,
-            "200": 7,
-            "250": 2,
-            "170": 1,
-            "175": 1
+            "255": 98,
+            "200": 30,
+            "175": 1,
+            "250": 1
           },
           "median": 255.0,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 128,
-          "missing_n": 19,
-          "enabled_count": 13,
-          "disabled_count": 115,
-          "enabled_share": 0.1016
+          "valid_n": 130,
+          "missing_n": 20,
+          "enabled_count": 8,
+          "disabled_count": 122,
+          "enabled_share": 0.0615
         },
         "outline": {
-          "valid_n": 128,
-          "missing_n": 19,
-          "enabled_count": 12,
-          "disabled_count": 116,
-          "enabled_share": 0.0938
+          "valid_n": 130,
+          "missing_n": 20,
+          "enabled_count": 16,
+          "disabled_count": 114,
+          "enabled_share": 0.1231
         }
       }
     },
     "viewmodel": {
-      "valid_n": 120,
-      "fov68_share": 0.9083,
+      "valid_n": 122,
+      "fov68_share": 0.9016,
       "dominant_offset": [
         2.5,
         0.0,
@@ -461,19 +466,19 @@
       ]
     },
     "brightness": {
-      "valid_n": 113,
+      "valid_n": 114,
       "categories": {
         "100": 35,
-        "93": 14,
+        "93": 16,
+        "90": 7,
         "70": 6,
         "80": 6,
-        "90": 6,
         "75": 5,
         "85": 5,
-        "110": 3,
-        "130": 3,
+        "110": 4,
         "69": 3,
         "83": 3,
+        "130": 2,
         "50": 2,
         "60": 2,
         "68": 2,
@@ -490,8 +495,6 @@
         "81": 1,
         "82": 1,
         "91": 1,
-        "92": 1,
-        "94": 1,
         "95": 1,
         "97": 1
       }
@@ -499,21 +502,21 @@
     "radar": {
       "valid_n": 0,
       "rotating_valid_n": 0,
-      "centered_valid_n": 116,
+      "centered_valid_n": 117,
       "rotating_share": null,
-      "centered_share": 0.7069,
+      "centered_share": 0.7179,
       "zoom": {
-        "valid_n": 95,
+        "valid_n": 97,
         "categories": {
           "0.4": 28,
-          "0.7": 18,
+          "0.7": 20,
           "0.3": 11,
           "0.35": 9,
           "0.45": 7,
-          "0.25": 6,
+          "0.25": 5,
           "0.41": 4,
+          "0.445": 2,
           "0.315": 1,
-          "0.445": 1,
           "0.454938": 1,
           "0.498025": 1,
           "0.6025": 1,
@@ -530,19 +533,19 @@
       }
     },
     "mouse_polling": {
-      "valid_n": 128,
+      "valid_n": 130,
       "categories": {
-        "1000": 82,
-        "2000": 23,
-        "4000": 20,
+        "1000": 84,
+        "2000": 24,
+        "4000": 19,
         "8000": 3
       },
-      "share_4000_plus": 0.1797
+      "share_4000_plus": 0.1692
     }
   },
   "panel": {
     "status": "available",
-    "player_count": 147,
-    "stable_identity_count": 147
+    "player_count": 150,
+    "stable_identity_count": 150
   }
 }
