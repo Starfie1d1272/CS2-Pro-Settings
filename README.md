@@ -15,14 +15,14 @@ Instead of publishing another static settings table, the project tracks the curr
 ## Current snapshot
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-09-13 · VRS Top 30 · 30 teams · 150 players** · `vrs-core-v2`
+**2026-09-20 · VRS Top 30 · 30 teams · 149 players** · `vrs-core-v2`
 
-- 130/150 players with usable settings (86.7%)
+- 130/149 players with usable settings (87.2%)
 - median eDPI 800
 - 400 + 800 DPI = 95.4%
-- 4:3 = 81.5%
-- 1280x960 = 66.9%
-- 1000 Hz = 64.6%
+- 4:3 = 80.8%
+- 1280x960 = 66.2%
+- 1000 Hz = 65.4%
 - 4000 Hz+ = 16.9%
 - viewmodel_fov 68 = 90.2%
 
