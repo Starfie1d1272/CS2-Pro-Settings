@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-10-04",
-    "player_count": 151,
+    "snapshot_date": "2026-09-27",
+    "player_count": 148,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 151,
-      "players_with_any_setting": 133,
+      "cohort_players": 148,
+      "players_with_any_setting": 130,
       "players_with_zero_settings": 18,
-      "any_setting_share": 0.8808
+      "any_setting_share": 0.8784
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -198,47 +198,47 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 133,
+      "count": 130,
       "median": 800.0,
-      "mean": 841.1,
+      "mean": 842.9,
       "distribution": {
         "0-400": 0,
-        "400-600": 15,
+        "400-600": 14,
         "600-800": 30,
-        "800-1000": 61,
+        "800-1000": 59,
         "1000-1200": 19,
         "1200-1600": 5,
         "1600+": 3
       },
       "consistency_qc": {
-        "comparable_n": 133,
-        "consistent_n": 131,
+        "comparable_n": 130,
+        "consistent_n": 128,
         "anomaly_count": 2,
-        "anomaly_share": 0.015,
+        "anomaly_share": 0.0154,
         "missing_inputs_n": 18,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 133,
+      "valid_n": 130,
       "categories": {
-        "800": 69,
-        "400": 58,
+        "800": 67,
+        "400": 57,
         "1600": 4,
         "1000": 1,
         "3200": 1
       },
       "top_category": "800",
-      "share_800": 0.5188,
-      "share_400": 0.4361,
-      "share_1600_plus": 0.0376
+      "share_800": 0.5154,
+      "share_400": 0.4385,
+      "share_1600_plus": 0.0385
     },
     "resolution": {
-      "valid_n": 133,
+      "valid_n": 130,
       "categories": {
-        "1280x960": 90,
-        "1920x1080": 12,
+        "1280x960": 86,
+        "1920x1080": 13,
         "1024x768": 10,
         "1280x1024": 7,
         "1152x864": 5,
@@ -249,36 +249,36 @@
         "1350x1080": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6767
+      "share_1280x960": 0.6615
     },
     "aspect_ratio": {
-      "valid_n": 133,
+      "valid_n": 130,
       "categories": {
-        "4:3": 109,
-        "16:9": 11,
+        "4:3": 105,
+        "16:9": 12,
         "5:4": 8,
         "16:10": 5
       },
-      "share_4_3": 0.8195
+      "share_4_3": 0.8077
     },
     "scaling_mode": {
-      "valid_n": 133,
+      "valid_n": 130,
       "categories": {
-        "Stretched": 118,
-        "Native": 9,
+        "Stretched": 114,
+        "Native": 10,
         "Black Bars": 6
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 132,
+      "valid_n": 129,
       "categories": {
         "1": 102,
         "1.1": 7,
-        "0.8": 5,
-        "0.9": 4,
         "1.2": 4,
+        "0.8": 3,
         "0.82": 3,
+        "0.9": 3,
         "0.83": 1,
         "0.93": 1,
         "0.98": 1,
@@ -291,11 +291,11 @@
       "top_category": "1"
     },
     "boost_player": {
-      "valid_n": 99,
+      "valid_n": 96,
       "missing_n": 52,
-      "enabled_count": 84,
+      "enabled_count": 81,
       "disabled_count": 15,
-      "enabled_share": 0.8485
+      "enabled_share": 0.8438
     },
     "refresh_rate": {
       "valid_n": 0,
@@ -309,130 +309,167 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 133,
-      "dot_outline_off_share": 0.8496,
-      "color_valid_n": 18,
+      "valid_n": 130,
+      "dot_outline_off_share": 0.8308,
+      "color_valid_n": 126,
       "color_categories": {
-        "Custom": 8,
-        "Cyan": 7,
-        "Yellow": 2,
-        "Green": 1
+        "Custom": 51,
+        "Cyan": 37,
+        "Green": 31,
+        "Yellow": 6,
+        "Blue": 1
       },
       "top_color": "Custom",
       "custom_rgb": {
-        "valid_n": 8,
-        "custom_players": 8,
+        "valid_n": 51,
+        "custom_players": 51,
         "coverage": 1.0,
         "categories": {
-          "0,255,255": 2,
+          "0,255,0": 14,
+          "255,255,255": 9,
+          "0,255,255": 6,
+          "0,255,145": 3,
+          "0,255,135": 2,
+          "0,255,165": 2,
+          "0,0,0": 1,
           "0,210,67": 1,
-          "0,255,0": 1,
-          "0,255,145": 1,
-          "0,255,165": 1,
-          "0,255,220": 1,
-          "255,255,255": 1
+          "0,255,127": 1,
+          "0,255,154": 1,
+          "0,255,155": 1,
+          "0,255,168": 1,
+          "0,255,170": 1,
+          "0,255,53": 1,
+          "250,250,250": 1,
+          "255,0,127": 1,
+          "255,0,79": 1,
+          "255,254,0": 1,
+          "255,255,254": 1,
+          "255,50,129": 1,
+          "83,255,255": 1
         },
-        "unique_colors": 7,
-        "top_rgb": "0,255,255",
-        "top_rgb_share": 0.25
+        "unique_colors": 21,
+        "top_rgb": "0,255,0",
+        "top_rgb_share": 0.2745
       },
       "geometry": {
         "style": {
-          "valid_n": 133,
+          "valid_n": 130,
           "categories": {
-            "4": 126,
-            "3": 2,
-            "5": 2,
-            "9": 2,
-            "6": 1
+            "4": 124,
+            "0": 5,
+            "5": 1
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 133,
+          "valid_n": 130,
           "categories": {
-            "2": 68,
-            "3": 23,
-            "4": 16,
-            "1": 11,
-            "6": 4,
-            "8": 2,
-            "0.5": 1,
+            "1": 73,
+            "2": 22,
+            "1.5": 7,
+            "0.8": 4,
+            "19.2": 4,
+            "2.5": 4,
+            "1.9": 3,
+            "0": 2,
+            "0.5": 2,
+            "3": 2,
+            "0.7": 1,
             "0.9": 1,
             "1.1": 1,
-            "1.5": 1,
-            "1.9": 1,
-            "10": 1,
-            "2.5": 1,
-            "5": 1,
-            "7": 1
-          },
-          "median": 2.0,
-          "top_category": "2"
-        },
-        "gap": {
-          "valid_n": 133,
-          "categories": {
-            "1": 61,
-            "2": 28,
-            "0": 14,
-            "-4": 10,
-            "3": 8,
-            "-3": 5,
-            "4": 2,
-            "5": 2,
-            "-2.5": 1,
-            "-3.5": 1,
-            "-4.2": 1
+            "1.2": 1,
+            "1.8": 1,
+            "4.5": 1,
+            "5.6": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
-        "thickness": {
-          "valid_n": 133,
+        "gap": {
+          "valid_n": 130,
           "categories": {
-            "2": 75,
-            "1": 43,
-            "0": 7,
-            "3": 5,
-            "0.1": 1,
-            "0.8": 1,
-            "0.9": 1
+            "-4": 56,
+            "-3": 24,
+            "-5": 8,
+            "-2": 7,
+            "0.4": 5,
+            "-4.1": 4,
+            "-2.5": 3,
+            "-7": 3,
+            "-3.9": 2,
+            "-1": 1,
+            "-1.5": 1,
+            "-2.2": 1,
+            "-2.3": 1,
+            "-2.7": 1,
+            "-2.9": 1,
+            "-3.1": 1,
+            "-3.2": 1,
+            "-3.5": 1,
+            "-3.6": 1,
+            "-3.8": 1,
+            "-4.2": 1,
+            "-4.3": 1,
+            "-4.7": 1,
+            "-6": 1,
+            "-8": 1,
+            "0": 1,
+            "2": 1
           },
-          "median": 2.0,
-          "top_category": "2"
+          "median": -4.0,
+          "top_category": "-4"
+        },
+        "thickness": {
+          "valid_n": 130,
+          "categories": {
+            "1": 61,
+            "0": 34,
+            "0.5": 9,
+            "0.6": 5,
+            "0.1": 4,
+            "0.9": 4,
+            "3": 4,
+            "1.2": 3,
+            "1.5": 3,
+            "0.7": 1,
+            "0.8": 1,
+            "10": 1
+          },
+          "median": 1.0,
+          "top_category": "1"
         },
         "alpha": {
-          "valid_n": 133,
+          "valid_n": 130,
           "categories": {
-            "255": 126,
-            "200": 4,
-            "170": 1,
+            "255": 99,
+            "200": 24,
+            "1": 4,
             "175": 1,
-            "197": 1
+            "2": 1,
+            "250": 1
           },
-          "median": 255,
+          "median": 255.0,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 133,
+          "valid_n": 130,
           "missing_n": 18,
-          "enabled_count": 11,
+          "enabled_count": 8,
           "disabled_count": 122,
-          "enabled_share": 0.0827
+          "enabled_share": 0.0615
         },
         "outline": {
-          "valid_n": 133,
+          "valid_n": 130,
           "missing_n": 18,
-          "enabled_count": 11,
-          "disabled_count": 122,
-          "enabled_share": 0.0827
+          "enabled_count": 16,
+          "disabled_count": 114,
+          "enabled_share": 0.1231
         }
       }
     },
     "viewmodel": {
-      "valid_n": 125,
-      "fov68_share": 0.904,
+      "valid_n": 122,
+      "fov68_share": 0.9016,
       "dominant_offset": [
         2.5,
         0.0,
@@ -440,16 +477,16 @@
       ]
     },
     "brightness": {
-      "valid_n": 117,
+      "valid_n": 114,
       "categories": {
         "100": 36,
-        "93": 16,
-        "90": 7,
+        "93": 17,
         "70": 6,
-        "80": 6,
+        "90": 6,
         "75": 5,
-        "85": 5,
+        "80": 5,
         "110": 4,
+        "85": 4,
         "130": 3,
         "69": 3,
         "83": 3,
@@ -469,7 +506,6 @@
         "81": 1,
         "82": 1,
         "91": 1,
-        "92": 1,
         "95": 1,
         "97": 1
       }
@@ -477,18 +513,18 @@
     "radar": {
       "valid_n": 0,
       "rotating_valid_n": 0,
-      "centered_valid_n": 120,
+      "centered_valid_n": 117,
       "rotating_share": null,
-      "centered_share": 0.7167,
+      "centered_share": 0.7265,
       "zoom": {
-        "valid_n": 99,
+        "valid_n": 98,
         "categories": {
           "0.4": 27,
           "0.7": 20,
           "0.3": 11,
           "0.35": 10,
-          "0.25": 7,
           "0.45": 7,
+          "0.25": 6,
           "0.41": 4,
           "0.445": 2,
           "0.315": 1,
@@ -508,19 +544,19 @@
       }
     },
     "mouse_polling": {
-      "valid_n": 133,
+      "valid_n": 130,
       "categories": {
         "1000": 85,
-        "2000": 25,
-        "4000": 20,
+        "2000": 24,
+        "4000": 18,
         "8000": 3
       },
-      "share_4000_plus": 0.1729
+      "share_4000_plus": 0.1615
     }
   },
   "panel": {
     "status": "available",
-    "player_count": 151,
-    "stable_identity_count": 151
+    "player_count": 148,
+    "stable_identity_count": 148
   }
 }
