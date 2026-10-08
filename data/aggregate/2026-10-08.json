@@ -1,0 +1,970 @@
+{
+  "aggregate": {
+    "snapshot_date": "2026-10-08",
+    "player_count": 151,
+    "team_count": 30,
+    "settings_availability": {
+      "cohort_players": 151,
+      "players_with_any_setting": 133,
+      "players_with_zero_settings": 18,
+      "any_setting_share": 0.8808
+    },
+    "source": {
+      "primary": "v2-vrs-core"
+    },
+    "scope": {
+      "scope_id": "vrs-core-v2",
+      "cohort_model": "vrs-core-hltv-reference-v4",
+      "core_snapshot": "2026-10-05",
+      "core_provider": "valve",
+      "reference_snapshot": "2026-08-03",
+      "reference_provider": "hltv",
+      "core_teams": [
+        "team-spirit",
+        "legacy",
+        "vitality",
+        "mouz",
+        "g2",
+        "falcons",
+        "furia",
+        "fut",
+        "aurora",
+        "astralis",
+        "betboom",
+        "mibr",
+        "b8",
+        "nemiga",
+        "heroic",
+        "luminosity",
+        "9z",
+        "ninjas-in-pyjamas",
+        "liquid",
+        "inner-circle",
+        "3dmax",
+        "m80",
+        "magic",
+        "alliance",
+        "big",
+        "faze",
+        "gamerlegion",
+        "100-thieves",
+        "nemesis",
+        "jijiehao"
+      ],
+      "reference_teams": [
+        "falcons",
+        "team-spirit",
+        "furia",
+        "vitality",
+        "mouz",
+        "natus-vincere",
+        "9z",
+        "aurora",
+        "g2",
+        "betboom",
+        "faze",
+        "legacy",
+        "astralis",
+        "the-mongolz",
+        "fut",
+        "parivision",
+        "b8",
+        "pain",
+        "liquid",
+        "3dmax",
+        "gamerlegion",
+        "magic",
+        "luminosity",
+        "mibr",
+        "tyloo",
+        "alliance",
+        "ninjas-in-pyjamas",
+        "big",
+        "dendele",
+        "heroic"
+      ],
+      "consensus_teams": [
+        "3dmax",
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "legacy",
+        "liquid",
+        "luminosity",
+        "magic",
+        "mibr",
+        "mouz",
+        "ninjas-in-pyjamas",
+        "team-spirit",
+        "vitality"
+      ],
+      "ranked_union_teams": [
+        "100-thieves",
+        "3dmax",
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "dendele",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "inner-circle",
+        "jijiehao",
+        "legacy",
+        "liquid",
+        "luminosity",
+        "m80",
+        "magic",
+        "mibr",
+        "mouz",
+        "natus-vincere",
+        "nemesis",
+        "nemiga",
+        "ninjas-in-pyjamas",
+        "pain",
+        "parivision",
+        "team-spirit",
+        "the-mongolz",
+        "tyloo",
+        "vitality"
+      ],
+      "core_team_count": 30,
+      "reference_team_count": 30,
+      "consensus_team_count": 24,
+      "ranked_union_team_count": 36,
+      "core_scope_hash": "990d6eaccc91d38c",
+      "tracked_teams": [
+        "100-thieves",
+        "3dmax",
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "dendele",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "inner-circle",
+        "jijiehao",
+        "legacy",
+        "liquid",
+        "luminosity",
+        "lynn-vision",
+        "m80",
+        "magic",
+        "mibr",
+        "mouz",
+        "navi",
+        "nemesis",
+        "nemiga",
+        "ninjas-in-pyjamas",
+        "pain",
+        "parivision",
+        "spirit",
+        "the-mongolz",
+        "tyloo",
+        "vitality"
+      ],
+      "tracked_team_count": 37,
+      "source_resolved_core_teams": 30,
+      "source_unresolved_core_teams": []
+    },
+    "series": {
+      "series_id": "vrs-core-v2",
+      "cohort_semantics": "core_top30"
+    },
+    "edpi": {
+      "count": 133,
+      "median": 800.0,
+      "mean": 877.9,
+      "distribution": {
+        "0-400": 0,
+        "400-600": 13,
+        "600-800": 33,
+        "800-1000": 55,
+        "1000-1200": 22,
+        "1200-1600": 6,
+        "1600+": 4
+      },
+      "consistency_qc": {
+        "comparable_n": 133,
+        "consistent_n": 131,
+        "anomaly_count": 2,
+        "anomaly_share": 0.015,
+        "missing_inputs_n": 18,
+        "absolute_tolerance": 2.0,
+        "relative_tolerance": 0.01
+      }
+    },
+    "dpi": {
+      "valid_n": 133,
+      "categories": {
+        "800": 73,
+        "400": 54,
+        "1600": 4,
+        "1000": 1,
+        "3200": 1
+      },
+      "top_category": "800",
+      "share_800": 0.5489,
+      "share_400": 0.406,
+      "share_1600_plus": 0.0376
+    },
+    "resolution": {
+      "valid_n": 133,
+      "categories": {
+        "1280x960": 86,
+        "1920x1080": 13,
+        "1024x768": 12,
+        "1280x1024": 7,
+        "1152x864": 5,
+        "1440x1080": 3,
+        "1280x768": 2,
+        "1680x1050": 2,
+        "1280x800": 1,
+        "1350x1080": 1,
+        "1600x900": 1
+      },
+      "top_category": "1280x960",
+      "share_1280x960": 0.6466
+    },
+    "aspect_ratio": {
+      "valid_n": 133,
+      "categories": {
+        "4:3": 108,
+        "16:9": 13,
+        "5:4": 8,
+        "16:10": 4
+      },
+      "share_4_3": 0.812
+    },
+    "scaling_mode": {
+      "valid_n": 133,
+      "categories": {
+        "Stretched": 115,
+        "Native": 11,
+        "Black Bars": 7
+      },
+      "top_category": "Stretched"
+    },
+    "zoom_sensitivity": {
+      "valid_n": 132,
+      "categories": {
+        "1": 103,
+        "1.1": 7,
+        "1.2": 5,
+        "0.8": 4,
+        "0.82": 3,
+        "0.9": 3,
+        "0.83": 1,
+        "0.93": 1,
+        "0.95": 1,
+        "0.99": 1,
+        "0.999": 1,
+        "1.16": 1,
+        "1.2849": 1
+      },
+      "median": 1.0,
+      "top_category": "1"
+    },
+    "boost_player": {
+      "valid_n": 104,
+      "missing_n": 47,
+      "enabled_count": 86,
+      "disabled_count": 18,
+      "enabled_share": 0.8269
+    },
+    "refresh_rate": {
+      "valid_n": 0,
+      "categories": {},
+      "share_360": null,
+      "share_540_plus": null
+    },
+    "fps_max": {
+      "valid_n": 0,
+      "categories": {},
+      "unlimited_share": null
+    },
+    "crosshair": {
+      "measurement_version": "pixel-v2:cs2-v1,legacy-v1,legacy-v4",
+      "formats": {
+        "valid_n": 133,
+        "categories": {
+          "cs2-v1": 99,
+          "legacy-v4": 21,
+          "legacy-v1": 13
+        },
+        "top_category": "cs2-v1"
+      },
+      "outline_modes": {
+        "valid_n": 133,
+        "categories": {
+          "0": 122,
+          "1": 9,
+          "2": 2
+        },
+        "top_category": "0"
+      },
+      "geometry_context": "separate contexts",
+      "geometry_by_context": {
+        "cs2-v1:px@1024": {
+          "size": {
+            "valid_n": 5,
+            "categories": {
+              "2": 3,
+              "3": 1,
+              "8": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 5,
+            "categories": {
+              "1": 4,
+              "0": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 5,
+            "categories": {
+              "2": 5
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@1050": {
+          "size": {
+            "valid_n": 2,
+            "categories": {
+              "2": 1,
+              "3": 1
+            },
+            "median": 2.5,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 2,
+            "categories": {
+              "1": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 2,
+            "categories": {
+              "2": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@1080": {
+          "size": {
+            "valid_n": 15,
+            "categories": {
+              "2": 6,
+              "4": 4,
+              "3": 2,
+              "10": 1,
+              "6": 1,
+              "8": 1
+            },
+            "median": 3.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 15,
+            "categories": {
+              "2": 5,
+              "1": 4,
+              "3": 3,
+              "0": 2,
+              "4": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "thickness": {
+            "valid_n": 15,
+            "categories": {
+              "1": 7,
+              "2": 5,
+              "3": 2,
+              "4": 1
+            },
+            "median": 2.0,
+            "top_category": "1"
+          }
+        },
+        "cs2-v1:px@768": {
+          "size": {
+            "valid_n": 5,
+            "categories": {
+              "2": 2,
+              "3": 2,
+              "5": 1
+            },
+            "median": 3.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 5,
+            "categories": {
+              "1": 2,
+              "2": 2,
+              "5": 1
+            },
+            "median": 2.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 5,
+            "categories": {
+              "1": 3,
+              "2": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          }
+        },
+        "cs2-v1:px@800": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@864": {
+          "size": {
+            "valid_n": 2,
+            "categories": {
+              "2": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 2,
+            "categories": {
+              "1": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 2,
+            "categories": {
+              "2": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@900": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "4": 1
+            },
+            "median": 4.0,
+            "top_category": "4"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "4": 1
+            },
+            "median": 4.0,
+            "top_category": "4"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@960": {
+          "size": {
+            "valid_n": 68,
+            "categories": {
+              "2": 43,
+              "3": 13,
+              "4": 10,
+              "6": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 68,
+            "categories": {
+              "1": 33,
+              "2": 19,
+              "0": 13,
+              "3": 1,
+              "4": 1,
+              "5": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 68,
+            "categories": {
+              "2": 41,
+              "1": 25,
+              "3": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "legacy-units": {
+          "size": {
+            "valid_n": 13,
+            "categories": {
+              "1": 7,
+              "0.5": 1,
+              "1.1": 1,
+              "1.5": 1,
+              "1.9": 1,
+              "2": 1,
+              "2.5": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "gap": {
+            "valid_n": 13,
+            "categories": {
+              "-4": 6,
+              "-3": 5,
+              "-2.5": 1,
+              "-3.5": 1
+            },
+            "median": -3.5,
+            "top_category": "-4"
+          },
+          "thickness": {
+            "valid_n": 13,
+            "categories": {
+              "0": 6,
+              "1": 5,
+              "0.1": 1,
+              "0.8": 1
+            },
+            "median": 0.1,
+            "top_category": "0"
+          }
+        },
+        "legacy-v4:px@1024": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "legacy-v4:px@1080": {
+          "size": {
+            "valid_n": 3,
+            "categories": {
+              "2": 1,
+              "3": 1,
+              "4": 1
+            },
+            "median": 3.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 3,
+            "categories": {
+              "0": 1,
+              "2": 1,
+              "3": 1
+            },
+            "median": 2.0,
+            "top_category": "0"
+          },
+          "thickness": {
+            "valid_n": 3,
+            "categories": {
+              "2": 2,
+              "1": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "legacy-v4:px@768": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "legacy-v4:px@960": {
+          "size": {
+            "valid_n": 16,
+            "categories": {
+              "2": 11,
+              "3": 4,
+              "7": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 16,
+            "categories": {
+              "1": 12,
+              "0": 2,
+              "2": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 16,
+            "categories": {
+              "2": 13,
+              "1": 2,
+              "3": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        }
+      },
+      "migration_note": "Pixel geometry is grouped by format and reference screen height; Custom includes direct RGB. Initialize a new crosshair baseline.",
+      "valid_n": 133,
+      "dot_outline_off_share": 0.8722,
+      "color_valid_n": 133,
+      "color_categories": {
+        "Custom": 125,
+        "Cyan": 5,
+        "Yellow": 2,
+        "Green": 1
+      },
+      "top_color": "Custom",
+      "custom_rgb": {
+        "valid_n": 125,
+        "custom_players": 125,
+        "coverage": 1.0,
+        "categories": {
+          "0,255,255": 25,
+          "0,255,0": 21,
+          "255,255,255": 12,
+          "0,255,145": 3,
+          "0,255,165": 3,
+          "11,255,0": 3,
+          "0,229,255": 2,
+          "0,255,144": 2,
+          "0,255,172": 2,
+          "161,255,201": 2,
+          "20,255,0": 2,
+          "255,0,0": 2,
+          "255,255,0": 2,
+          "0,0,0": 1,
+          "0,186,255": 1,
+          "0,221,255": 1,
+          "0,238,255": 1,
+          "0,243,71": 1,
+          "0,243,95": 1,
+          "0,247,255": 1,
+          "0,250,0": 1,
+          "0,255,135": 1,
+          "0,255,14": 1,
+          "0,255,155": 1,
+          "0,255,158": 1,
+          "0,255,169": 1,
+          "0,255,192": 1,
+          "0,255,221": 1,
+          "0,255,23": 1,
+          "0,255,238": 1,
+          "0,255,246": 1,
+          "0,255,247": 1,
+          "0,255,83": 1,
+          "13,206,255": 1,
+          "14,218,66": 1,
+          "176,255,228": 1,
+          "176,255,239": 1,
+          "20,201,214": 1,
+          "218,255,0": 1,
+          "220,255,3": 1,
+          "243,10,10": 1,
+          "244,255,0": 1,
+          "247,247,240": 1,
+          "251,251,251": 1,
+          "255,50,129": 1,
+          "28,255,0": 1,
+          "29,255,0": 1,
+          "3,255,0": 1,
+          "36,209,58": 1,
+          "37,236,3": 1,
+          "46,235,14": 1,
+          "50,226,245": 1,
+          "50,250,50": 1,
+          "6,248,248": 1,
+          "6,255,0": 1,
+          "66,216,255": 1,
+          "84,235,14": 1
+        },
+        "unique_colors": 57,
+        "top_rgb": "0,255,255",
+        "top_rgb_share": 0.2
+      },
+      "geometry": {
+        "style": {
+          "valid_n": 133,
+          "categories": {
+            "4": 127,
+            "5": 3,
+            "3": 2,
+            "6": 1
+          },
+          "top_category": "4"
+        },
+        "size": {
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
+        },
+        "gap": {
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
+        },
+        "thickness": {
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
+        },
+        "alpha": {
+          "valid_n": 133,
+          "categories": {
+            "255": 127,
+            "200": 2,
+            "170": 1,
+            "175": 1,
+            "197": 1,
+            "233": 1
+          },
+          "median": 255,
+          "top_category": "255"
+        },
+        "dot": {
+          "valid_n": 133,
+          "missing_n": 18,
+          "enabled_count": 8,
+          "disabled_count": 125,
+          "enabled_share": 0.0602
+        },
+        "outline": {
+          "valid_n": 133,
+          "missing_n": 18,
+          "enabled_count": 11,
+          "disabled_count": 122,
+          "enabled_share": 0.0827
+        }
+      }
+    },
+    "viewmodel": {
+      "valid_n": 128,
+      "fov68_share": 0.8906,
+      "dominant_offset": [
+        2.5,
+        0.0,
+        -1.5
+      ]
+    },
+    "brightness": {
+      "valid_n": 123,
+      "categories": {
+        "100": 41,
+        "93": 20,
+        "80": 8,
+        "85": 6,
+        "90": 6,
+        "130": 5,
+        "70": 5,
+        "83": 4,
+        "110": 3,
+        "60": 3,
+        "50": 2,
+        "65": 2,
+        "69": 2,
+        "75": 2,
+        "101": 1,
+        "107": 1,
+        "114": 1,
+        "120": 1,
+        "126": 1,
+        "45": 1,
+        "68": 1,
+        "77": 1,
+        "81": 1,
+        "88": 1,
+        "92": 1,
+        "95": 1,
+        "97": 1,
+        "98": 1
+      }
+    },
+    "radar": {
+      "valid_n": 0,
+      "rotating_valid_n": 0,
+      "centered_valid_n": 125,
+      "rotating_share": null,
+      "centered_share": 0.704,
+      "zoom": {
+        "valid_n": 101,
+        "categories": {
+          "0.4": 30,
+          "0.7": 19,
+          "0.35": 11,
+          "0.3": 10,
+          "0.25": 8,
+          "0.41": 4,
+          "0.45": 4,
+          "0.445": 2,
+          "0.26": 1,
+          "0.315": 1,
+          "0.454938": 1,
+          "0.498025": 1,
+          "0.5": 1,
+          "0.55": 1,
+          "0.6025": 1,
+          "0.63": 1,
+          "0.633826": 1,
+          "0.65": 1,
+          "0.8": 1,
+          "0.9": 1,
+          "1": 1
+        },
+        "median": 0.4,
+        "top_category": "0.4"
+      }
+    },
+    "mouse_polling": {
+      "valid_n": 133,
+      "categories": {
+        "1000": 86,
+        "2000": 24,
+        "4000": 19,
+        "8000": 4
+      },
+      "share_4000_plus": 0.1729
+    }
+  },
+  "panel": {
+    "status": "available",
+    "player_count": 151,
+    "stable_identity_count": 151
+  },
+  "review": {
+    "status": "candidate",
+    "accepted": false,
+    "reason": "new crosshair baseline and October scope pending review",
+    "ranking_date": "2026-10-05",
+    "retrieved_at": "2026-10-08",
+    "source": "cs2settings",
+    "blockers": [
+      "HEROIC source roster lists six members; one has no role or settings. Active roster status needs independent review.",
+      "Crosshair page verification dates do not establish match usage; complete scope/outline/dynamic fields not yet decoded."
+    ]
+  }
+}

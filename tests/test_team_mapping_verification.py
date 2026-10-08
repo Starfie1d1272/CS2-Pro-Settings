@@ -3,7 +3,8 @@
 The six previously roster-unresolved Core teams (aurora, big, dendele,
 hotu, inner-circle, magic) were verified against the live CS2Settings team
 pages (HTTP 200, parser OK, roster >= 3) and their source_refs updated.
-Ranking snapshots are untouched.
+October adds verified Nemiga, Nemesis, JiJieHao and Luminosity locators.
+Historical locator checks remain valid even when a team leaves Core.
 """
 import yaml
 
@@ -24,15 +25,15 @@ def test_verified_six_team_slugs_resolve():
 
 def test_verified_slugs_enter_core_and_tracked_universe():
     slugs = set(core_slugs(COHORT))
-    assert {"aurora", "big", "dendele", "hotu", "inner-circle", "magic"} <= slugs
+    assert {"aurora", "big", "inner-circle", "magic", "nemiga", "nemesis", "jijiehao", "luminosity"} <= slugs
     assert len(slugs) == 30  # full VRS Core now cs2settings-resolved
     universe = tracked_slugs(COHORT)
     assert "aurora" in universe and "big" in universe
 
 
-def test_ranking_invariants_unchanged():
+def test_october_ranking_and_aged_reference_sets():
     sets = load_cohort_sets(COHORT)
     assert sets["core_count"] == 30
     assert sets["reference_count"] == 30
-    assert sets["consensus_count"] == 27
-    assert sets["ranked_union_count"] == 33
+    assert sets["consensus_count"] == 24
+    assert sets["ranked_union_count"] == 36

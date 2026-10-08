@@ -1,0 +1,1884 @@
+{
+  "schema_version": "crosshair-analysis-v2",
+  "snapshot_date": "2026-10-08",
+  "ranking_date": "2026-10-05",
+  "source": {
+    "name": "cs2settings",
+    "url": "https://cs2settings.com/players",
+    "retrieved_at": "2026-10-08"
+  },
+  "collection": {
+    "requested_core_teams": 30,
+    "successful_core_team_rosters": 30,
+    "expected_core_players": 151,
+    "successful_core_players": 151,
+    "collection_complete": true,
+    "incomplete_reasons": []
+  },
+  "cohort_n": 151,
+  "crosshair_valid_n": 133,
+  "native_format_n": 99,
+  "native_recent_page_n": 79,
+  "recent_static_height_counts": {
+    "valid_n": 75,
+    "categories": {
+      "1024": 1,
+      "1050": 2,
+      "1080": 11,
+      "768": 4,
+      "800": 1,
+      "864": 1,
+      "900": 1,
+      "960": 54
+    }
+  },
+  "formats": {
+    "valid_n": 133,
+    "categories": {
+      "cs2-v1": 99,
+      "legacy-v1": 13,
+      "legacy-v4": 21
+    }
+  },
+  "quality": {
+    "grain": "one current Core roster member; field values from CS2Settings",
+    "identity_duplicate_n": 0,
+    "non_steam_identity_n": 0,
+    "invalid_values": {},
+    "invalid_date_n": 0,
+    "future_page_date_n": 0,
+    "missing_page_date_n": 0,
+    "field_completeness": {
+      "crosshair_format": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_style": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_size": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_gap": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_thickness": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_screen_height": {
+        "valid_n": 120,
+        "missing_n": 31,
+        "cohort_n": 151
+      },
+      "crosshair_dot": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_outline_mode": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_t_style": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_alpha": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_r": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_g": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_b": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      }
+    },
+    "team_coverage": [
+      {
+        "team": "100-thieves",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "3dmax",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "9z",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "alliance",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "astralis",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "aurora",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "b8",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "betboom",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "big",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "falcons",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "faze",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "furia",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "fut",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "g2",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "gamerlegion",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "heroic",
+        "cohort_n": 6,
+        "crosshair_valid_n": 5,
+        "missing_n": 1
+      },
+      {
+        "team": "inner-circle",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "jijiehao",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "legacy",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "liquid",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "luminosity",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "m80",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "magic",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "mibr",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "mouz",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "nemesis",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "nemiga",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "ninjas-in-pyjamas",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "spirit",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "vitality",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      }
+    ],
+    "page_verified_dates": {
+      "valid_n": 133,
+      "categories": {
+        "2026-09-12": 5,
+        "2026-09-22": 7,
+        "2026-09-29": 4,
+        "2026-09-30": 27,
+        "2026-10-03": 19,
+        "2026-10-04": 22,
+        "2026-10-05": 5,
+        "2026-10-06": 24,
+        "2026-10-07": 20
+      }
+    },
+    "native_format_before_system_update_n": 4,
+    "primary_source_count": 1,
+    "roster_size_outliers": [
+      {
+        "team": "heroic",
+        "cohort_n": 6,
+        "crosshair_valid_n": 5,
+        "missing_n": 1
+      }
+    ],
+    "missing_role_in_outlier_rosters_n": 1,
+    "team_membership_conflict_n": 0,
+    "source_roster_ambiguity_n": 0,
+    "notes": [
+      "lastVerified is page verification, not crosshair observation time.",
+      "New share codes may be converted; they do not prove recent player choice.",
+      "Scope/outline colors and dynamic details are not extracted; independent match verification is absent.",
+      "HLTV reference remains 2026-08-03; this analysis uses only 2026-10-05 VRS Core."
+    ]
+  },
+  "new_format_choices": {
+    "crosshair_style": {
+      "valid_n": 99,
+      "categories": {
+        "3": 1,
+        "4": 94,
+        "5": 3,
+        "6": 1
+      }
+    },
+    "crosshair_dot": {
+      "valid_n": 99,
+      "categories": {
+        "False": 93,
+        "True": 6
+      }
+    },
+    "crosshair_outline_mode": {
+      "valid_n": 99,
+      "categories": {
+        "0": 93,
+        "1": 5,
+        "2": 1
+      }
+    },
+    "crosshair_t_style": {
+      "valid_n": 99,
+      "categories": {
+        "False": 99
+      }
+    },
+    "crosshair_alpha": {
+      "valid_n": 99,
+      "categories": {
+        "197": 1,
+        "200": 1,
+        "255": 97
+      }
+    }
+  },
+  "geometry_sample": {
+    "format": "cs2-v1",
+    "style": "4",
+    "reference_height": 960,
+    "page_verified_from": "2026-10-01",
+    "page_verified_through": "2026-10-08",
+    "selection": "largest reference-height stratum among recent-page static crosses",
+    "valid_n": 54,
+    "combinations": [
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 22
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 6
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 6
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 1.0,
+        "count": 2
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 2
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 3.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 4.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 5.0,
+        "thickness": 2.0,
+        "count": 1
+      }
+    ]
+  },
+  "geometry_sensitivity_all_dates": {
+    "valid_n": 66,
+    "combinations": [
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 26
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 9
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 6
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 1.0,
+        "count": 5
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 1.0,
+        "count": 2
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 3.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 4.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 5.0,
+        "thickness": 2.0,
+        "count": 1
+      }
+    ]
+  },
+  "rescreened": {
+    "selection": "all current cs2-v1 static crosses with complete extracted appearance and valid reference height; no height or page-date cutoff",
+    "format": "cs2-v1",
+    "style": "4",
+    "target_height": 1080,
+    "normalization": "exact parameter * 1080 / source screenHeight; continuous equivalents, no rounding or tolerance merging",
+    "normalization_source": "https://steamcommunity.com/games/CSGO/announcements/detail/1844751498219795",
+    "caveat": "Equivalent source parameters are not game-rendered pixels, physical monitor size or stretched screen appearance; gap offset is not center-hole width.",
+    "native_n": 99,
+    "static_n": 94,
+    "eligible_n": 94,
+    "other_styles_n": 5,
+    "incomplete_static_n": 0,
+    "page_dates": {
+      "valid_n": 94,
+      "categories": {
+        "2026-09-22": 4,
+        "2026-09-29": 4,
+        "2026-09-30": 11,
+        "2026-10-03": 8,
+        "2026-10-04": 20,
+        "2026-10-05": 5,
+        "2026-10-06": 22,
+        "2026-10-07": 20
+      }
+    },
+    "source_height_counts": {
+      "valid_n": 94,
+      "categories": {
+        "1024": 4,
+        "1050": 2,
+        "1080": 13,
+        "768": 5,
+        "800": 1,
+        "864": 2,
+        "900": 1,
+        "960": 66
+      }
+    },
+    "team_n": 22,
+    "team_counts": [
+      {
+        "team_id": "team-spirit",
+        "valve_rank": 1,
+        "count": 5
+      },
+      {
+        "team_id": "legacy",
+        "valve_rank": 2,
+        "count": 4
+      },
+      {
+        "team_id": "vitality",
+        "valve_rank": 3,
+        "count": 4
+      },
+      {
+        "team_id": "mouz",
+        "valve_rank": 4,
+        "count": 5
+      },
+      {
+        "team_id": "g2",
+        "valve_rank": 5,
+        "count": 4
+      },
+      {
+        "team_id": "falcons",
+        "valve_rank": 6,
+        "count": 4
+      },
+      {
+        "team_id": "furia",
+        "valve_rank": 7,
+        "count": 5
+      },
+      {
+        "team_id": "aurora",
+        "valve_rank": 9,
+        "count": 5
+      },
+      {
+        "team_id": "astralis",
+        "valve_rank": 10,
+        "count": 5
+      },
+      {
+        "team_id": "betboom",
+        "valve_rank": 11,
+        "count": 5
+      },
+      {
+        "team_id": "b8",
+        "valve_rank": 13,
+        "count": 4
+      },
+      {
+        "team_id": "nemiga",
+        "valve_rank": 14,
+        "count": 3
+      },
+      {
+        "team_id": "luminosity",
+        "valve_rank": 16,
+        "count": 3
+      },
+      {
+        "team_id": "9z",
+        "valve_rank": 17,
+        "count": 5
+      },
+      {
+        "team_id": "ninjas-in-pyjamas",
+        "valve_rank": 18,
+        "count": 3
+      },
+      {
+        "team_id": "m80",
+        "valve_rank": 22,
+        "count": 5
+      },
+      {
+        "team_id": "alliance",
+        "valve_rank": 24,
+        "count": 5
+      },
+      {
+        "team_id": "big",
+        "valve_rank": 25,
+        "count": 5
+      },
+      {
+        "team_id": "faze",
+        "valve_rank": 26,
+        "count": 3
+      },
+      {
+        "team_id": "100-thieves",
+        "valve_rank": 28,
+        "count": 5
+      },
+      {
+        "team_id": "nemesis",
+        "valve_rank": 29,
+        "count": 3
+      },
+      {
+        "team_id": "jijiehao",
+        "valve_rank": 30,
+        "count": 4
+      }
+    ],
+    "rank_bins": {
+      "valid_n": 94,
+      "categories": {
+        "1-10": 41,
+        "11-20": 23,
+        "21-30": 30
+      }
+    },
+    "geometry": {
+      "valid_n": 94,
+      "combinations": [
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 2.25,
+          "count": 26
+        },
+        {
+          "length": 4.5,
+          "gap_offset": 2.25,
+          "thickness": 1.125,
+          "count": 9
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 0.0,
+          "thickness": 2.25,
+          "count": 6
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 1.125,
+          "count": 5
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 0.0,
+          "thickness": 2.25,
+          "count": 4
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 2.25,
+          "thickness": 1.125,
+          "count": 4
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 1.0,
+          "thickness": 2.0,
+          "count": 3
+        },
+        {
+          "length": 2.109375,
+          "gap_offset": 1.0546875,
+          "thickness": 2.109375,
+          "count": 3
+        },
+        {
+          "length": 4.0,
+          "gap_offset": 2.0,
+          "thickness": 1.0,
+          "count": 3
+        },
+        {
+          "length": 2.5,
+          "gap_offset": 1.25,
+          "thickness": 2.5,
+          "count": 2
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 0.0,
+          "thickness": 1.125,
+          "count": 2
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 2.0,
+          "thickness": 3.0,
+          "count": 1
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 2.0,
+          "thickness": 4.0,
+          "count": 1
+        },
+        {
+          "length": 2.057142857142857,
+          "gap_offset": 1.0285714285714285,
+          "thickness": 2.057142857142857,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 3.375,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 2.25,
+          "thickness": 1.125,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 2.25,
+          "thickness": 3.375,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 3.375,
+          "thickness": 1.125,
+          "count": 1
+        },
+        {
+          "length": 2.7,
+          "gap_offset": 1.35,
+          "thickness": 2.7,
+          "count": 1
+        },
+        {
+          "length": 2.8125,
+          "gap_offset": 1.40625,
+          "thickness": 2.8125,
+          "count": 1
+        },
+        {
+          "length": 2.8125,
+          "gap_offset": 2.8125,
+          "thickness": 2.8125,
+          "count": 1
+        },
+        {
+          "length": 3.0,
+          "gap_offset": 0.0,
+          "thickness": 2.0,
+          "count": 1
+        },
+        {
+          "length": 3.085714285714286,
+          "gap_offset": 1.0285714285714285,
+          "thickness": 2.057142857142857,
+          "count": 1
+        },
+        {
+          "length": 3.1640625,
+          "gap_offset": 0.0,
+          "thickness": 2.109375,
+          "count": 1
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 1.125,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 4.0,
+          "gap_offset": 4.0,
+          "thickness": 1.0,
+          "count": 1
+        },
+        {
+          "length": 4.21875,
+          "gap_offset": 1.40625,
+          "thickness": 1.40625,
+          "count": 1
+        },
+        {
+          "length": 4.21875,
+          "gap_offset": 2.8125,
+          "thickness": 1.40625,
+          "count": 1
+        },
+        {
+          "length": 4.5,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 4.8,
+          "gap_offset": 4.8,
+          "thickness": 2.4,
+          "count": 1
+        },
+        {
+          "length": 6.0,
+          "gap_offset": 3.0,
+          "thickness": 1.0,
+          "count": 1
+        },
+        {
+          "length": 6.75,
+          "gap_offset": 4.5,
+          "thickness": 1.125,
+          "count": 1
+        },
+        {
+          "length": 6.75,
+          "gap_offset": 5.625,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 7.03125,
+          "gap_offset": 7.03125,
+          "thickness": 1.40625,
+          "count": 1
+        },
+        {
+          "length": 8.0,
+          "gap_offset": 3.0,
+          "thickness": 3.0,
+          "count": 1
+        },
+        {
+          "length": 10.0,
+          "gap_offset": 3.0,
+          "thickness": 1.0,
+          "count": 1
+        }
+      ],
+      "spearman": {
+        "length": {
+          "length": 1.0,
+          "gap_offset": 0.5818,
+          "thickness": -0.3882
+        },
+        "gap_offset": {
+          "length": 0.5818,
+          "gap_offset": 1.0,
+          "thickness": -0.2345
+        },
+        "thickness": {
+          "length": -0.3882,
+          "gap_offset": -0.2345,
+          "thickness": 1.0
+        }
+      }
+    },
+    "appearance": {
+      "valid_n": 94,
+      "missing_n": 0,
+      "singleton_n": 31,
+      "combinations": [
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 1.125,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 26
+        },
+        {
+          "crosshair_size": 4.5,
+          "crosshair_gap": 2.25,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 9
+        },
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 6
+        },
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 1.125,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 5
+        },
+        {
+          "crosshair_size": 3.375,
+          "crosshair_gap": 2.25,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 4
+        },
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 1.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 3
+        },
+        {
+          "crosshair_size": 3.375,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 3
+        },
+        {
+          "crosshair_size": 4.0,
+          "crosshair_gap": 2.0,
+          "crosshair_thickness": 1.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 3
+        },
+        {
+          "crosshair_size": 2.109375,
+          "crosshair_gap": 1.0546875,
+          "crosshair_thickness": 2.109375,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        },
+        {
+          "crosshair_size": 2.5,
+          "crosshair_gap": 1.25,
+          "crosshair_thickness": 2.5,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        }
+      ]
+    },
+    "top_template_colors": {
+      "valid_n": 26,
+      "categories": {
+        "0,229,255": 1,
+        "0,238,255": 1,
+        "0,255,0": 4,
+        "0,255,145": 1,
+        "0,255,165": 1,
+        "0,255,172": 1,
+        "0,255,246": 1,
+        "0,255,255": 7,
+        "11,255,0": 1,
+        "247,247,240": 1,
+        "255,255,0": 1,
+        "255,255,255": 2,
+        "3,255,0": 1,
+        "46,235,14": 1,
+        "50,226,245": 1,
+        "84,235,14": 1
+      },
+      "missing_n": 0
+    },
+    "raw_parameter_appearance": {
+      "valid_n": 94,
+      "missing_n": 0,
+      "singleton_n": 22,
+      "combinations": [
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 1.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 36
+        },
+        {
+          "crosshair_size": 4.0,
+          "crosshair_gap": 2.0,
+          "crosshair_thickness": 1.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 12
+        },
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 6
+        },
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 1.0,
+          "crosshair_thickness": 1.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 5
+        },
+        {
+          "crosshair_size": 3.0,
+          "crosshair_gap": 2.0,
+          "crosshair_thickness": 1.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 5
+        },
+        {
+          "crosshair_size": 3.0,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 4
+        },
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 2.0,
+          "crosshair_thickness": 3.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        },
+        {
+          "crosshair_size": 3.0,
+          "crosshair_gap": 1.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        }
+      ]
+    },
+    "recent_page_appearance": {
+      "valid_n": 75,
+      "missing_n": 0,
+      "singleton_n": 26,
+      "combinations": [
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 1.125,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 22
+        },
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 6
+        },
+        {
+          "crosshair_size": 4.5,
+          "crosshair_gap": 2.25,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 6
+        },
+        {
+          "crosshair_size": 2.25,
+          "crosshair_gap": 1.125,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 4
+        },
+        {
+          "crosshair_size": 3.375,
+          "crosshair_gap": 2.25,
+          "crosshair_thickness": 1.125,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 4
+        },
+        {
+          "crosshair_size": 4.0,
+          "crosshair_gap": 2.0,
+          "crosshair_thickness": 1.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 3
+        },
+        {
+          "crosshair_size": 2.0,
+          "crosshair_gap": 1.0,
+          "crosshair_thickness": 2.0,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        },
+        {
+          "crosshair_size": 3.375,
+          "crosshair_gap": 0.0,
+          "crosshair_thickness": 2.25,
+          "crosshair_dot": false,
+          "crosshair_outline_mode": 0,
+          "crosshair_t_style": false,
+          "crosshair_alpha": 255,
+          "count": 2
+        }
+      ]
+    },
+    "recent_page_geometry": {
+      "valid_n": 75,
+      "combinations": [
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 2.25,
+          "count": 22
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 0.0,
+          "thickness": 2.25,
+          "count": 6
+        },
+        {
+          "length": 4.5,
+          "gap_offset": 2.25,
+          "thickness": 1.125,
+          "count": 6
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 1.125,
+          "count": 4
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 2.25,
+          "thickness": 1.125,
+          "count": 4
+        },
+        {
+          "length": 4.0,
+          "gap_offset": 2.0,
+          "thickness": 1.0,
+          "count": 3
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 1.0,
+          "thickness": 2.0,
+          "count": 2
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 0.0,
+          "thickness": 1.125,
+          "count": 2
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 0.0,
+          "thickness": 2.25,
+          "count": 2
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 2.0,
+          "thickness": 3.0,
+          "count": 1
+        },
+        {
+          "length": 2.0,
+          "gap_offset": 2.0,
+          "thickness": 4.0,
+          "count": 1
+        },
+        {
+          "length": 2.057142857142857,
+          "gap_offset": 1.0285714285714285,
+          "thickness": 2.057142857142857,
+          "count": 1
+        },
+        {
+          "length": 2.109375,
+          "gap_offset": 1.0546875,
+          "thickness": 2.109375,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 1.125,
+          "thickness": 3.375,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 2.25,
+          "gap_offset": 3.375,
+          "thickness": 1.125,
+          "count": 1
+        },
+        {
+          "length": 2.5,
+          "gap_offset": 1.25,
+          "thickness": 2.5,
+          "count": 1
+        },
+        {
+          "length": 2.7,
+          "gap_offset": 1.35,
+          "thickness": 2.7,
+          "count": 1
+        },
+        {
+          "length": 2.8125,
+          "gap_offset": 1.40625,
+          "thickness": 2.8125,
+          "count": 1
+        },
+        {
+          "length": 2.8125,
+          "gap_offset": 2.8125,
+          "thickness": 2.8125,
+          "count": 1
+        },
+        {
+          "length": 3.085714285714286,
+          "gap_offset": 1.0285714285714285,
+          "thickness": 2.057142857142857,
+          "count": 1
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 1.125,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 3.375,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 4.0,
+          "gap_offset": 4.0,
+          "thickness": 1.0,
+          "count": 1
+        },
+        {
+          "length": 4.21875,
+          "gap_offset": 2.8125,
+          "thickness": 1.40625,
+          "count": 1
+        },
+        {
+          "length": 4.5,
+          "gap_offset": 2.25,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 4.8,
+          "gap_offset": 4.8,
+          "thickness": 2.4,
+          "count": 1
+        },
+        {
+          "length": 6.0,
+          "gap_offset": 3.0,
+          "thickness": 1.0,
+          "count": 1
+        },
+        {
+          "length": 6.75,
+          "gap_offset": 4.5,
+          "thickness": 1.125,
+          "count": 1
+        },
+        {
+          "length": 6.75,
+          "gap_offset": 5.625,
+          "thickness": 2.25,
+          "count": 1
+        },
+        {
+          "length": 7.03125,
+          "gap_offset": 7.03125,
+          "thickness": 1.40625,
+          "count": 1
+        },
+        {
+          "length": 8.0,
+          "gap_offset": 3.0,
+          "thickness": 3.0,
+          "count": 1
+        },
+        {
+          "length": 10.0,
+          "gap_offset": 3.0,
+          "thickness": 1.0,
+          "count": 1
+        }
+      ],
+      "spearman": {
+        "length": {
+          "length": 1.0,
+          "gap_offset": 0.6536,
+          "thickness": -0.4097
+        },
+        "gap_offset": {
+          "length": 0.6536,
+          "gap_offset": 1.0,
+          "thickness": -0.2387
+        },
+        "thickness": {
+          "length": -0.4097,
+          "gap_offset": -0.2387,
+          "thickness": 1.0
+        }
+      }
+    }
+  },
+  "popular_appearance": {
+    "format": "cs2-v1",
+    "style": "4",
+    "reference_height": 960,
+    "page_verified_from": "2026-10-01",
+    "sample_n": 54,
+    "excluded_fields": [
+      "RGB",
+      "unextracted scope/dynamic/outline-color settings"
+    ],
+    "valid_n": 54,
+    "missing_n": 0,
+    "singleton_n": 10,
+    "combinations": [
+      {
+        "crosshair_size": 2.0,
+        "crosshair_gap": 1.0,
+        "crosshair_thickness": 2.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 22
+      },
+      {
+        "crosshair_size": 2.0,
+        "crosshair_gap": 0.0,
+        "crosshair_thickness": 2.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 6
+      },
+      {
+        "crosshair_size": 4.0,
+        "crosshair_gap": 2.0,
+        "crosshair_thickness": 1.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 6
+      },
+      {
+        "crosshair_size": 2.0,
+        "crosshair_gap": 1.0,
+        "crosshair_thickness": 1.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 4
+      },
+      {
+        "crosshair_size": 3.0,
+        "crosshair_gap": 2.0,
+        "crosshair_thickness": 1.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 4
+      },
+      {
+        "crosshair_size": 3.0,
+        "crosshair_gap": 0.0,
+        "crosshair_thickness": 2.0,
+        "crosshair_dot": false,
+        "crosshair_outline_mode": 0,
+        "crosshair_t_style": false,
+        "crosshair_alpha": 255,
+        "count": 2
+      }
+    ],
+    "top_template_colors": {
+      "valid_n": 22,
+      "categories": {
+        "0,238,255": 1,
+        "0,255,0": 4,
+        "0,255,145": 1,
+        "0,255,165": 1,
+        "0,255,172": 1,
+        "0,255,246": 1,
+        "0,255,255": 6,
+        "11,255,0": 1,
+        "255,255,0": 1,
+        "255,255,255": 1,
+        "3,255,0": 1,
+        "46,235,14": 1,
+        "50,226,245": 1,
+        "84,235,14": 1
+      },
+      "missing_n": 0
+    }
+  },
+  "native_colors": {
+    "valid_n": 99,
+    "categories": {
+      "0,0,0": 1,
+      "0,186,255": 1,
+      "0,229,255": 2,
+      "0,238,255": 1,
+      "0,243,71": 1,
+      "0,243,95": 1,
+      "0,247,255": 1,
+      "0,250,0": 1,
+      "0,255,0": 18,
+      "0,255,135": 1,
+      "0,255,14": 1,
+      "0,255,145": 1,
+      "0,255,158": 1,
+      "0,255,165": 1,
+      "0,255,169": 1,
+      "0,255,172": 2,
+      "0,255,221": 1,
+      "0,255,23": 1,
+      "0,255,238": 1,
+      "0,255,246": 1,
+      "0,255,247": 1,
+      "0,255,255": 21,
+      "0,255,83": 1,
+      "11,255,0": 3,
+      "13,206,255": 1,
+      "14,218,66": 1,
+      "161,255,201": 2,
+      "176,255,228": 1,
+      "176,255,239": 1,
+      "20,255,0": 2,
+      "220,255,3": 1,
+      "243,10,10": 1,
+      "244,255,0": 1,
+      "247,247,240": 1,
+      "251,251,251": 1,
+      "255,0,0": 1,
+      "255,255,0": 2,
+      "255,255,255": 5,
+      "255,50,129": 1,
+      "28,255,0": 1,
+      "29,255,0": 1,
+      "3,255,0": 1,
+      "36,209,58": 1,
+      "37,236,3": 1,
+      "46,235,14": 1,
+      "50,226,245": 1,
+      "50,250,50": 1,
+      "6,248,248": 1,
+      "6,255,0": 1,
+      "66,216,255": 1,
+      "84,235,14": 1
+    },
+    "missing_n": 0
+  },
+  "native_recent_colors": {
+    "valid_n": 79,
+    "categories": {
+      "0,0,0": 1,
+      "0,229,255": 1,
+      "0,238,255": 1,
+      "0,243,71": 1,
+      "0,243,95": 1,
+      "0,247,255": 1,
+      "0,250,0": 1,
+      "0,255,0": 15,
+      "0,255,135": 1,
+      "0,255,14": 1,
+      "0,255,145": 1,
+      "0,255,165": 1,
+      "0,255,169": 1,
+      "0,255,172": 2,
+      "0,255,221": 1,
+      "0,255,23": 1,
+      "0,255,238": 1,
+      "0,255,246": 1,
+      "0,255,247": 1,
+      "0,255,255": 15,
+      "0,255,83": 1,
+      "11,255,0": 3,
+      "13,206,255": 1,
+      "14,218,66": 1,
+      "161,255,201": 2,
+      "176,255,239": 1,
+      "20,255,0": 2,
+      "220,255,3": 1,
+      "243,10,10": 1,
+      "244,255,0": 1,
+      "251,251,251": 1,
+      "255,0,0": 1,
+      "255,255,0": 2,
+      "255,255,255": 3,
+      "255,50,129": 1,
+      "28,255,0": 1,
+      "3,255,0": 1,
+      "46,235,14": 1,
+      "50,226,245": 1,
+      "50,250,50": 1,
+      "6,255,0": 1,
+      "66,216,255": 1,
+      "84,235,14": 1
+    },
+    "missing_n": 0
+  },
+  "input_metric_sha256": "b8f1fd287032eb4f93f986df107ccf83b4648f178e6e4f73cf970228d28018de",
+  "analysis": {
+    "sample_n": 54,
+    "unique_geometry_n": 15,
+    "spearman": {
+      "length": {
+        "length": 1.0,
+        "gap_offset": 0.5455,
+        "thickness": -0.55
+      },
+      "gap_offset": {
+        "length": 0.5455,
+        "gap_offset": 1.0,
+        "thickness": -0.4534
+      },
+      "thickness": {
+        "length": -0.55,
+        "gap_offset": -0.4534,
+        "thickness": 1.0
+      }
+    },
+    "distance": "Manhattan, each feature divided by population IQR, equal weights; no RGB or decorators",
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "candidates": [
+      {
+        "k": 2,
+        "silhouette": 0.6596,
+        "sizes": [
+          41,
+          13
+        ],
+        "minimum_size_pass": true
+      },
+      {
+        "k": 3,
+        "silhouette": 0.5891,
+        "sizes": [
+          31,
+          13,
+          10
+        ],
+        "minimum_size_pass": true
+      },
+      {
+        "k": 4,
+        "silhouette": 0.6375,
+        "sizes": [
+          31,
+          11,
+          10,
+          2
+        ],
+        "minimum_size_pass": false
+      },
+      {
+        "k": 5,
+        "silhouette": 0.6678,
+        "sizes": [
+          29,
+          7,
+          10,
+          2,
+          6
+        ],
+        "minimum_size_pass": false
+      }
+    ],
+    "selected": {
+      "k": 2,
+      "silhouette": 0.6596,
+      "sizes": [
+        41,
+        13
+      ],
+      "minimum_size_pass": true
+    },
+    "selection_rule": "best silhouette among k=2..5 with every group >=max(5,10% of sample); exploratory",
+    "groups": [
+      {
+        "group": 1,
+        "count": 41,
+        "medoid": [
+          2.0,
+          1.0,
+          2.0
+        ],
+        "median": [
+          2.0,
+          1.0,
+          2.0
+        ],
+        "min": [
+          2.0,
+          0.0,
+          1.0
+        ],
+        "max": [
+          3.0,
+          3.0,
+          3.0
+        ]
+      },
+      {
+        "group": 2,
+        "count": 13,
+        "medoid": [
+          4.0,
+          2.0,
+          1.0
+        ],
+        "median": [
+          4.0,
+          2.0,
+          1.0
+        ],
+        "min": [
+          3.0,
+          2.0,
+          1.0
+        ],
+        "max": [
+          6.0,
+          5.0,
+          2.0
+        ]
+      }
+    ],
+    "sensitivity": {
+      "bootstrap_runs": 50,
+      "bootstrap_ari_median": 1.0,
+      "bootstrap_ari_p10": 0.7116,
+      "length_weighted_ari": 1.0,
+      "unique_template_silhouette": 0.6079,
+      "caveat": "Bootstrap resamples anonymous parameter tuples, not teams; it cannot test independent-source truth or team dependence."
+    },
+    "all_date_sensitivity": {
+      "sample_n": 66,
+      "spearman": {
+        "length": {
+          "length": 1.0,
+          "gap_offset": 0.4835,
+          "thickness": -0.5306
+        },
+        "gap_offset": {
+          "length": 0.4835,
+          "gap_offset": 1.0,
+          "thickness": -0.4593
+        },
+        "thickness": {
+          "length": -0.5306,
+          "gap_offset": -0.4593,
+          "thickness": 1.0
+        }
+      }
+    },
+    "caveats": [
+      "Associations describe source records, not causation, aiming performance or proof of independent player choice.",
+      "Selected groups are exploratory partitions, not established natural style categories.",
+      "Dominant repeated templates may originate from conversion or copying; independent verification is required.",
+      "Only one format, one shape and one reference height are modeled; results do not represent all professionals."
+    ]
+  }
+}

@@ -25,12 +25,13 @@ MAPPINGS = load_mappings(str(REPO / "config" / "team-mappings.yaml"))
 # ---------------------------------------------------------------------------
 
 def test_null_cs2_slug_does_not_mean_unobservable():
-    # Luminosity has cs2settings.team_slug=null in the mapping
-    assert resolve_team_source_ref("luminosity", "cs2settings", MAPPINGS) is None
-    # but the team_id exists and the mapping entry is present (source refs
-    # are per-source; prosettings/proconfig keys exist as empty refs)
-    entry = next(e for e in MAPPINGS["teams"] if e["team_id"] == "luminosity")
-    assert entry["team_id"] == "luminosity"
+    # This is a per-source capability contract, independent of today's
+    # team coverage. Luminosity's real locator was verified in October.
+    mappings = {"teams": [{"team_id": "unresolved-team", "source_refs": {
+        "cs2settings": {"team_slug": None}, "prosettings": {}, "proconfig": {}}}]}
+    assert resolve_team_source_ref("unresolved-team", "cs2settings", mappings) is None
+    entry = mappings["teams"][0]
+    assert entry["team_id"] == "unresolved-team"
     assert "prosettings" in entry["source_refs"]
     assert "proconfig" in entry["source_refs"]
 

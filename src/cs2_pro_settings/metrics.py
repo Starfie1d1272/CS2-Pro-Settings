@@ -14,14 +14,16 @@ from collections import Counter
 import statistics
 from typing import Any, Optional
 
-from .models import CUSTOM_COLOR_CODE, NormalizedPlayerSettings
+from .models import NormalizedPlayerSettings
+from .crosshair import (LEGACY_FORMATS, active_rgb, format_of,
+                        geometry_context, outline_mode)
 
 # Real normalized settings attributes (excludes identity metadata:
 # player_id / canonical_name / team / cohort_tier / provenance)
 _SETTINGS_FIELDS = tuple(
     f.name for f in NormalizedPlayerSettings.__dataclass_fields__.values()
     if f.name not in ("player_id", "canonical_name", "team", "cohort_tier",
-                      "provenance")
+                      "provenance", "crosshair_format", "crosshair_code")
 )
 
 EDPI_BINS = [(0, 400, "0-400"), (400, 600, "400-600"), (600, 800, "600-800"),
@@ -166,20 +168,42 @@ def compute_metrics(
     fps_cats = _counts([p.max_fps for p in players])
     fps_valid = _valid_n([p.max_fps for p in players])
 
-    both_off = sum(1 for p in players if p.crosshair_dot is False and p.crosshair_outline is False)
-    ch_valid = sum(1 for p in players if p.crosshair_dot is not None and p.crosshair_outline is not None)
+    both_off = sum(1 for p in players if p.crosshair_dot is False and outline_mode(p) == 0)
+    ch_valid = sum(1 for p in players if p.crosshair_dot is not None and outline_mode(p) is not None)
+    outline_modes = _categorical_block([outline_mode(p) for p in players])
+    ch_players = [p for p in players if any(
+        getattr(p, field) is not None for field in _SETTINGS_FIELDS
+        if field.startswith("crosshair_"))]
+    formats = sorted({format_of(p) for p in ch_players})
+    measurement_version = ("legacy-v1" if all(f in LEGACY_FORMATS for f in formats)
+                           else "pixel-v2:" + ",".join(formats))
+    context_players = {}
+    for p in ch_players:
+        context_players.setdefault(geometry_context(p), []).append(p)
+    geometry_by_context = {
+        context: {key: _numeric_block([
+            getattr(p, f"crosshair_{key}") if "unknown" not in context else None
+            for p in group])
+                  for key in ("size", "gap", "thickness")}
+        for context, group in sorted(context_players.items())
+    }
+    # Marginal and joint plots may show a single verified context only.
+    # Multiple heights, unknown heights or formats are reported in separate blocks.
+    contexts = sorted(context_players)
+    geometry_comparable = len(contexts) == 1 and "unknown" not in contexts[0]
+    geometry_players = ch_players if geometry_comparable else []
 
     color_cats = _counts([p.crosshair_color for p in players])
     color_valid = _valid_n([p.crosshair_color for p in players])
 
     crosshair_geometry = {
         "style": _categorical_block([p.crosshair_style for p in players]),
-        "size": _numeric_block([p.crosshair_size for p in players]),
-        "gap": _numeric_block([p.crosshair_gap for p in players]),
-        "thickness": _numeric_block([p.crosshair_thickness for p in players]),
+        "size": _numeric_block([p.crosshair_size for p in geometry_players]),
+        "gap": _numeric_block([p.crosshair_gap for p in geometry_players]),
+        "thickness": _numeric_block([p.crosshair_thickness for p in geometry_players]),
         "alpha": _numeric_block([p.crosshair_alpha for p in players]),
         "dot": _boolean_block([p.crosshair_dot for p in players], n),
-        "outline": _boolean_block([p.crosshair_outline for p in players], n),
+        "outline": _boolean_block([None if outline_mode(p) is None else outline_mode(p) != 0 for p in players], n),
     }
 
     # Figure-only joint counts.  The public aggregate intentionally keeps the
@@ -189,7 +213,7 @@ def compute_metrics(
     # marginals.  public_aggregate() does not expose figure_data.
     gap_size_counts = Counter(
         (p.crosshair_gap, p.crosshair_size)
-        for p in players
+        for p in geometry_players
         if p.crosshair_gap is not None and p.crosshair_size is not None
     )
     crosshair_gap_size = {
@@ -203,18 +227,15 @@ def compute_metrics(
         ],
     }
 
-    # Custom RGB: interpreted ONLY when the raw crosshair mode code is the
-    # game's custom-RGB value (cl_crosshaircolor 5, CUSTOM_COLOR_CODE) AND
-    # the R/G/B channels are all present. Preset-mode RGB is latent/
-    # inactive state (see models.py) and never enters this denominator;
-    # a missing channel makes the player Custom-RGB-missing, never
-    # defaulted to 255,255,255. The mode code is the authoritative switch.
+    # Direct pixel-format RGB and legacy Custom RGB share the exact-RGB
+    # block. Preset-mode legacy channels remain latent. Incomplete RGB
+    # reduces valid_n, never defaults to white or synthesizes legacy mode 5.
     custom_players = sum(1 for p in players
-                         if p.crosshair_color_code == CUSTOM_COLOR_CODE)
+                         if active_rgb(p))
     rgb_keys = [
         f"{p.crosshair_color_r},{p.crosshair_color_g},{p.crosshair_color_b}"
         for p in players
-        if p.crosshair_color_code == CUSTOM_COLOR_CODE
+        if active_rgb(p)
         and p.crosshair_color_r is not None
         and p.crosshair_color_g is not None
         and p.crosshair_color_b is not None
@@ -339,6 +360,14 @@ def compute_metrics(
             "unlimited_share": _share(fps_cats.get("0", 0), fps_valid),
         },
         "crosshair": {
+            "measurement_version": measurement_version,
+            "formats": _categorical_block([p.crosshair_format or "legacy" for p in ch_players]),
+            "outline_modes": outline_modes,
+            "geometry_context": contexts[0] if geometry_comparable else "separate contexts",
+            "geometry_by_context": geometry_by_context,
+            "migration_note": ("Pixel geometry is grouped by format and reference screen height; "
+                               "Custom includes direct RGB. Initialize a new crosshair baseline.")
+                              if measurement_version != "legacy-v1" else "",
             "valid_n": ch_valid,
             "dot_outline_off_share": _share(both_off, ch_valid),
             "color_valid_n": color_valid,
