@@ -8,6 +8,7 @@ from __future__ import annotations
 import argparse
 from collections import Counter
 from datetime import date
+from fractions import Fraction
 import hashlib
 import json
 import math
@@ -21,6 +22,29 @@ PIXEL_FORMATS = {"cs2-v1", "legacy-v3", "legacy-v4"}
 GEOMETRY = ("crosshair_size", "crosshair_gap", "crosshair_thickness")
 APPEARANCE = (*GEOMETRY, "crosshair_dot", "crosshair_outline_mode",
               "crosshair_t_style", "crosshair_alpha")
+
+
+def normalize_geometry(row, target_height=1080):
+    """Continuous equivalent pixels, before game pixel rounding; no fabricated settings."""
+    height = row.get("crosshair_screen_height")
+    if (row.get("crosshair_format") != "cs2-v1" or not complete_geometry(row)
+            or isinstance(height, bool) or not isinstance(height, int) or not 240 <= height <= 65535):
+        return None
+    result = row.copy()
+    # Fractions preserve exact proportional equivalence for counting.
+    for key in GEOMETRY:
+        result[key] = Fraction(str(row[key])) * target_height / height
+    return result
+
+
+def json_numbers(value):
+    if isinstance(value, Fraction):
+        return float(value)
+    if isinstance(value, dict):
+        return {k: json_numbers(v) for k, v in value.items()}
+    if isinstance(value, list):
+        return [json_numbers(v) for v in value]
+    return value
 
 
 def appearance_counts(rows):
@@ -88,6 +112,49 @@ def export_review(work: Path):
         return {"valid_n": len(group), "combinations": [
             {"length": key[0], "gap_offset": key[1], "thickness": key[2], "count": count}
             for key, count in sorted(counts.items(), key=lambda item: (-item[1], item[0]))]}
+    all_static = [p for p in native if p.get("crosshair_style") == "4"]
+    eligible = [p for p in all_static if normalize_geometry(p) is not None
+                and all(p.get(k) is not None for k in APPEARANCE)]
+    comparable = [normalize_geometry(p) for p in eligible]
+    recent_comparable = [normalize_geometry(p) for p in eligible
+                         if verified_date(p) and "2026-10-01" <= verified_date(p) <= snapshot_date]
+    comparable_appearance = appearance_counts(comparable)
+    comparable_top = comparable_appearance["combinations"][0] if comparable_appearance["combinations"] else None
+    comparable_top_rows = [p for p in comparable if comparable_top
+                           and all(p[k] == comparable_top[k] for k in APPEARANCE)]
+    # Join source slugs to canonical ranked team IDs; aggregate only, no player rows.
+    import yaml
+    root = work.resolve().parent
+    mapping = yaml.safe_load((root / "config/team-mappings.yaml").read_text())["teams"]
+    aliases = {t["source_refs"].get("cs2settings", {}).get("team_slug"): t["team_id"] for t in mapping}
+    ranks = {t["team_id"]: t["rank"] for t in yaml.safe_load(
+        (root / "config/rankings/valve" / f'{metrics["aggregate"]["scope"]["core_snapshot"]}.yaml').read_text())["teams"]}
+    team_counts = Counter(aliases.get(p["team"], p["team"]) for p in eligible)
+    rescreened = json_numbers({
+        "selection": "all current cs2-v1 static crosses with complete extracted appearance and valid reference height; no height or page-date cutoff",
+        "format": "cs2-v1", "style": "4", "target_height": 1080,
+        "normalization": "exact parameter * 1080 / source screenHeight; continuous equivalents, no rounding or tolerance merging",
+        "normalization_source": "https://steamcommunity.com/games/CSGO/announcements/detail/1844751498219795",
+        "caveat": "Equivalent source parameters are not game-rendered pixels, physical monitor size or stretched screen appearance; gap offset is not center-hole width.",
+        "native_n": len(native), "static_n": len(all_static), "eligible_n": len(eligible),
+        "other_styles_n": len(native) - len(all_static), "incomplete_static_n": len(all_static) - len(eligible),
+        "page_dates": counted([verified_date(p) for p in eligible if verified_date(p)]),
+        "source_height_counts": counted([str(p["crosshair_screen_height"]) for p in eligible]),
+        "team_n": len(team_counts), "team_counts": [
+            {"team_id": t, "valve_rank": ranks[t], "count": count}
+            for t, count in sorted(team_counts.items(), key=lambda item: ranks[item[0]])],
+        "rank_bins": counted(["1-10" if ranks[aliases.get(p["team"], p["team"])] <= 10
+                              else "11-20" if ranks[aliases.get(p["team"], p["team"])] <= 20
+                              else "21-30" for p in eligible]),
+        "geometry": joint(comparable), "appearance": comparable_appearance,
+        "top_template_colors": rgb_counts(comparable_top_rows),
+        "raw_parameter_appearance": appearance_counts(eligible),
+        "recent_page_appearance": appearance_counts(recent_comparable),
+        "recent_page_geometry": joint(recent_comparable),
+    })
+    for block in ["geometry", "recent_page_geometry"]:
+        frame = pd.DataFrame(expand_joint(rescreened[block]), columns=["length", "gap_offset", "thickness"])
+        rescreened[block]["spearman"] = frame.rank().corr().round(4).to_dict()
     invalid = Counter()
     for p in rows:
         pixel = p.get("crosshair_format") in PIXEL_FORMATS
@@ -144,7 +211,7 @@ def export_review(work: Path):
                   "Scope/outline colors and dynamic details are not extracted; independent match verification is absent.",
                   "HLTV reference remains 2026-08-03; this analysis uses only 2026-10-05 VRS Core."]}
     return {
-        "schema_version": "crosshair-analysis-v1", "snapshot_date": snapshot_date,
+        "schema_version": "crosshair-analysis-v2", "snapshot_date": snapshot_date,
         "ranking_date": metrics["aggregate"]["scope"]["core_snapshot"],
         "source": {"name": "cs2settings", "url": "https://cs2settings.com/players", "retrieved_at": snapshot_date},
         "collection": {k: manifest[k] for k in ["requested_core_teams", "successful_core_team_rosters", "expected_core_players", "successful_core_players", "collection_complete", "incomplete_reasons"]},
@@ -157,6 +224,7 @@ def export_review(work: Path):
                             "page_verified_from": "2026-10-01", "page_verified_through": snapshot_date,
                             "selection": "largest reference-height stratum among recent-page static crosses", **joint(primary)},
         "geometry_sensitivity_all_dates": joint(sensitivity),
+        "rescreened": rescreened,
         "popular_appearance": {"format": "cs2-v1", "style": "4", "reference_height": height,
                                "page_verified_from": "2026-10-01", "sample_n": len(primary),
                                "excluded_fields": ["RGB", "unextracted scope/dynamic/outline-color settings"],

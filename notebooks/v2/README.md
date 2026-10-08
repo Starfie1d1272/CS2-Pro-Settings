@@ -4,7 +4,7 @@
 field completeness, page dates, format migration, anonymous geometry
 combinations, popular observed appearance templates, color choices and exploratory medoid groups. It consumes committed aggregate
 counts only and can be executed without network access or private player data.
-It does not render game-accurate crosshairs or establish match usage.
+The main sample now includes all 94 comparable cs2-v1 static crosses, with continuous height-normalized geometry and a 75-record recent-page sensitivity sample. The earlier 54-record height-960 analysis is supplementary. It does not render game-accurate crosshairs or establish match usage.
 
 From the repository root, use the project environment plus notebook tooling:
 

@@ -57,3 +57,31 @@ def test_recommendation_uses_observed_joint_choices_and_excludes_color():
     assert top["count"] == 4
     assert all(tuple(r[k] for k in module.GEOMETRY) != (2, 1, 1)
                for r in result["combinations"])
+
+
+def test_common_scale_accepts_different_heights_and_groups_proportional_choices():
+    def row(height, length, gap, thickness):
+        return dict(zip(module.APPEARANCE, (length, gap, thickness, False, 0, False, 255)),
+                    crosshair_format="cs2-v1", crosshair_screen_height=height)
+    a = row(720, 2, 1, 2)
+    b = row(1440, 4, 2, 4)
+    c = row(1080, 2, 1, 2)
+    normalized = [module.normalize_geometry(r) for r in [a, b, c]]
+    assert normalized[0]["crosshair_size"] == normalized[1]["crosshair_size"] == 3
+    assert normalized[2]["crosshair_size"] == 2
+    counted = module.appearance_counts(normalized)
+    assert counted["valid_n"] == 3 and counted["combinations"][0]["count"] == 2
+    other_target = module.appearance_counts([module.normalize_geometry(r, 960) for r in [a, b, c]])
+    assert other_target["combinations"][0]["count"] == 2 and other_target["singleton_n"] == 1
+    assert a["crosshair_size"] == 2  # source rows are untouched
+    assert module.normalize_geometry(row(True, 2, 1, 2)) is None
+    assert module.normalize_geometry({**a, "crosshair_format": "legacy-v1"}) is None
+
+
+def test_normalization_does_not_merge_by_rounded_display_labels():
+    a = dict(zip(module.APPEARANCE, (2, 1, 2, False, 0, False, 255)),
+             crosshair_format="cs2-v1", crosshair_screen_height=960)
+    b = {**a, "crosshair_screen_height": 961}
+    result = module.appearance_counts([module.normalize_geometry(a), module.normalize_geometry(b)])
+    assert result["valid_n"] == 2 and result["singleton_n"] == 2
+    assert not result["combinations"]
