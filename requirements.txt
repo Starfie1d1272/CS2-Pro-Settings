@@ -1,12 +1,12 @@
 # v2 runtime dependencies (canonical source: pyproject.toml).
 # This file is a compatibility entrypoint for pip users; it mirrors the
 # [project.dependencies] table exactly.
-pandas>=2.0
-numpy>=1.24
-matplotlib>=3.7
-requests>=2.31
-beautifulsoup4>=4.12
-PyYAML>=6.0
+pandas>=3.0.6
+numpy>=2.5.3
+matplotlib>=3.11.2
+requests>=2.34.2
+beautifulsoup4>=4.15.0
+PyYAML>=6.0.3
 
 # dev
-pytest>=7.0
+pytest>=9.1.1

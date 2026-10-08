@@ -5,12 +5,12 @@ name: cs2_data
 channels:
   - conda-forge
 dependencies:
-  - python=3.11
-  - pandas>=2.0
-  - numpy>=1.24
-  - matplotlib>=3.7
-  - requests>=2.31
-  - beautifulsoup4>=4.12
-  - pyyaml>=6.0
-  - pytest>=7.0
-  - pip
+  - python=3.12
+  - pandas>=3.0.6
+  - numpy>=2.5.3
+  - matplotlib>=3.11.2
+  - requests>=2.34.2
+  - beautifulsoup4>=4.15.0
+  - pyyaml>=6.0.3
+  - pytest>=9.1.1
+  - pip>=26.2.1
