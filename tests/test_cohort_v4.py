@@ -53,18 +53,18 @@ def _sets():
 # 1/2. ranking invariants from the COMMITTED manual snapshots
 # ---------------------------------------------------------------------------
 
-def test_vrs_core_30_hltv_reference_30_consensus_27_union_33():
+def test_october_vrs_core_and_august_reference_scope():
     s = _sets()
     assert s["core_count"] == 30
     assert s["reference_count"] == 30
-    assert s["consensus_count"] == 27
-    assert s["ranked_union_count"] == 33
+    assert s["consensus_count"] == 24
+    assert s["ranked_union_count"] == 36
 
 
 def test_hltv_only_and_vrs_only_exact_sets():
     s = _sets()
-    assert set(s["hltv_only_teams"]) == {"pain", "3dmax", "luminosity"}
-    assert set(s["vrs_only_teams"]) == {"inner-circle", "hotu", "eyeballers"}
+    assert set(s["hltv_only_teams"]) == {"pain", "dendele", "natus-vincere", "parivision", "the-mongolz", "tyloo"}
+    assert set(s["vrs_only_teams"]) == {"inner-circle", "100-thieves", "m80", "nemiga", "nemesis", "jijiehao"}
 
 
 def test_committed_snapshots_are_structurally_valid():
@@ -80,7 +80,9 @@ def test_committed_snapshots_are_structurally_valid():
 def test_watchlist_manual_entries():
     cfg = load_cohort_cfg()
     wl = {i["team_id"] for i in cfg["cohort"]["watchlist"]}
-    assert wl == {"bc-game", "100-thieves", "m80", "lynn-vision"}
+    assert wl == {"bc-game", "lynn-vision"}
+    # October VRS promoted these former watchlist teams into Core.
+    assert {"100-thieves", "m80"} <= set(_sets()["core_teams"])
     # BC.Game has no resolvable settings slug -> coverage unresolved, never fabricated
     bc = next(i for i in cfg["cohort"]["watchlist"] if i["team_id"] == "bc-game")
     assert bc.get("settings_slug") is None
@@ -121,7 +123,7 @@ def test_tracked_slugs_never_use_team_id_namespace_for_core_teams():
     assert "team-spirit" not in slugs
     # ranking identifiers are untouched (team_id stays the ranking truth)
     s = _sets()
-    assert "natus-vincere" in s["core_teams"]
+    assert "natus-vincere" in s["reference_teams"]
     assert "team-spirit" in s["core_teams"]
 
 
@@ -331,6 +333,10 @@ def test_uninitialized_core_blocks_monthly(tmp_path, monkeypatch):
     sys.path.insert(0, str(REPO / "scripts"))
     import actions_weekly
 
+    import actions_common
+    fixture_work = tmp_path / "work"
+    monkeypatch.setattr(actions_common, "WORK", fixture_work)
+    monkeypatch.setattr(actions_weekly, "WORK", fixture_work)
     monkeypatch.setenv("DRY_RUN", "true")
     monkeypatch.setenv("PIPELINE_OUTCOME", "success")
     # empty Core aggregate
@@ -343,19 +349,19 @@ def test_uninitialized_core_blocks_monthly(tmp_path, monkeypatch):
         "failed_players": [], "unresolved_source_teams": [],
         "failed_core_team_rosters": [], "incomplete_reasons": ["no core snapshot"],
     }
-    (REPO / "work").mkdir(exist_ok=True)
-    (REPO / "work" / "metrics.json").write_text(json.dumps(empty))
-    (REPO / "work" / "drift.json").write_text(json.dumps({
+    fixture_work.mkdir(exist_ok=True)
+    (fixture_work / "metrics.json").write_text(json.dumps(empty))
+    (fixture_work / "drift.json").write_text(json.dumps({
         "level": 0, "scope_changed": False, "cohort_stability": "unavailable",
         "roster_turnover_rate": None, "headline_suppressed": True,
         "series_compatible": False, "baseline_incompatible_reason": "x"}))
-    (REPO / "work" / "roster-report.json").write_text(json.dumps({
+    (fixture_work / "roster-report.json").write_text(json.dumps({
         "status": "warmup", "previous_total": None, "current_total": 0,
         "matched_total": None, "turnover_rate": None, "pending_state": None}))
-    (REPO / "work" / "source-status.json").write_text(json.dumps({"cs2settings": "ok"}))
-    (REPO / "work" / "identities.json").write_text(json.dumps({"problems": [], "players": []}))
-    (REPO / "work" / "conflicts.json").write_text(json.dumps([]))
-    (REPO / "work" / "collection-manifest.json").write_text(json.dumps(manifest))
+    (fixture_work / "source-status.json").write_text(json.dumps({"cs2settings": "ok"}))
+    (fixture_work / "identities.json").write_text(json.dumps({"problems": [], "players": []}))
+    (fixture_work / "conflicts.json").write_text(json.dumps([]))
+    (fixture_work / "collection-manifest.json").write_text(json.dumps(manifest))
     assert actions_weekly.main() == 0  # dry-run: no writes, no crash
     # the monthly path must NOT fire when uninitialized (no PR created)
 
@@ -372,13 +378,13 @@ def test_watchlist_review_timing(tmp_path, monkeypatch):
     today = date(2026, 8, 10)
     # added 1 day ago -> not due
     assert watchlist_review_due(today=today - timedelta(days=1)) == []
-    # all 4 watchlist items added 2026-08-10 evaluated on 2026-08-11 -> not due
+    # remaining watchlist items added 2026-08-10 evaluated on 2026-08-11 -> not due
     assert watchlist_review_due(today=date(2026, 8, 11)) == []
     # 179 days after added_at -> not due; 180 -> due
     # (entries are static; simulate by shifting 'today')
     assert watchlist_review_due(today=date(2026, 8, 10) + timedelta(days=179)) == []
     due = watchlist_review_due(today=date(2026, 8, 10) + timedelta(days=180))
-    assert set(due) == {"bc-game", "100-thieves", "m80", "lynn-vision"}
+    assert set(due) == {"bc-game", "lynn-vision"}
 
 
 # ---------------------------------------------------------------------------

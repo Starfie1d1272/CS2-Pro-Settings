@@ -1,0 +1,748 @@
+{
+  "schema_version": "crosshair-analysis-v1",
+  "snapshot_date": "2026-10-08",
+  "ranking_date": "2026-10-05",
+  "source": {
+    "name": "cs2settings",
+    "url": "https://cs2settings.com/players",
+    "retrieved_at": "2026-10-08"
+  },
+  "collection": {
+    "requested_core_teams": 30,
+    "successful_core_team_rosters": 30,
+    "expected_core_players": 151,
+    "successful_core_players": 151,
+    "collection_complete": true,
+    "incomplete_reasons": []
+  },
+  "cohort_n": 151,
+  "crosshair_valid_n": 133,
+  "native_format_n": 99,
+  "native_recent_page_n": 79,
+  "recent_static_height_counts": {
+    "valid_n": 75,
+    "categories": {
+      "1024": 1,
+      "1050": 2,
+      "1080": 11,
+      "768": 4,
+      "800": 1,
+      "864": 1,
+      "900": 1,
+      "960": 54
+    }
+  },
+  "formats": {
+    "valid_n": 133,
+    "categories": {
+      "cs2-v1": 99,
+      "legacy-v1": 13,
+      "legacy-v4": 21
+    }
+  },
+  "quality": {
+    "grain": "one current Core roster member; field values from CS2Settings",
+    "identity_duplicate_n": 0,
+    "non_steam_identity_n": 0,
+    "invalid_values": {},
+    "invalid_date_n": 0,
+    "future_page_date_n": 0,
+    "missing_page_date_n": 0,
+    "field_completeness": {
+      "crosshair_format": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_style": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_size": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_gap": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_thickness": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_screen_height": {
+        "valid_n": 120,
+        "missing_n": 31,
+        "cohort_n": 151
+      },
+      "crosshair_dot": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_outline_mode": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_t_style": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_alpha": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_r": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_g": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      },
+      "crosshair_color_b": {
+        "valid_n": 133,
+        "missing_n": 18,
+        "cohort_n": 151
+      }
+    },
+    "team_coverage": [
+      {
+        "team": "100-thieves",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "3dmax",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "9z",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "alliance",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "astralis",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "aurora",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "b8",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "betboom",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "big",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "falcons",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "faze",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "furia",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "fut",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "g2",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "gamerlegion",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "heroic",
+        "cohort_n": 6,
+        "crosshair_valid_n": 5,
+        "missing_n": 1
+      },
+      {
+        "team": "inner-circle",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "jijiehao",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "legacy",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "liquid",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "luminosity",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "m80",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "magic",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "mibr",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "mouz",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "nemesis",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "nemiga",
+        "cohort_n": 5,
+        "crosshair_valid_n": 4,
+        "missing_n": 1
+      },
+      {
+        "team": "ninjas-in-pyjamas",
+        "cohort_n": 5,
+        "crosshair_valid_n": 3,
+        "missing_n": 2
+      },
+      {
+        "team": "spirit",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      },
+      {
+        "team": "vitality",
+        "cohort_n": 5,
+        "crosshair_valid_n": 5,
+        "missing_n": 0
+      }
+    ],
+    "page_verified_dates": {
+      "valid_n": 133,
+      "categories": {
+        "2026-09-12": 5,
+        "2026-09-22": 7,
+        "2026-09-29": 4,
+        "2026-09-30": 27,
+        "2026-10-03": 19,
+        "2026-10-04": 22,
+        "2026-10-05": 5,
+        "2026-10-06": 24,
+        "2026-10-07": 20
+      }
+    },
+    "native_format_before_system_update_n": 4,
+    "primary_source_count": 1,
+    "roster_size_outliers": [
+      {
+        "team": "heroic",
+        "cohort_n": 6,
+        "crosshair_valid_n": 5,
+        "missing_n": 1
+      }
+    ],
+    "missing_role_in_outlier_rosters_n": 1,
+    "team_membership_conflict_n": 0,
+    "source_roster_ambiguity_n": 0,
+    "notes": [
+      "lastVerified is page verification, not crosshair observation time.",
+      "New share codes may be converted; they do not prove recent player choice.",
+      "Scope/outline colors and dynamic details are not extracted; independent match verification is absent.",
+      "HLTV reference remains 2026-08-03; this analysis uses only 2026-10-05 VRS Core."
+    ]
+  },
+  "new_format_choices": {
+    "crosshair_style": {
+      "valid_n": 99,
+      "categories": {
+        "3": 1,
+        "4": 94,
+        "5": 3,
+        "6": 1
+      }
+    },
+    "crosshair_dot": {
+      "valid_n": 99,
+      "categories": {
+        "False": 93,
+        "True": 6
+      }
+    },
+    "crosshair_outline_mode": {
+      "valid_n": 99,
+      "categories": {
+        "0": 93,
+        "1": 5,
+        "2": 1
+      }
+    },
+    "crosshair_t_style": {
+      "valid_n": 99,
+      "categories": {
+        "False": 99
+      }
+    },
+    "crosshair_alpha": {
+      "valid_n": 99,
+      "categories": {
+        "197": 1,
+        "200": 1,
+        "255": 97
+      }
+    }
+  },
+  "geometry_sample": {
+    "format": "cs2-v1",
+    "style": "4",
+    "reference_height": 960,
+    "page_verified_from": "2026-10-01",
+    "page_verified_through": "2026-10-08",
+    "selection": "largest reference-height stratum among recent-page static crosses",
+    "valid_n": 54,
+    "combinations": [
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 22
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 6
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 6
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 1.0,
+        "count": 2
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 2
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 3.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 4.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 5.0,
+        "thickness": 2.0,
+        "count": 1
+      }
+    ]
+  },
+  "geometry_sensitivity_all_dates": {
+    "valid_n": 66,
+    "combinations": [
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 26
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 9
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 6
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 1.0,
+        "count": 5
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 2.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 4
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 0.0,
+        "thickness": 1.0,
+        "count": 2
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 1.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 2.0,
+        "thickness": 3.0,
+        "count": 1
+      },
+      {
+        "length": 2.0,
+        "gap_offset": 3.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 1.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 3.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 4.0,
+        "gap_offset": 2.0,
+        "thickness": 2.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 4.0,
+        "thickness": 1.0,
+        "count": 1
+      },
+      {
+        "length": 6.0,
+        "gap_offset": 5.0,
+        "thickness": 2.0,
+        "count": 1
+      }
+    ]
+  },
+  "input_metric_sha256": "b8f1fd287032eb4f93f986df107ccf83b4648f178e6e4f73cf970228d28018de",
+  "analysis": {
+    "sample_n": 54,
+    "unique_geometry_n": 15,
+    "spearman": {
+      "length": {
+        "length": 1.0,
+        "gap_offset": 0.5455,
+        "thickness": -0.55
+      },
+      "gap_offset": {
+        "length": 0.5455,
+        "gap_offset": 1.0,
+        "thickness": -0.4534
+      },
+      "thickness": {
+        "length": -0.55,
+        "gap_offset": -0.4534,
+        "thickness": 1.0
+      }
+    },
+    "distance": "Manhattan, each feature divided by population IQR, equal weights; no RGB or decorators",
+    "scale": [
+      1.0,
+      1.0,
+      1.0
+    ],
+    "candidates": [
+      {
+        "k": 2,
+        "silhouette": 0.6596,
+        "sizes": [
+          41,
+          13
+        ],
+        "minimum_size_pass": true
+      },
+      {
+        "k": 3,
+        "silhouette": 0.5891,
+        "sizes": [
+          31,
+          13,
+          10
+        ],
+        "minimum_size_pass": true
+      },
+      {
+        "k": 4,
+        "silhouette": 0.6375,
+        "sizes": [
+          31,
+          11,
+          10,
+          2
+        ],
+        "minimum_size_pass": false
+      },
+      {
+        "k": 5,
+        "silhouette": 0.6678,
+        "sizes": [
+          29,
+          7,
+          10,
+          2,
+          6
+        ],
+        "minimum_size_pass": false
+      }
+    ],
+    "selected": {
+      "k": 2,
+      "silhouette": 0.6596,
+      "sizes": [
+        41,
+        13
+      ],
+      "minimum_size_pass": true
+    },
+    "selection_rule": "best silhouette among k=2..5 with every group >=max(5,10% of sample); exploratory",
+    "groups": [
+      {
+        "group": 1,
+        "count": 41,
+        "medoid": [
+          2.0,
+          1.0,
+          2.0
+        ],
+        "median": [
+          2.0,
+          1.0,
+          2.0
+        ],
+        "min": [
+          2.0,
+          0.0,
+          1.0
+        ],
+        "max": [
+          3.0,
+          3.0,
+          3.0
+        ]
+      },
+      {
+        "group": 2,
+        "count": 13,
+        "medoid": [
+          4.0,
+          2.0,
+          1.0
+        ],
+        "median": [
+          4.0,
+          2.0,
+          1.0
+        ],
+        "min": [
+          3.0,
+          2.0,
+          1.0
+        ],
+        "max": [
+          6.0,
+          5.0,
+          2.0
+        ]
+      }
+    ],
+    "sensitivity": {
+      "bootstrap_runs": 50,
+      "bootstrap_ari_median": 1.0,
+      "bootstrap_ari_p10": 0.7116,
+      "length_weighted_ari": 1.0,
+      "unique_template_silhouette": 0.6079,
+      "caveat": "Bootstrap resamples anonymous parameter tuples, not teams; it cannot test independent-source truth or team dependence."
+    },
+    "all_date_sensitivity": {
+      "sample_n": 66,
+      "spearman": {
+        "length": {
+          "length": 1.0,
+          "gap_offset": 0.4835,
+          "thickness": -0.5306
+        },
+        "gap_offset": {
+          "length": 0.4835,
+          "gap_offset": 1.0,
+          "thickness": -0.4593
+        },
+        "thickness": {
+          "length": -0.5306,
+          "gap_offset": -0.4593,
+          "thickness": 1.0
+        }
+      }
+    },
+    "caveats": [
+      "Associations describe source records, not causation, aiming performance or proof of independent player choice.",
+      "Selected groups are exploratory partitions, not established natural style categories.",
+      "Dominant repeated templates may originate from conversion or copying; independent verification is required.",
+      "Only one format, one shape and one reference height are modeled; results do not represent all professionals."
+    ]
+  }
+}

@@ -49,7 +49,7 @@ teams:
   team_id: b8
 - rank: 14
   display_name: Nemiga
-  unresolved: true
+  team_id: nemiga
 - rank: 15
   display_name: HEROIC
   team_id: heroic
@@ -94,7 +94,7 @@ teams:
   team_id: 100-thieves
 - rank: 29
   display_name: Nemesis
-  unresolved: true
+  team_id: nemesis
 - rank: 30
   display_name: JiJieHao
-  unresolved: true
+  team_id: jijiehao
