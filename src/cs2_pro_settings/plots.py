@@ -322,7 +322,9 @@ def _render_crosshair_geometry(agg: dict, path: Path,
     _figure_title(
         fig,
         "Crosshair geometry",
-        "Observed Gap × Size combinations; bubble area is player count and labels show cells with n ≥ 2",
+        "Observed Gap × Size combinations; "
+        + str((agg.get("crosshair") or {}).get("geometry_context", "legacy-units"))
+        + "; bubble area is player count",
     )
     grid = fig.add_gridspec(2, 4, width_ratios=(1, 1, 1, 0.92),
                             left=0.07, right=0.96, bottom=0.13, top=0.86,
@@ -336,7 +338,7 @@ def _render_crosshair_geometry(agg: dict, path: Path,
                       transform=joint_ax.transAxes, fontsize=13, color=INK,
                       fontproperties=DISPLAY_BOLD)
         joint_ax.text(0.0, 0.48,
-                      "Marginal fields remain available in the report; no joint distribution is inferred.",
+                      "See the report for geometry by format and reference height; no pooled joint distribution is inferred.",
                       transform=joint_ax.transAxes, fontsize=8.5, color=MUTED,
                       fontproperties=BODY)
 
