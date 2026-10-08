@@ -2,7 +2,7 @@
 
 `2026-10-08-crosshair.ipynb` checks the October candidate's source coverage,
 field completeness, page dates, format migration, anonymous geometry
-combinations and exploratory medoid groups. It consumes committed aggregate
+combinations, popular observed appearance templates, color choices and exploratory medoid groups. It consumes committed aggregate
 counts only and can be executed without network access or private player data.
 It does not render game-accurate crosshairs or establish match usage.
 
@@ -26,7 +26,7 @@ python scripts/crosshair_analysis.py --work work --output data/aggregate/analysi
 ```
 
 `work/` stays private and gitignored. Public inputs contain anonymous counts of
-three geometric parameters, source/quality summaries and cohort metadata; no
+geometric and repeated appearance combinations, exact RGB counts, source/quality summaries and cohort metadata; no
 SteamIDs, player records, share codes or identity lists are distributed.
 The dated snapshot is a review candidate; `latest.json` remains accepted history.
 

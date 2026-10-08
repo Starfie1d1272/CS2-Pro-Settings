@@ -406,7 +406,7 @@ def _active_color_rows(crosshair: dict) -> tuple[
             custom_players)
 
 
-def _render_crosshair_color(agg: dict, path: Path) -> bool:
+def _render_crosshair_color(agg: dict, path: Path, *, subtitle: str | None = None) -> bool:
     crosshair = agg.get("crosshair") or {}
     (rows, resolved_n, long_tail_n, long_tail_unique, rgb_n,
      custom_players) = _active_color_rows(crosshair)
@@ -417,7 +417,7 @@ def _render_crosshair_color(agg: dict, path: Path) -> bool:
     _figure_title(
         fig,
         "Crosshair color preference",
-        "Resolved active colors ranked together; preset modes and exact Custom RGB remain semantically distinct",
+        subtitle or "Resolved active colors ranked together; preset modes and exact Custom RGB remain semantically distinct",
     )
     y = list(range(len(rows)))
     shares = [count / resolved_n * 100 for _label, count, _color in rows]

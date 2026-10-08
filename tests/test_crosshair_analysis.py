@@ -40,3 +40,20 @@ def test_joint_expansion_preserves_counts_without_identity_fields():
     expanded=module.expand_joint(joint)
     assert expanded.shape==(5,3)
     np.testing.assert_array_equal(expanded[:3],np.tile([2,1,2],(3,1)))
+
+
+def test_recommendation_uses_observed_joint_choices_and_excludes_color():
+    # Marginal majority values would create (2, 1, 1), absent from these rows.
+    def row(length, gap, thickness, color):
+        return dict(zip(module.APPEARANCE, (length, gap, thickness, False, 0, False, 255)),
+                    crosshair_color_r=color)
+    rows = ([row(2, 1, 2, i) for i in range(4)]
+            + [row(2, 0, 1, i) for i in range(3)]
+            + [row(4, 1, 1, i) for i in range(3)] + [{"crosshair_size": 2}])
+    result = module.appearance_counts(rows)
+    assert result["valid_n"] == 10 and result["missing_n"] == 1
+    top = result["combinations"][0]
+    assert tuple(top[k] for k in module.GEOMETRY) == (2, 1, 2)
+    assert top["count"] == 4
+    assert all(tuple(r[k] for k in module.GEOMETRY) != (2, 1, 1)
+               for r in result["combinations"])

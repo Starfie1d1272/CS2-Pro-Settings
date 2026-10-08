@@ -1,7 +1,7 @@
 """Offline crosshair quality/export and exploratory analysis.
 
-Row-level inputs stay in work/. Public inputs are anonymous counts of three
-geometry parameters, never identities, share codes or player-level settings.
+Row-level inputs stay in work/. Public inputs are anonymous geometry counts,
+repeated appearance combinations and RGB counts, never identities or share codes.
 Run: python scripts/crosshair_analysis.py --work work --output data/aggregate/analysis/2026-10-08-crosshair.json
 """
 from __future__ import annotations
@@ -19,6 +19,27 @@ import pandas as pd
 
 PIXEL_FORMATS = {"cs2-v1", "legacy-v3", "legacy-v4"}
 GEOMETRY = ("crosshair_size", "crosshair_gap", "crosshair_thickness")
+APPEARANCE = (*GEOMETRY, "crosshair_dot", "crosshair_outline_mode",
+              "crosshair_t_style", "crosshair_alpha")
+
+
+def appearance_counts(rows):
+    """Rank observed complete combinations; never assemble marginal modes."""
+    complete = [r for r in rows if all(r.get(k) is not None for k in APPEARANCE)]
+    counts = Counter(tuple(r[k] for k in APPEARANCE) for r in complete)
+    repeated = [(key, n) for key, n in counts.items() if n >= 2]
+    return {"valid_n": len(complete), "missing_n": len(rows) - len(complete),
+            "singleton_n": sum(n for n in counts.values() if n == 1),
+            "combinations": [{**dict(zip(APPEARANCE, key)), "count": n}
+                             for key, n in sorted(repeated, key=lambda item: (-item[1], item[0]))]}
+
+
+def rgb_counts(rows):
+    colors = [",".join(str(r[f"crosshair_color_{c}"]) for c in "rgb")
+              for r in rows if all(isinstance(r.get(f"crosshair_color_{c}"), int)
+                                  and not isinstance(r[f"crosshair_color_{c}"], bool)
+                                  and 0 <= r[f"crosshair_color_{c}"] <= 255 for c in "rgb")]
+    return {**counted(colors), "missing_n": len(rows) - len(colors)}
 
 
 def canonical_hash(value):
@@ -57,6 +78,9 @@ def export_review(work: Path):
     heights = Counter(p["crosshair_screen_height"] for p in static)
     height = sorted(heights, key=lambda h: (-heights[h], h))[0] if heights else None
     primary = [p for p in static if p["crosshair_screen_height"] == height]
+    appearance = appearance_counts(primary)
+    top = appearance["combinations"][0] if appearance["combinations"] else None
+    top_rows = [p for p in primary if top and all(p.get(k) == top[k] for k in APPEARANCE)]
     sensitivity = [p for p in native if p.get("crosshair_style") == "4"
                    and p.get("crosshair_screen_height") == height and complete_geometry(p)]
     def joint(group):
@@ -133,6 +157,11 @@ def export_review(work: Path):
                             "page_verified_from": "2026-10-01", "page_verified_through": snapshot_date,
                             "selection": "largest reference-height stratum among recent-page static crosses", **joint(primary)},
         "geometry_sensitivity_all_dates": joint(sensitivity),
+        "popular_appearance": {"format": "cs2-v1", "style": "4", "reference_height": height,
+                               "page_verified_from": "2026-10-01", "sample_n": len(primary),
+                               "excluded_fields": ["RGB", "unextracted scope/dynamic/outline-color settings"],
+                               **appearance, "top_template_colors": rgb_counts(top_rows)},
+        "native_colors": rgb_counts(native), "native_recent_colors": rgb_counts(fresh),
         "input_metric_sha256": canonical_hash(metrics["aggregate"]),
     }
 
