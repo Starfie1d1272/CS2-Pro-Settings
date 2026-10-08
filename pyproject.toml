@@ -1,5 +1,5 @@
 [build-system]
-requires = ["setuptools>=68"]
+requires = ["setuptools>=84.0.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
@@ -7,19 +7,19 @@ name = "cs2-pro-settings"
 version = "2.0.0"
 description = "A reproducible multi-source longitudinal data pipeline for tracking how professional CS2 settings evolve over time."
 readme = "README.md"
-requires-python = ">=3.10"
+requires-python = ">=3.12"
 license = { text = "MIT" }
 dependencies = [
-    "pandas>=2.0",
-    "numpy>=1.24",
-    "matplotlib>=3.7",
-    "requests>=2.31",
-    "beautifulsoup4>=4.12",
-    "PyYAML>=6.0",
+    "pandas>=3.0.6",
+    "numpy>=2.5.3",
+    "matplotlib>=3.11.2",
+    "requests>=2.34.2",
+    "beautifulsoup4>=4.15.0",
+    "PyYAML>=6.0.3",
 ]
 
 [project.optional-dependencies]
-dev = ["pytest>=7.0"]
+dev = ["pytest>=9.1.1"]
 
 [project.scripts]
 cs2-pro-settings = "cs2_pro_settings.cli:main"

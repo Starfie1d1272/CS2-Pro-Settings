@@ -128,6 +128,8 @@ Per-source audits: `docs/source-audit/`. Only ordinary HTTP; no anti-bot bypass,
 
 ## Reproduce locally
 
+Requires Python 3.12 or newer for the current dependencies.
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"

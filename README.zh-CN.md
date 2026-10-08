@@ -134,6 +134,8 @@ VRS Top 30（已接受的排名快照）
 
 ## 本地复现
 
+当前依赖要求 Python 3.12 或更新版本。
+
 ```bash
 python -m venv .venv && source .venv/bin/activate
 pip install -e ".[dev]"
