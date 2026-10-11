@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-10-04",
-    "player_count": 151,
+    "snapshot_date": "2026-10-11",
+    "player_count": 149,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 151,
-      "players_with_any_setting": 133,
-      "players_with_zero_settings": 18,
-      "any_setting_share": 0.8808
+      "cohort_players": 149,
+      "players_with_any_setting": 132,
+      "players_with_zero_settings": 17,
+      "any_setting_share": 0.8859
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -198,9 +198,9 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 133,
+      "count": 132,
       "median": 800.0,
-      "mean": 841.1,
+      "mean": 832.1,
       "distribution": {
         "0-400": 0,
         "400-600": 15,
@@ -208,37 +208,37 @@
         "800-1000": 61,
         "1000-1200": 19,
         "1200-1600": 5,
-        "1600+": 3
+        "1600+": 2
       },
       "consistency_qc": {
-        "comparable_n": 133,
-        "consistent_n": 131,
+        "comparable_n": 132,
+        "consistent_n": 130,
         "anomaly_count": 2,
-        "anomaly_share": 0.015,
-        "missing_inputs_n": 18,
+        "anomaly_share": 0.0152,
+        "missing_inputs_n": 17,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "800": 69,
-        "400": 58,
+        "800": 67,
+        "400": 59,
         "1600": 4,
         "1000": 1,
         "3200": 1
       },
       "top_category": "800",
-      "share_800": 0.5188,
-      "share_400": 0.4361,
-      "share_1600_plus": 0.0376
+      "share_800": 0.5076,
+      "share_400": 0.447,
+      "share_1600_plus": 0.0379
     },
     "resolution": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "1280x960": 90,
-        "1920x1080": 12,
+        "1280x960": 88,
+        "1920x1080": 13,
         "1024x768": 10,
         "1280x1024": 7,
         "1152x864": 5,
@@ -249,36 +249,36 @@
         "1350x1080": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6767
+      "share_1280x960": 0.6667
     },
     "aspect_ratio": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "4:3": 109,
-        "16:9": 11,
+        "4:3": 107,
+        "16:9": 12,
         "5:4": 8,
         "16:10": 5
       },
-      "share_4_3": 0.8195
+      "share_4_3": 0.8106
     },
     "scaling_mode": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "Stretched": 118,
-        "Native": 9,
+        "Stretched": 116,
+        "Native": 10,
         "Black Bars": 6
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 132,
+      "valid_n": 131,
       "categories": {
         "1": 102,
         "1.1": 7,
         "0.8": 5,
         "0.9": 4,
-        "1.2": 4,
         "0.82": 3,
+        "1.2": 3,
         "0.83": 1,
         "0.93": 1,
         "0.98": 1,
@@ -292,10 +292,10 @@
     },
     "boost_player": {
       "valid_n": 99,
-      "missing_n": 52,
-      "enabled_count": 84,
-      "disabled_count": 15,
-      "enabled_share": 0.8485
+      "missing_n": 50,
+      "enabled_count": 83,
+      "disabled_count": 16,
+      "enabled_share": 0.8384
     },
     "refresh_rate": {
       "valid_n": 0,
@@ -309,124 +309,119 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 133,
-      "dot_outline_off_share": 0.8496,
-      "color_valid_n": 18,
+      "valid_n": 132,
+      "dot_outline_off_share": 0.8409,
+      "color_valid_n": 16,
       "color_categories": {
-        "Custom": 8,
-        "Cyan": 7,
+        "Custom": 7,
+        "Cyan": 6,
         "Yellow": 2,
         "Green": 1
       },
       "top_color": "Custom",
       "custom_rgb": {
-        "valid_n": 8,
-        "custom_players": 8,
+        "valid_n": 7,
+        "custom_players": 7,
         "coverage": 1.0,
         "categories": {
           "0,255,255": 2,
           "0,210,67": 1,
-          "0,255,0": 1,
           "0,255,145": 1,
           "0,255,165": 1,
           "0,255,220": 1,
           "255,255,255": 1
         },
-        "unique_colors": 7,
+        "unique_colors": 6,
         "top_rgb": "0,255,255",
-        "top_rgb_share": 0.25
+        "top_rgb_share": 0.2857
       },
       "geometry": {
         "style": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "4": 126,
+            "4": 129,
             "3": 2,
-            "5": 2,
-            "9": 2,
-            "6": 1
+            "5": 1
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "2": 68,
-            "3": 23,
-            "4": 16,
-            "1": 11,
-            "6": 4,
+            "2": 71,
+            "4": 20,
+            "3": 19,
+            "1": 10,
+            "6": 3,
             "8": 2,
             "0.5": 1,
-            "0.9": 1,
             "1.1": 1,
             "1.5": 1,
             "1.9": 1,
             "10": 1,
             "2.5": 1,
-            "5": 1,
-            "7": 1
+            "5": 1
           },
           "median": 2.0,
           "top_category": "2"
         },
         "gap": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "1": 61,
-            "2": 28,
-            "0": 14,
-            "-4": 10,
-            "3": 8,
+            "1": 56,
+            "2": 30,
+            "0": 19,
+            "-4": 9,
+            "3": 6,
             "-3": 5,
-            "4": 2,
+            "4": 3,
             "5": 2,
             "-2.5": 1,
-            "-3.5": 1,
-            "-4.2": 1
+            "-3.5": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "thickness": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "2": 75,
-            "1": 43,
+            "2": 73,
+            "1": 44,
             "0": 7,
-            "3": 5,
+            "3": 4,
+            "4": 2,
             "0.1": 1,
-            "0.8": 1,
-            "0.9": 1
+            "0.8": 1
           },
           "median": 2.0,
           "top_category": "2"
         },
         "alpha": {
-          "valid_n": 133,
+          "valid_n": 132,
           "categories": {
-            "255": 126,
-            "200": 4,
+            "255": 125,
+            "200": 3,
             "170": 1,
             "175": 1,
-            "197": 1
+            "197": 1,
+            "254": 1
           },
-          "median": 255,
+          "median": 255.0,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 133,
-          "missing_n": 18,
+          "valid_n": 132,
+          "missing_n": 17,
           "enabled_count": 11,
-          "disabled_count": 122,
-          "enabled_share": 0.0827
+          "disabled_count": 121,
+          "enabled_share": 0.0833
         },
         "outline": {
-          "valid_n": 133,
-          "missing_n": 18,
-          "enabled_count": 11,
-          "disabled_count": 122,
-          "enabled_share": 0.0827
+          "valid_n": 132,
+          "missing_n": 17,
+          "enabled_count": 12,
+          "disabled_count": 120,
+          "enabled_share": 0.0909
         }
       }
     },
@@ -443,13 +438,13 @@
       "valid_n": 117,
       "categories": {
         "100": 36,
-        "93": 16,
+        "93": 17,
         "90": 7,
         "70": 6,
         "80": 6,
         "75": 5,
         "85": 5,
-        "110": 4,
+        "110": 3,
         "130": 3,
         "69": 3,
         "83": 3,
@@ -508,19 +503,19 @@
       }
     },
     "mouse_polling": {
-      "valid_n": 133,
+      "valid_n": 132,
       "categories": {
-        "1000": 85,
+        "1000": 86,
         "2000": 25,
-        "4000": 20,
+        "4000": 18,
         "8000": 3
       },
-      "share_4000_plus": 0.1729
+      "share_4000_plus": 0.1591
     }
   },
   "panel": {
     "status": "available",
-    "player_count": 151,
-    "stable_identity_count": 151
+    "player_count": 149,
+    "stable_identity_count": 149
   }
 }
