@@ -2,7 +2,7 @@
 
 [English version](./latest.md)
 
-2026-10-18 · VRS Top 30（2026-08-10）· 30 支战队 · 148 名选手 · 设置覆盖 132/148 · `vrs-core-v2`
+2026-10-19 · VRS Top 30（2026-08-10）· 30 支战队 · 148 名选手 · 设置覆盖 132/148 · `vrs-core-v2`
 
 ## 1. 本期要点
 
@@ -10,7 +10,7 @@
 - **4:3** 占 81.1%；**1280x960** 占 66.7%（n=132 / 132）
 - **Stretched 缩放**占 87.1%（n=132）
 - **1000 Hz 回报率**占 64.4%；4000 Hz+ 占 17.4%（n=132）
-- **Dot 与 outline 同时关闭**占 87.1%（n=132）
+- **Dot 与 outline 同时关闭**占 86.4%（n=132）
 
 ## 2. 鼠标
 
@@ -36,14 +36,14 @@
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style 原始代码 — 4 97.0% · 5 1.5% · 3 0.8%（n=132）；仅按来源值报告，不解释机制。
-- Size — 中位数 **2**；2 59.8% · 3 14.4% · 4 12.9%（n=132）
-- Gap — 中位数 **1**；1 48.5% · 2 25.0% · 0 9.8%（n=132）
+- Style 原始代码 — 4 96.2% · 5 1.5% · 3 0.8%（n=132）；仅按来源值报告，不解释机制。
+- Size — 中位数 **2**；2 59.8% · 3 14.4% · 4 13.6%（n=132）
+- Gap — 中位数 **1**；1 47.7% · 2 25.0% · 0 10.6%（n=132）
 - Thickness — 中位数 **2**；2 58.3% · 1 32.6% · 3 5.3%（n=132）
 - Alpha — 中位数 **255**；255 95.5% · 200 1.5% · 170 0.8%（n=132）
-- Dot 开启 — **7.6%**（10/132 项已知）
+- Dot 开启 — **8.3%**（11/132 项已知）
 - Outline 开启 — **5.3%**（7/132 项已知）
-- Dot 与 outline 同时关闭：**87.1%**（n=132，两字段均已知）
+- Dot 与 outline 同时关闭：**86.4%**（n=132，两字段均已知）
 
 ![crosshair_color.png](../figures/latest/crosshair_color.png)
 
@@ -75,10 +75,10 @@
 
 - 上一期：2026-08-11
 - Core cohort：149 → 148 名选手
-- roster turnover：2.0%
+- roster turnover：0.0%
 - matched players：148
 
-- crosshair_minimal_share: 0.8045 -> 0.8712 (+6.7pp) [level 1]
+- crosshair_minimal_share: 0.8045 -> 0.8636 (+5.9pp) [level 1]
 - crosshair_dominant_color: Custom -> Cyan (changed) [level 2]
 
 同选手 matched panel（两期均在样本中的选手）：
@@ -119,7 +119,7 @@ eDPI 算术 QC 在 132 项可比较记录中标记 2 项；标记仅作为质量
 
 ## 10. 数据与代码
 
-- 数据日期：2026-10-18
+- 数据日期：2026-10-19
 - 数据来源：cs2settings
 - 快照数据：[`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - 项目与方法：[`README.md`](../README.md)

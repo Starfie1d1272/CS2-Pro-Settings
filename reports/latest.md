@@ -2,7 +2,7 @@
 
 [中文版](./latest.zh-CN.md)
 
-2026-10-18 · VRS Top 30 (2026-08-10) · 30 teams · 148 players · 132/148 settings · `vrs-core-v2`
+2026-10-19 · VRS Top 30 (2026-08-10) · 30 teams · 148 players · 132/148 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
@@ -10,7 +10,7 @@
 - **4:3** at 81.1%; **1280x960** at 66.7% (n=132 / 132)
 - **Stretched scaling** at 87.1% (n=132)
 - **1000 Hz polling** at 64.4%; 4000 Hz+ at 17.4% (n=132)
-- **Dot + outline both off** for 87.1% (n=132)
+- **Dot + outline both off** for 86.4% (n=132)
 
 ## 2. Mouse
 
@@ -36,14 +36,14 @@
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style codes — 4 97.0% · 5 1.5% · 3 0.8% (n=132); source-provided codes, with no mechanism interpretation.
-- Size — median **2**; 2 59.8% · 3 14.4% · 4 12.9% (n=132)
-- Gap — median **1**; 1 48.5% · 2 25.0% · 0 9.8% (n=132)
+- Style codes — 4 96.2% · 5 1.5% · 3 0.8% (n=132); source-provided codes, with no mechanism interpretation.
+- Size — median **2**; 2 59.8% · 3 14.4% · 4 13.6% (n=132)
+- Gap — median **1**; 1 47.7% · 2 25.0% · 0 10.6% (n=132)
 - Thickness — median **2**; 2 58.3% · 1 32.6% · 3 5.3% (n=132)
 - Alpha — median **255**; 255 95.5% · 200 1.5% · 170 0.8% (n=132)
-- Dot enabled — **7.6%** (10/132 known)
+- Dot enabled — **8.3%** (11/132 known)
 - Outline enabled — **5.3%** (7/132 known)
-- Dot and outline both disabled: **87.1%** (n=132, both fields known)
+- Dot and outline both disabled: **86.4%** (n=132, both fields known)
 
 ![crosshair_color.png](../figures/latest/crosshair_color.png)
 
@@ -75,10 +75,10 @@
 
 - Previous snapshot: 2026-08-11
 - Core cohort: 149 → 148 players
-- Roster turnover: 2.0%
+- Roster turnover: 0.0%
 - Matched players: 148
 
-- crosshair_minimal_share: 0.8045 -> 0.8712 (+6.7pp) [level 1]
+- crosshair_minimal_share: 0.8045 -> 0.8636 (+5.9pp) [level 1]
 - crosshair_dominant_color: Custom -> Cyan (changed) [level 2]
 
 Matched panel (same players in both snapshots):
@@ -119,7 +119,7 @@ eDPI arithmetic QC flags 2/132 comparable observations; flags remain quality sig
 
 ## 10. Data & code
 
-- Snapshot date: 2026-10-18
+- Snapshot date: 2026-10-19
 - Source: cs2settings
 - Snapshot data: [`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - Project & methodology: [`README.md`](../README.md)
