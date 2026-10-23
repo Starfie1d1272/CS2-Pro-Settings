@@ -2,7 +2,7 @@
 
 [中文版](./latest.zh-CN.md)
 
-2026-10-22 · VRS Top 30 (2026-08-10) · 30 teams · 150 players · 134/150 settings · `vrs-core-v2`
+2026-10-23 · VRS Top 30 (2026-08-10) · 30 teams · 150 players · 134/150 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
@@ -36,13 +36,13 @@
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style codes — 4 94.8% · 5 1.5% · 8 1.5% (n=134); source-provided codes, with no mechanism interpretation.
-- Size — median **2**; 2 61.2% · 3 14.2% · 4 12.7% (n=134)
-- Gap — median **1**; 1 51.5% · 2 23.9% · 0 11.2% (n=134)
-- Thickness — median **2**; 2 61.2% · 1 29.9% · 3 6.0% (n=134)
+- Style codes — 4 94.8% · 8 2.2% · 5 1.5% (n=134); source-provided codes, with no mechanism interpretation.
+- Size — median **2**; 2 60.4% · 3 14.2% · 4 13.4% (n=134)
+- Gap — median **1**; 1 49.3% · 2 24.6% · 0 12.7% (n=134)
+- Thickness — median **2**; 2 59.7% · 1 29.9% · 3 7.5% (n=134)
 - Alpha — median **255**; 255 94.8% · 200 1.5% · 170 0.7% (n=134)
-- Dot enabled — **8.2%** (11/134 known)
-- Outline enabled — **6.7%** (9/134 known)
+- Dot enabled — **9.0%** (12/134 known)
+- Outline enabled — **6.0%** (8/134 known)
 - Dot and outline both disabled: **85.8%** (n=134, both fields known)
 
 ![crosshair_color.png](../figures/latest/crosshair_color.png)
@@ -118,7 +118,7 @@ eDPI arithmetic QC flags 2/134 comparable observations; flags remain quality sig
 
 ## 10. Data & code
 
-- Snapshot date: 2026-10-22
+- Snapshot date: 2026-10-23
 - Source: cs2settings
 - Snapshot data: [`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - Project & methodology: [`README.md`](../README.md)
