@@ -2,7 +2,7 @@
 
 [中文版](./latest.zh-CN.md)
 
-2026-10-23 · VRS Top 30 (2026-08-10) · 30 teams · 150 players · 134/150 settings · `vrs-core-v2`
+2026-10-24 · VRS Top 30 (2026-08-10) · 30 teams · 150 players · 134/150 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
@@ -74,7 +74,7 @@
 
 - Previous snapshot: 2026-08-11
 - Core cohort: 149 → 150 players
-- Roster turnover: 0.7%
+- Roster turnover: 0.0%
 - Matched players: 150
 
 - crosshair_minimal_share: 0.8045 -> 0.8582 (+5.4pp) [level 1]
@@ -118,7 +118,7 @@ eDPI arithmetic QC flags 2/134 comparable observations; flags remain quality sig
 
 ## 10. Data & code
 
-- Snapshot date: 2026-10-23
+- Snapshot date: 2026-10-24
 - Source: cs2settings
 - Snapshot data: [`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - Project & methodology: [`README.md`](../README.md)

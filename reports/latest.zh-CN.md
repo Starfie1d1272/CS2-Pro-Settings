@@ -2,7 +2,7 @@
 
 [English version](./latest.md)
 
-2026-10-23 · VRS Top 30（2026-08-10）· 30 支战队 · 150 名选手 · 设置覆盖 134/150 · `vrs-core-v2`
+2026-10-24 · VRS Top 30（2026-08-10）· 30 支战队 · 150 名选手 · 设置覆盖 134/150 · `vrs-core-v2`
 
 ## 1. 本期要点
 
@@ -74,7 +74,7 @@
 
 - 上一期：2026-08-11
 - Core cohort：149 → 150 名选手
-- roster turnover：0.7%
+- roster turnover：0.0%
 - matched players：150
 
 - crosshair_minimal_share: 0.8045 -> 0.8582 (+5.4pp) [level 1]
@@ -118,7 +118,7 @@ eDPI 算术 QC 在 134 项可比较记录中标记 2 项；标记仅作为质量
 
 ## 10. 数据与代码
 
-- 数据日期：2026-10-23
+- 数据日期：2026-10-24
 - 数据来源：cs2settings
 - 快照数据：[`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - 项目与方法：[`README.md`](../README.md)
