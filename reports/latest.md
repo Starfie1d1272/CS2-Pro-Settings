@@ -1,109 +1,119 @@
-# CS2 Professional Settings Snapshot — 2026-08
+# CS2 Professional Settings Snapshot — 2026-10
 
 [中文版](./latest.zh-CN.md)
 
-2026-08-11 · VRS Top 30 (2026-08-10) · 30 teams · 149 players · 133/149 settings · `vrs-core-v2` baseline
+2026-10-25 · VRS Top 30 (2026-08-10) · 30 teams · 151 players · 135/151 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
-- **800 median eDPI** (n=133)
-- **4:3** at 82.0%; **1280x960** at 68.4% (n=133 / 133)
-- **Stretched scaling** at 89.5% (n=133)
-- **1000 Hz polling** at 62.4%; 4000 Hz+ at 18.0% (n=133)
-- **Dot + outline both off** for 80.5% (n=133)
+- **800 median eDPI** (n=135)
+- **4:3** at 82.2%; **1280x960** at 67.4% (n=135 / 135)
+- **Stretched scaling** at 85.9% (n=135)
+- **1000 Hz polling** at 65.2%; 4000 Hz+ at 16.3% (n=135)
+- **Dot + outline both off** for 86.7% (n=135)
 
 ## 2. Mouse
 
 ![mouse.png](../figures/latest/mouse.png)
 
-- Median: **800** · Mean: **844.3** · n=133
-- 600–1000 eDPI covers 69.9% of valid observations (93/133).
-- Arithmetic QC: 131/133 consistent; **2 flagged** using max(2 eDPI, 1.0%) tolerance.
-- DPI — 800: **50.4%** · 400: 45.1% · 1600+: 3.8% (n=133)
-- Zoom sensitivity — median **1**; 1 78.0% · 1.1 4.5% · 0.8 3.8% (n=132)
-- Polling — 1000: 62.4% · 2000: 19.5% · 4000: 15.8% · 8000 Hz: 2.3% (n=133)
+- Median: **800** · Mean: **846.8** · n=135
+- 600–1000 eDPI covers 68.1% of valid observations (92/135).
+- Arithmetic QC: 133/135 consistent; **2 flagged** using max(2 eDPI, 1.0%) tolerance.
+- DPI — 800: **48.9%** · 400: 45.9% · 1600+: 4.4% (n=135)
+- Zoom sensitivity — median **1**; 1 76.1% · 1.1 5.2% · 0.8 3.7% (n=134)
+- Polling — 1000: 65.2% · 2000: 18.5% · 4000: 14.1% · 8000 Hz: 2.2% (n=135)
 
 ## 3. Display
 
 ![display.png](../figures/latest/display.png)
 
-- Aspect ratio — 4:3 82.0% · 16:9 8.3% · 5:4 6.0% (n=133)
-- Resolution — 1280x960 68.4% · 1920x1080 9.0% · 1024x768 7.5% (n=133)
-- Scaling mode — Stretched 89.5% · Native 6.8% · Black Bars 3.8% (n=133)
-- Boost Player Contrast — enabled **84.2%** (85/101 known); disabled 16/101; missing/unknown 48/149.
+- Aspect ratio — 4:3 82.2% · 16:9 9.6% · 5:4 5.2% (n=135)
+- Resolution — 1280x960 67.4% · 1920x1080 10.4% · 1024x768 8.1% (n=135)
+- Scaling mode — Stretched 85.9% · Native 8.1% · Black Bars 5.9% (n=135)
+- Boost Player Contrast — enabled **84.2%** (85/101 known); disabled 16/101; missing/unknown 50/151.
 
 ## 4. Crosshair
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style codes — 4 99.2% · 5 0.8% (n=133); source-provided codes, with no mechanism interpretation.
-- Size — median **1**; 1 48.9% · 2 19.5% · 1.5 9.8% (n=133)
-- Gap — median **-4**; -4 39.8% · -3 22.6% · -2 6.0% (n=133)
-- Thickness — median **1**; 1 49.6% · 0 32.3% · 0.5 5.3% (n=133)
-- Alpha — median **255**; 255 85.0% · 200 13.5% · 235 0.8% (n=133)
-- Dot enabled — **9.8%** (13/133 known)
-- Outline enabled — **12.8%** (17/133 known)
-- Dot and outline both disabled: **80.5%** (n=133, both fields known)
-
-![crosshair_color.png](../figures/latest/crosshair_color.png)
-
-- Color categories: Custom 45.1% · Cyan 26.3% · Green 22.6% · Yellow 6.0% (n=133)
-- Custom RGB: **60/60** players with complete RGB (100.0%) · 26 unique exact colors · top **255,255,255** (25.0%)
+- Style codes — 4 96.3% · 8 2.2% · 5 0.7% (n=135); source-provided codes, with no mechanism interpretation.
+- Size — median **2**; 2 63.7% · 3 16.3% · 4 13.3% (n=135)
+- Gap — median **1**; 1 53.3% · 2 24.4% · 0 11.1% (n=135)
+- Thickness — median **2**; 2 64.4% · 1 28.1% · 3 6.7% (n=135)
+- Alpha — median **255**; 255 95.6% · 197 0.7% · 200 0.7% (n=135)
+- Dot enabled — **7.4%** (10/135 known)
+- Outline enabled — **6.7%** (9/135 known)
+- Dot and outline both disabled: **86.7%** (n=135, both fields known)
 
 ## 5. Viewmodel
 
-- `viewmodel_fov 68`: **91.2%** (n=125)
+- `viewmodel_fov 68`: **90.7%** (n=129)
 - Dominant offset: **X=2.5, Y=0, Z=-1.5**
 
 ## 6. Radar
 
 ![radar.png](../figures/latest/radar.png)
 
-- Radar zoom — median **0.4**; 0.4 29.3% · 0.7 20.2% · 0.3 10.1% (n=99). Values are descriptive; no directional interpretation is applied.
-- Radar centered enabled: 71.7% (n=120)
+- Radar zoom — median **0.4**; 0.4 28.7% · 0.7 19.8% · 0.3 10.9% (n=101). Values are descriptive; no directional interpretation is applied.
+- Radar centered enabled: 72.4% (n=123)
 
 ## 7. Extended segments
 
 | Segment | Teams | Players | Median eDPI |
 |---|---:|---:|---:|
-| VRS ∩ HLTV Consensus | 27 | 134 | 800 |
-| Ranked Union | 32 | 158 | 800 |
-| Core + Watchlist | 33 | 163 | 800 |
-| All tracked | 35 | 172 | 800 |
+| VRS ∩ HLTV Consensus | 27 | 136 | 800 |
+| Ranked Union | 31 | 156 | 800 |
+| Core + Watchlist | 33 | 166 | 800 |
+| All tracked | 34 | 171 | 800 |
 
-## 8. Coverage & quality
+## 8. Changes since previous snapshot
+
+- Previous snapshot: 2026-08-11
+- Core cohort: 149 → 151 players
+- Roster turnover: 0.7%
+- Matched players: 151
+
+- crosshair_minimal_share: 0.8045 -> 0.8667 (+6.2pp) [level 1]
+
+Matched panel (same players in both snapshots):
+- dpi: 0/135 changed
+- edpi: 0/135 changed
+- resolution: 0/135 changed
+- polling_rate: 0/135 changed
+
+## 9. Coverage & quality
 
 | Field | valid_n / cohort |
 |---|---|
-| eDPI | 133 / 149 |
-| DPI | 133 / 149 |
-| Zoom sensitivity | 132 / 149 |
-| Mouse polling rate | 133 / 149 |
-| Resolution | 133 / 149 |
-| Aspect ratio | 133 / 149 |
-| Scaling mode | 133 / 149 |
-| Boost Player Contrast | 101 / 149 |
-| Crosshair color | 133 / 149 |
-| Crosshair style | 133 / 149 |
-| Crosshair size | 133 / 149 |
-| Crosshair gap | 133 / 149 |
-| Crosshair thickness | 133 / 149 |
-| Crosshair alpha | 133 / 149 |
-| Crosshair dot | 133 / 149 |
-| Crosshair outline | 133 / 149 |
-| Viewmodel FOV | 125 / 149 |
-| Radar zoom | 99 / 149 |
-| Radar centered | 120 / 149 |
-| Radar rotating | 0 / 149 |
-| Monitor refresh rate | 0 / 149 |
-| fps_max | 0 / 149 |
+| eDPI | 135 / 151 |
+| DPI | 135 / 151 |
+| Zoom sensitivity | 134 / 151 |
+| Mouse polling rate | 135 / 151 |
+| Resolution | 135 / 151 |
+| Aspect ratio | 135 / 151 |
+| Scaling mode | 135 / 151 |
+| Boost Player Contrast | 101 / 151 |
+| Crosshair color | 0 / 151 |
+| Crosshair style | 135 / 151 |
+| Crosshair size | 135 / 151 |
+| Crosshair gap | 135 / 151 |
+| Crosshair thickness | 135 / 151 |
+| Crosshair alpha | 135 / 151 |
+| Crosshair dot | 135 / 151 |
+| Crosshair outline | 135 / 151 |
+| Viewmodel FOV | 129 / 151 |
+| Radar zoom | 101 / 151 |
+| Radar centered | 123 / 151 |
+| Radar rotating | 0 / 151 |
+| Monitor refresh rate | 0 / 151 |
+| fps_max | 0 / 151 |
 
-133/149 Core players currently have at least one usable settings field.
-eDPI arithmetic QC flags 2/133 comparable observations; flags remain quality signals and do not overwrite source values.
+135/151 Core players currently have at least one usable settings field.
+eDPI arithmetic QC flags 2/135 comparable observations; flags remain quality signals and do not overwrite source values.
 
-## 9. Data & code
+## 10. Data & code
 
-- Snapshot date: 2026-08-11
+- Snapshot date: 2026-10-25
 - Source: cs2settings
-- Snapshot data: [`data/aggregate/2026-08.json`](../data/aggregate/2026-08.json)
+- Snapshot data: [`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
 - Project & methodology: [`README.md`](../README.md)

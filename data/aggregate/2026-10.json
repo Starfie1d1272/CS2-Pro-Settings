@@ -1,0 +1,500 @@
+{
+  "aggregate": {
+    "snapshot_date": "2026-10-25",
+    "player_count": 151,
+    "team_count": 30,
+    "settings_availability": {
+      "cohort_players": 151,
+      "players_with_any_setting": 135,
+      "players_with_zero_settings": 16,
+      "any_setting_share": 0.894
+    },
+    "source": {
+      "primary": "v2-vrs-core"
+    },
+    "scope": {
+      "scope_id": "vrs-core-v2",
+      "cohort_model": "vrs-core-hltv-reference-v4",
+      "core_snapshot": "2026-08-10",
+      "core_provider": "valve",
+      "reference_snapshot": "2026-08-03",
+      "reference_provider": "hltv",
+      "core_teams": [
+        "team-spirit",
+        "falcons",
+        "9z",
+        "mouz",
+        "vitality",
+        "natus-vincere",
+        "legacy",
+        "furia",
+        "betboom",
+        "faze",
+        "parivision",
+        "g2",
+        "aurora",
+        "fut",
+        "the-mongolz",
+        "alliance",
+        "mibr",
+        "big",
+        "liquid",
+        "astralis",
+        "tyloo",
+        "b8",
+        "inner-circle",
+        "gamerlegion",
+        "magic",
+        "heroic",
+        "dendele",
+        "ninjas-in-pyjamas",
+        "hotu",
+        "eyeballers"
+      ],
+      "reference_teams": [
+        "falcons",
+        "team-spirit",
+        "furia",
+        "vitality",
+        "mouz",
+        "natus-vincere",
+        "9z",
+        "aurora",
+        "g2",
+        "betboom",
+        "faze",
+        "legacy",
+        "astralis",
+        "the-mongolz",
+        "fut",
+        "parivision",
+        "b8",
+        "pain",
+        "liquid",
+        "3dmax",
+        "gamerlegion",
+        "magic",
+        "luminosity",
+        "mibr",
+        "tyloo",
+        "alliance",
+        "ninjas-in-pyjamas",
+        "big",
+        "dendele",
+        "heroic"
+      ],
+      "consensus_teams": [
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "dendele",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "legacy",
+        "liquid",
+        "magic",
+        "mibr",
+        "mouz",
+        "natus-vincere",
+        "ninjas-in-pyjamas",
+        "parivision",
+        "team-spirit",
+        "the-mongolz",
+        "tyloo",
+        "vitality"
+      ],
+      "ranked_union_teams": [
+        "3dmax",
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "dendele",
+        "eyeballers",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "hotu",
+        "inner-circle",
+        "legacy",
+        "liquid",
+        "luminosity",
+        "magic",
+        "mibr",
+        "mouz",
+        "natus-vincere",
+        "ninjas-in-pyjamas",
+        "pain",
+        "parivision",
+        "team-spirit",
+        "the-mongolz",
+        "tyloo",
+        "vitality"
+      ],
+      "core_team_count": 30,
+      "reference_team_count": 30,
+      "consensus_team_count": 27,
+      "ranked_union_team_count": 33,
+      "core_scope_hash": "48e2d1753d63f137",
+      "tracked_teams": [
+        "100-thieves",
+        "3dmax",
+        "9z",
+        "alliance",
+        "astralis",
+        "aurora",
+        "b8",
+        "betboom",
+        "big",
+        "dendele",
+        "eyeballers",
+        "falcons",
+        "faze",
+        "furia",
+        "fut",
+        "g2",
+        "gamerlegion",
+        "heroic",
+        "hotu",
+        "inner-circle",
+        "legacy",
+        "liquid",
+        "lynn-vision",
+        "m80",
+        "magic",
+        "mibr",
+        "mouz",
+        "navi",
+        "ninjas-in-pyjamas",
+        "pain",
+        "parivision",
+        "spirit",
+        "the-mongolz",
+        "tyloo",
+        "vitality"
+      ],
+      "tracked_team_count": 35,
+      "source_resolved_core_teams": 30,
+      "source_unresolved_core_teams": []
+    },
+    "series": {
+      "series_id": "vrs-core-v2",
+      "cohort_semantics": "core_top30"
+    },
+    "edpi": {
+      "count": 135,
+      "median": 800.0,
+      "mean": 846.8,
+      "distribution": {
+        "0-400": 0,
+        "400-600": 15,
+        "600-800": 30,
+        "800-1000": 62,
+        "1000-1200": 19,
+        "1200-1600": 6,
+        "1600+": 3
+      },
+      "consistency_qc": {
+        "comparable_n": 135,
+        "consistent_n": 133,
+        "anomaly_count": 2,
+        "anomaly_share": 0.0148,
+        "missing_inputs_n": 16,
+        "absolute_tolerance": 2.0,
+        "relative_tolerance": 0.01
+      }
+    },
+    "dpi": {
+      "valid_n": 135,
+      "categories": {
+        "800": 66,
+        "400": 62,
+        "1600": 5,
+        "1000": 1,
+        "3200": 1
+      },
+      "top_category": "800",
+      "share_800": 0.4889,
+      "share_400": 0.4593,
+      "share_1600_plus": 0.0444
+    },
+    "resolution": {
+      "valid_n": 135,
+      "categories": {
+        "1280x960": 91,
+        "1920x1080": 14,
+        "1024x768": 11,
+        "1280x1024": 6,
+        "1152x864": 5,
+        "1280x800": 2,
+        "1440x1080": 2,
+        "1680x1050": 2,
+        "1280x768": 1,
+        "1350x1080": 1
+      },
+      "top_category": "1280x960",
+      "share_1280x960": 0.6741
+    },
+    "aspect_ratio": {
+      "valid_n": 135,
+      "categories": {
+        "4:3": 111,
+        "16:9": 13,
+        "5:4": 7,
+        "16:10": 4
+      },
+      "share_4_3": 0.8222
+    },
+    "scaling_mode": {
+      "valid_n": 135,
+      "categories": {
+        "Stretched": 116,
+        "Native": 11,
+        "Black Bars": 8
+      },
+      "top_category": "Stretched"
+    },
+    "zoom_sensitivity": {
+      "valid_n": 134,
+      "categories": {
+        "1": 102,
+        "1.1": 7,
+        "0.8": 5,
+        "0.9": 5,
+        "1.2": 4,
+        "0.82": 3,
+        "0.83": 1,
+        "0.93": 1,
+        "0.95": 1,
+        "0.98": 1,
+        "0.99": 1,
+        "0.999": 1,
+        "1.16": 1,
+        "1.2849": 1
+      },
+      "median": 1.0,
+      "top_category": "1"
+    },
+    "boost_player": {
+      "valid_n": 101,
+      "missing_n": 50,
+      "enabled_count": 85,
+      "disabled_count": 16,
+      "enabled_share": 0.8416
+    },
+    "refresh_rate": {
+      "valid_n": 0,
+      "categories": {},
+      "share_360": null,
+      "share_540_plus": null
+    },
+    "fps_max": {
+      "valid_n": 0,
+      "categories": {},
+      "unlimited_share": null
+    },
+    "crosshair": {
+      "valid_n": 135,
+      "dot_outline_off_share": 0.8667,
+      "color_valid_n": 0,
+      "color_categories": {},
+      "top_color": null,
+      "custom_rgb": {
+        "valid_n": 0,
+        "custom_players": 0,
+        "coverage": null,
+        "categories": {},
+        "unique_colors": 0,
+        "top_rgb": null,
+        "top_rgb_share": null
+      },
+      "geometry": {
+        "style": {
+          "valid_n": 135,
+          "categories": {
+            "4": 130,
+            "8": 3,
+            "5": 1,
+            "9": 1
+          },
+          "top_category": "4"
+        },
+        "size": {
+          "valid_n": 135,
+          "categories": {
+            "2": 86,
+            "3": 22,
+            "4": 18,
+            "5": 3,
+            "1": 2,
+            "6": 2,
+            "0": 1,
+            "8": 1
+          },
+          "median": 2.0,
+          "top_category": "2"
+        },
+        "gap": {
+          "valid_n": 135,
+          "categories": {
+            "1": 72,
+            "2": 33,
+            "0": 15,
+            "3": 11,
+            "4": 3,
+            "5": 1
+          },
+          "median": 1.0,
+          "top_category": "1"
+        },
+        "thickness": {
+          "valid_n": 135,
+          "categories": {
+            "2": 87,
+            "1": 38,
+            "3": 9,
+            "4": 1
+          },
+          "median": 2.0,
+          "top_category": "2"
+        },
+        "alpha": {
+          "valid_n": 135,
+          "categories": {
+            "255": 129,
+            "197": 1,
+            "200": 1,
+            "238": 1,
+            "245": 1,
+            "252": 1,
+            "91": 1
+          },
+          "median": 255,
+          "top_category": "255"
+        },
+        "dot": {
+          "valid_n": 135,
+          "missing_n": 16,
+          "enabled_count": 10,
+          "disabled_count": 125,
+          "enabled_share": 0.0741
+        },
+        "outline": {
+          "valid_n": 135,
+          "missing_n": 16,
+          "enabled_count": 9,
+          "disabled_count": 126,
+          "enabled_share": 0.0667
+        }
+      }
+    },
+    "viewmodel": {
+      "valid_n": 129,
+      "fov68_share": 0.907,
+      "dominant_offset": [
+        2.5,
+        0.0,
+        -1.5
+      ]
+    },
+    "brightness": {
+      "valid_n": 120,
+      "categories": {
+        "100": 34,
+        "93": 17,
+        "80": 7,
+        "90": 7,
+        "70": 6,
+        "130": 5,
+        "75": 5,
+        "85": 5,
+        "110": 4,
+        "69": 3,
+        "83": 3,
+        "50": 2,
+        "60": 2,
+        "68": 2,
+        "88": 2,
+        "101": 1,
+        "103": 1,
+        "114": 1,
+        "119": 1,
+        "120": 1,
+        "126": 1,
+        "45": 1,
+        "55": 1,
+        "65": 1,
+        "77": 1,
+        "81": 1,
+        "82": 1,
+        "91": 1,
+        "92": 1,
+        "95": 1,
+        "97": 1
+      }
+    },
+    "radar": {
+      "valid_n": 0,
+      "rotating_valid_n": 0,
+      "centered_valid_n": 123,
+      "rotating_share": null,
+      "centered_share": 0.7236,
+      "zoom": {
+        "valid_n": 101,
+        "categories": {
+          "0.4": 29,
+          "0.7": 20,
+          "0.3": 11,
+          "0.35": 10,
+          "0.45": 8,
+          "0.25": 7,
+          "0.41": 4,
+          "0.445": 2,
+          "0.315": 1,
+          "0.454938": 1,
+          "0.6025": 1,
+          "0.63": 1,
+          "0.633826": 1,
+          "0.65": 1,
+          "0.701077": 1,
+          "0.8": 1,
+          "0.9": 1,
+          "1": 1
+        },
+        "median": 0.4,
+        "top_category": "0.4"
+      }
+    },
+    "mouse_polling": {
+      "valid_n": 135,
+      "categories": {
+        "1000": 88,
+        "2000": 25,
+        "4000": 19,
+        "8000": 3
+      },
+      "share_4000_plus": 0.163
+    }
+  },
+  "panel": {
+    "status": "available",
+    "player_count": 151,
+    "stable_identity_count": 151
+  }
+}
