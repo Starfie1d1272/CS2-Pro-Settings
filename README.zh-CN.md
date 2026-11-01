@@ -19,20 +19,20 @@ CS2 Pro Settings Tracker 是一个可复现、感知阵容变化、持续追踪�
 ## 最新一期
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-10-25 · VRS Top 30 · 30 支战队 · 151 名选手** · `vrs-core-v2`
+**2026-11-01 · VRS Top 30 · 30 支战队 · 157 名选手** · `vrs-core-v2`
 
-- 135/151 名选手有可用设置数据（89.4%）
+- 135/157 名选手有可用设置数据（86.0%）
 - 中位 eDPI 800
 - 400 + 800 DPI 合计 94.8%
-- 4:3 占 82.2%
-- 1280x960 占 67.4%
-- 1000 Hz 占 65.2%
-- 4000 Hz+ 占 16.3%
+- 4:3 占 83.0%
+- 1280x960 占 68.1%
+- 1000 Hz 占 65.9%
+- 4000 Hz+ 占 15.6%
 - viewmodel_fov 68 占 90.7%
 
 从当前快照来看，800 eDPI、4:3、1280x960 和 FOV 68 依然构成非常稳定的职业赛场主流画像。
 
-→ [最新中文报告](./reports/latest.zh-CN.md) · [English report](./reports/latest.md) · [月度存档](./reports/2026-10.zh-CN.md)
+→ [最新中文报告](./reports/latest.zh-CN.md) · [English report](./reports/latest.md) · [月度存档](./reports/2026-11.zh-CN.md)
 <!-- CURRENT_SNAPSHOT:END -->
 
 | 鼠标设置 | 显示设置 |

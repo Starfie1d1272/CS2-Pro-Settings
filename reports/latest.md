@@ -1,49 +1,49 @@
-# CS2 Professional Settings Snapshot — 2026-10
+# CS2 Professional Settings Snapshot — 2026-11
 
 [中文版](./latest.zh-CN.md)
 
-2026-10-25 · VRS Top 30 (2026-08-10) · 30 teams · 151 players · 135/151 settings · `vrs-core-v2`
+2026-11-01 · VRS Top 30 (2026-08-10) · 30 teams · 157 players · 135/157 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
 - **800 median eDPI** (n=135)
-- **4:3** at 82.2%; **1280x960** at 67.4% (n=135 / 135)
+- **4:3** at 83.0%; **1280x960** at 68.1% (n=135 / 135)
 - **Stretched scaling** at 85.9% (n=135)
-- **1000 Hz polling** at 65.2%; 4000 Hz+ at 16.3% (n=135)
-- **Dot + outline both off** for 86.7% (n=135)
+- **1000 Hz polling** at 65.9%; 4000 Hz+ at 15.6% (n=135)
+- **Dot + outline both off** for 88.1% (n=135)
 
 ## 2. Mouse
 
 ![mouse.png](../figures/latest/mouse.png)
 
-- Median: **800** · Mean: **846.8** · n=135
+- Median: **800** · Mean: **845.6** · n=135
 - 600–1000 eDPI covers 68.1% of valid observations (92/135).
 - Arithmetic QC: 133/135 consistent; **2 flagged** using max(2 eDPI, 1.0%) tolerance.
-- DPI — 800: **48.9%** · 400: 45.9% · 1600+: 4.4% (n=135)
-- Zoom sensitivity — median **1**; 1 76.1% · 1.1 5.2% · 0.8 3.7% (n=134)
-- Polling — 1000: 65.2% · 2000: 18.5% · 4000: 14.1% · 8000 Hz: 2.2% (n=135)
+- DPI — 800: **49.6%** · 400: 45.2% · 1600+: 4.4% (n=135)
+- Zoom sensitivity — median **1**; 1 76.9% · 1.1 5.2% · 0.8 3.7% (n=134)
+- Polling — 1000: 65.9% · 2000: 18.5% · 4000: 13.3% · 8000 Hz: 2.2% (n=135)
 
 ## 3. Display
 
 ![display.png](../figures/latest/display.png)
 
-- Aspect ratio — 4:3 82.2% · 16:9 9.6% · 5:4 5.2% (n=135)
-- Resolution — 1280x960 67.4% · 1920x1080 10.4% · 1024x768 8.1% (n=135)
+- Aspect ratio — 4:3 83.0% · 16:9 9.6% · 5:4 5.2% (n=135)
+- Resolution — 1280x960 68.1% · 1920x1080 10.4% · 1024x768 8.1% (n=135)
 - Scaling mode — Stretched 85.9% · Native 8.1% · Black Bars 5.9% (n=135)
-- Boost Player Contrast — enabled **84.2%** (85/101 known); disabled 16/101; missing/unknown 50/151.
+- Boost Player Contrast — enabled **84.2%** (85/101 known); disabled 16/101; missing/unknown 56/157.
 
 ## 4. Crosshair
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style codes — 4 96.3% · 8 2.2% · 5 0.7% (n=135); source-provided codes, with no mechanism interpretation.
-- Size — median **2**; 2 63.7% · 3 16.3% · 4 13.3% (n=135)
-- Gap — median **1**; 1 53.3% · 2 24.4% · 0 11.1% (n=135)
-- Thickness — median **2**; 2 64.4% · 1 28.1% · 3 6.7% (n=135)
-- Alpha — median **255**; 255 95.6% · 197 0.7% · 200 0.7% (n=135)
-- Dot enabled — **7.4%** (10/135 known)
-- Outline enabled — **6.7%** (9/135 known)
-- Dot and outline both disabled: **86.7%** (n=135, both fields known)
+- Style codes — 4 97.0% · 8 1.5% · 5 0.7% (n=135); source-provided codes, with no mechanism interpretation.
+- Size — median **2**; 2 56.3% · 4 19.3% · 3 14.8% (n=135)
+- Gap — median **1**; 1 53.3% · 2 31.9% · 3 6.7% (n=135)
+- Thickness — median **2**; 2 61.5% · 1 31.9% · 3 5.9% (n=135)
+- Alpha — median **255**; 255 97.0% · 197 0.7% · 238 0.7% (n=135)
+- Dot enabled — **6.7%** (9/135 known)
+- Outline enabled — **5.9%** (8/135 known)
+- Dot and outline both disabled: **88.1%** (n=135, both fields known)
 
 ## 5. Viewmodel
 
@@ -54,26 +54,26 @@
 
 ![radar.png](../figures/latest/radar.png)
 
-- Radar zoom — median **0.4**; 0.4 28.7% · 0.7 19.8% · 0.3 10.9% (n=101). Values are descriptive; no directional interpretation is applied.
-- Radar centered enabled: 72.4% (n=123)
+- Radar zoom — median **0.4**; 0.4 28.4% · 0.7 19.6% · 0.3 10.8% (n=102). Values are descriptive; no directional interpretation is applied.
+- Radar centered enabled: 73.2% (n=123)
 
 ## 7. Extended segments
 
 | Segment | Teams | Players | Median eDPI |
 |---|---:|---:|---:|
-| VRS ∩ HLTV Consensus | 27 | 136 | 800 |
-| Ranked Union | 31 | 156 | 800 |
-| Core + Watchlist | 33 | 166 | 800 |
-| All tracked | 34 | 171 | 800 |
+| VRS ∩ HLTV Consensus | 27 | 142 | 800 |
+| Ranked Union | 31 | 162 | 800 |
+| Core + Watchlist | 33 | 172 | 800 |
+| All tracked | 34 | 177 | 800 |
 
 ## 8. Changes since previous snapshot
 
 - Previous snapshot: 2026-08-11
-- Core cohort: 149 → 151 players
-- Roster turnover: 0.7%
-- Matched players: 151
+- Core cohort: 149 → 157 players
+- Roster turnover: 0.0%
+- Matched players: 157
 
-- crosshair_minimal_share: 0.8045 -> 0.8667 (+6.2pp) [level 1]
+- crosshair_minimal_share: 0.8045 -> 0.8815 (+7.7pp) [level 1]
 
 Matched panel (same players in both snapshots):
 - dpi: 0/135 changed
@@ -85,35 +85,35 @@ Matched panel (same players in both snapshots):
 
 | Field | valid_n / cohort |
 |---|---|
-| eDPI | 135 / 151 |
-| DPI | 135 / 151 |
-| Zoom sensitivity | 134 / 151 |
-| Mouse polling rate | 135 / 151 |
-| Resolution | 135 / 151 |
-| Aspect ratio | 135 / 151 |
-| Scaling mode | 135 / 151 |
-| Boost Player Contrast | 101 / 151 |
-| Crosshair color | 0 / 151 |
-| Crosshair style | 135 / 151 |
-| Crosshair size | 135 / 151 |
-| Crosshair gap | 135 / 151 |
-| Crosshair thickness | 135 / 151 |
-| Crosshair alpha | 135 / 151 |
-| Crosshair dot | 135 / 151 |
-| Crosshair outline | 135 / 151 |
-| Viewmodel FOV | 129 / 151 |
-| Radar zoom | 101 / 151 |
-| Radar centered | 123 / 151 |
-| Radar rotating | 0 / 151 |
-| Monitor refresh rate | 0 / 151 |
-| fps_max | 0 / 151 |
+| eDPI | 135 / 157 |
+| DPI | 135 / 157 |
+| Zoom sensitivity | 134 / 157 |
+| Mouse polling rate | 135 / 157 |
+| Resolution | 135 / 157 |
+| Aspect ratio | 135 / 157 |
+| Scaling mode | 135 / 157 |
+| Boost Player Contrast | 101 / 157 |
+| Crosshair color | 0 / 157 |
+| Crosshair style | 135 / 157 |
+| Crosshair size | 135 / 157 |
+| Crosshair gap | 135 / 157 |
+| Crosshair thickness | 135 / 157 |
+| Crosshair alpha | 135 / 157 |
+| Crosshair dot | 135 / 157 |
+| Crosshair outline | 135 / 157 |
+| Viewmodel FOV | 129 / 157 |
+| Radar zoom | 102 / 157 |
+| Radar centered | 123 / 157 |
+| Radar rotating | 0 / 157 |
+| Monitor refresh rate | 0 / 157 |
+| fps_max | 0 / 157 |
 
-135/151 Core players currently have at least one usable settings field.
+135/157 Core players currently have at least one usable settings field.
 eDPI arithmetic QC flags 2/135 comparable observations; flags remain quality signals and do not overwrite source values.
 
 ## 10. Data & code
 
-- Snapshot date: 2026-10-25
+- Snapshot date: 2026-11-01
 - Source: cs2settings
-- Snapshot data: [`data/aggregate/2026-10.json`](../data/aggregate/2026-10.json)
+- Snapshot data: [`data/aggregate/2026-11.json`](../data/aggregate/2026-11.json)
 - Project & methodology: [`README.md`](../README.md)
