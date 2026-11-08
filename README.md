@@ -15,16 +15,16 @@ Instead of publishing another static settings table, the project tracks the curr
 ## Current snapshot
 
 <!-- CURRENT_SNAPSHOT:START -->
-**2026-11-01 · VRS Top 30 · 30 teams · 157 players** · `vrs-core-v2`
+**2026-11-08 · VRS Top 30 · 30 teams · 158 players** · `vrs-core-v2`
 
-- 135/157 players with usable settings (86.0%)
+- 136/158 players with usable settings (86.1%)
 - median eDPI 800
-- 400 + 800 DPI = 94.8%
-- 4:3 = 83.0%
-- 1280x960 = 68.1%
-- 1000 Hz = 65.9%
-- 4000 Hz+ = 15.6%
-- viewmodel_fov 68 = 90.7%
+- 400 + 800 DPI = 94.9%
+- 4:3 = 82.4%
+- 1280x960 = 67.6%
+- 1000 Hz = 66.2%
+- 4000 Hz+ = 15.4%
+- viewmodel_fov 68 = 90.0%
 
 From the current snapshot, 800 eDPI, 4:3, 1280x960 and FOV 68 still form a remarkably stable picture of the pro-scene mainstream.
 
