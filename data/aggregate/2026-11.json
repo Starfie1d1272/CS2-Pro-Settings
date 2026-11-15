@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-11-08",
-    "player_count": 158,
+    "snapshot_date": "2026-11-15",
+    "player_count": 159,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 158,
-      "players_with_any_setting": 136,
-      "players_with_zero_settings": 22,
-      "any_setting_share": 0.8608
+      "cohort_players": 159,
+      "players_with_any_setting": 135,
+      "players_with_zero_settings": 24,
+      "any_setting_share": 0.8491
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -198,47 +198,47 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 136,
+      "count": 135,
       "median": 800.0,
-      "mean": 845.8,
+      "mean": 846.9,
       "distribution": {
         "0-400": 0,
         "400-600": 15,
-        "600-800": 31,
+        "600-800": 30,
         "800-1000": 62,
         "1000-1200": 19,
         "1200-1600": 6,
         "1600+": 3
       },
       "consistency_qc": {
-        "comparable_n": 136,
-        "consistent_n": 134,
+        "comparable_n": 135,
+        "consistent_n": 133,
         "anomaly_count": 2,
-        "anomaly_share": 0.0147,
-        "missing_inputs_n": 22,
+        "anomaly_share": 0.0148,
+        "missing_inputs_n": 24,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 136,
+      "valid_n": 135,
       "categories": {
         "800": 68,
-        "400": 61,
+        "400": 60,
         "1600": 5,
         "1000": 1,
         "3200": 1
       },
       "top_category": "800",
-      "share_800": 0.5,
-      "share_400": 0.4485,
-      "share_1600_plus": 0.0441
+      "share_800": 0.5037,
+      "share_400": 0.4444,
+      "share_1600_plus": 0.0444
     },
     "resolution": {
-      "valid_n": 136,
+      "valid_n": 135,
       "categories": {
         "1280x960": 92,
-        "1920x1080": 15,
+        "1920x1080": 14,
         "1024x768": 11,
         "1280x1024": 6,
         "1152x864": 5,
@@ -249,31 +249,31 @@
         "1350x1080": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6765
+      "share_1280x960": 0.6815
     },
     "aspect_ratio": {
-      "valid_n": 136,
+      "valid_n": 135,
       "categories": {
         "4:3": 112,
-        "16:9": 14,
+        "16:9": 13,
         "5:4": 7,
         "16:10": 3
       },
-      "share_4_3": 0.8235
+      "share_4_3": 0.8296
     },
     "scaling_mode": {
-      "valid_n": 136,
+      "valid_n": 135,
       "categories": {
         "Stretched": 116,
-        "Native": 12,
+        "Native": 11,
         "Black Bars": 8
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 135,
+      "valid_n": 134,
       "categories": {
-        "1": 104,
+        "1": 103,
         "1.1": 7,
         "0.8": 5,
         "0.9": 5,
@@ -292,7 +292,7 @@
     },
     "boost_player": {
       "valid_n": 102,
-      "missing_n": 56,
+      "missing_n": 57,
       "enabled_count": 86,
       "disabled_count": 16,
       "enabled_share": 0.8431
@@ -309,8 +309,8 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 136,
-      "dot_outline_off_share": 0.9044,
+      "valid_n": 135,
+      "dot_outline_off_share": 0.8815,
       "color_valid_n": 0,
       "color_categories": {},
       "top_color": null,
@@ -325,88 +325,88 @@
       },
       "geometry": {
         "style": {
-          "valid_n": 136,
+          "valid_n": 135,
           "categories": {
-            "4": 133,
+            "4": 131,
             "5": 1,
+            "6": 1,
             "8": 1,
             "9": 1
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 136,
+          "valid_n": 135,
           "categories": {
             "2": 79,
-            "3": 22,
-            "4": 22,
+            "3": 23,
+            "4": 19,
+            "5": 4,
             "1": 3,
-            "5": 3,
-            "6": 3,
+            "6": 2,
+            "7": 2,
             "0": 1,
-            "11": 1,
-            "7": 1,
-            "8": 1
+            "8": 1,
+            "9": 1
           },
           "median": 2.0,
           "top_category": "2"
         },
         "gap": {
-          "valid_n": 136,
+          "valid_n": 135,
           "categories": {
-            "1": 74,
-            "2": 40,
-            "0": 9,
+            "1": 71,
+            "2": 41,
+            "0": 10,
             "3": 9,
-            "4": 2,
-            "5": 1,
-            "7": 1
+            "4": 3,
+            "5": 1
           },
           "median": 1.0,
           "top_category": "1"
         },
         "thickness": {
-          "valid_n": 136,
+          "valid_n": 135,
           "categories": {
-            "2": 85,
-            "1": 41,
-            "3": 9,
+            "2": 88,
+            "1": 38,
+            "3": 8,
             "4": 1
           },
           "median": 2.0,
           "top_category": "2"
         },
         "alpha": {
-          "valid_n": 136,
+          "valid_n": 135,
           "categories": {
-            "255": 132,
-            "197": 1,
+            "255": 131,
+            "159": 1,
             "200": 1,
             "238": 1,
             "248": 1
           },
-          "median": 255.0,
+          "median": 255,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 136,
-          "missing_n": 22,
-          "enabled_count": 7,
-          "disabled_count": 129,
-          "enabled_share": 0.0515
+          "valid_n": 135,
+          "missing_n": 24,
+          "enabled_count": 8,
+          "disabled_count": 127,
+          "enabled_share": 0.0593
         },
         "outline": {
-          "valid_n": 136,
-          "missing_n": 22,
-          "enabled_count": 7,
-          "disabled_count": 129,
-          "enabled_share": 0.0515
+          "valid_n": 135,
+          "missing_n": 24,
+          "enabled_count": 9,
+          "disabled_count": 126,
+          "enabled_share": 0.0667
         }
       }
     },
     "viewmodel": {
-      "valid_n": 130,
-      "fov68_share": 0.9,
+      "valid_n": 129,
+      "fov68_share": 0.8992,
       "dominant_offset": [
         2.5,
         0.0,
@@ -483,19 +483,19 @@
       }
     },
     "mouse_polling": {
-      "valid_n": 136,
+      "valid_n": 135,
       "categories": {
         "1000": 90,
         "2000": 25,
-        "4000": 18,
+        "4000": 17,
         "8000": 3
       },
-      "share_4000_plus": 0.1544
+      "share_4000_plus": 0.1481
     }
   },
   "panel": {
     "status": "available",
-    "player_count": 158,
-    "stable_identity_count": 158
+    "player_count": 159,
+    "stable_identity_count": 159
   }
 }
