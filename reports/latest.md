@@ -2,7 +2,7 @@
 
 [中文版](./latest.zh-CN.md)
 
-2026-11-15 · VRS Top 30 (2026-08-10) · 30 teams · 159 players · 135/159 settings · `vrs-core-v2`
+2026-11-22 · VRS Top 30 (2026-08-10) · 30 teams · 160 players · 135/160 settings · `vrs-core-v2`
 
 ## 1. Highlights
 
@@ -30,19 +30,19 @@
 - Aspect ratio — 4:3 83.0% · 16:9 9.6% · 5:4 5.2% (n=135)
 - Resolution — 1280x960 68.1% · 1920x1080 10.4% · 1024x768 8.1% (n=135)
 - Scaling mode — Stretched 85.9% · Native 8.1% · Black Bars 5.9% (n=135)
-- Boost Player Contrast — enabled **84.3%** (86/102 known); disabled 16/102; missing/unknown 57/159.
+- Boost Player Contrast — enabled **84.3%** (86/102 known); disabled 16/102; missing/unknown 58/160.
 
 ## 4. Crosshair
 
 ![crosshair_geometry.png](../figures/latest/crosshair_geometry.png)
 
-- Style codes — 4 97.0% · 5 0.7% · 6 0.7% (n=135); source-provided codes, with no mechanism interpretation.
-- Size — median **2**; 2 58.5% · 3 17.0% · 4 14.1% (n=135)
-- Gap — median **1**; 1 52.6% · 2 30.4% · 0 7.4% (n=135)
-- Thickness — median **2**; 2 65.2% · 1 28.1% · 3 5.9% (n=135)
-- Alpha — median **255**; 255 97.0% · 159 0.7% · 200 0.7% (n=135)
-- Dot enabled — **5.9%** (8/135 known)
-- Outline enabled — **6.7%** (9/135 known)
+- Style codes — 4 98.5% · 5 0.7% · 9 0.7% (n=135); source-provided codes, with no mechanism interpretation.
+- Size — median **2**; 2 58.5% · 3 17.8% · 4 14.8% (n=135)
+- Gap — median **1**; 1 54.8% · 2 30.4% · 0 6.7% (n=135)
+- Thickness — median **2**; 2 64.4% · 1 31.1% · 3 3.7% (n=135)
+- Alpha — median **255**; 255 97.8% · 159 0.7% · 200 0.7% (n=135)
+- Dot enabled — **6.7%** (9/135 known)
+- Outline enabled — **5.9%** (8/135 known)
 - Dot and outline both disabled: **88.1%** (n=135, both fields known)
 
 ## 5. Viewmodel
@@ -61,17 +61,17 @@
 
 | Segment | Teams | Players | Median eDPI |
 |---|---:|---:|---:|
-| VRS ∩ HLTV Consensus | 27 | 144 | 800 |
-| Ranked Union | 31 | 164 | 800 |
-| Core + Watchlist | 33 | 174 | 800 |
-| All tracked | 34 | 179 | 800 |
+| VRS ∩ HLTV Consensus | 27 | 145 | 800 |
+| Ranked Union | 31 | 165 | 800 |
+| Core + Watchlist | 33 | 175 | 800 |
+| All tracked | 34 | 180 | 800 |
 
 ## 8. Changes since previous snapshot
 
 - Previous snapshot: 2026-08-11
-- Core cohort: 149 → 159 players
+- Core cohort: 149 → 160 players
 - Roster turnover: 0.0%
-- Matched players: 159
+- Matched players: 160
 
 - crosshair_minimal_share: 0.8045 -> 0.8815 (+7.7pp) [level 1]
 
@@ -85,35 +85,35 @@ Matched panel (same players in both snapshots):
 
 | Field | valid_n / cohort |
 |---|---|
-| eDPI | 135 / 159 |
-| DPI | 135 / 159 |
-| Zoom sensitivity | 134 / 159 |
-| Mouse polling rate | 135 / 159 |
-| Resolution | 135 / 159 |
-| Aspect ratio | 135 / 159 |
-| Scaling mode | 135 / 159 |
-| Boost Player Contrast | 102 / 159 |
-| Crosshair color | 0 / 159 |
-| Crosshair style | 135 / 159 |
-| Crosshair size | 135 / 159 |
-| Crosshair gap | 135 / 159 |
-| Crosshair thickness | 135 / 159 |
-| Crosshair alpha | 135 / 159 |
-| Crosshair dot | 135 / 159 |
-| Crosshair outline | 135 / 159 |
-| Viewmodel FOV | 129 / 159 |
-| Radar zoom | 103 / 159 |
-| Radar centered | 124 / 159 |
-| Radar rotating | 0 / 159 |
-| Monitor refresh rate | 0 / 159 |
-| fps_max | 0 / 159 |
+| eDPI | 135 / 160 |
+| DPI | 135 / 160 |
+| Zoom sensitivity | 134 / 160 |
+| Mouse polling rate | 135 / 160 |
+| Resolution | 135 / 160 |
+| Aspect ratio | 135 / 160 |
+| Scaling mode | 135 / 160 |
+| Boost Player Contrast | 102 / 160 |
+| Crosshair color | 0 / 160 |
+| Crosshair style | 135 / 160 |
+| Crosshair size | 135 / 160 |
+| Crosshair gap | 135 / 160 |
+| Crosshair thickness | 135 / 160 |
+| Crosshair alpha | 135 / 160 |
+| Crosshair dot | 135 / 160 |
+| Crosshair outline | 135 / 160 |
+| Viewmodel FOV | 129 / 160 |
+| Radar zoom | 103 / 160 |
+| Radar centered | 124 / 160 |
+| Radar rotating | 0 / 160 |
+| Monitor refresh rate | 0 / 160 |
+| fps_max | 0 / 160 |
 
-135/159 Core players currently have at least one usable settings field.
+135/160 Core players currently have at least one usable settings field.
 eDPI arithmetic QC flags 2/135 comparable observations; flags remain quality signals and do not overwrite source values.
 
 ## 10. Data & code
 
-- Snapshot date: 2026-11-15
+- Snapshot date: 2026-11-22
 - Source: cs2settings
 - Snapshot data: [`data/aggregate/2026-11.json`](../data/aggregate/2026-11.json)
 - Project & methodology: [`README.md`](../README.md)

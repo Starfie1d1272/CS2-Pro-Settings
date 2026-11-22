@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-11-15",
-    "player_count": 159,
+    "snapshot_date": "2026-11-22",
+    "player_count": 160,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 159,
+      "cohort_players": 160,
       "players_with_any_setting": 135,
-      "players_with_zero_settings": 24,
-      "any_setting_share": 0.8491
+      "players_with_zero_settings": 25,
+      "any_setting_share": 0.8438
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -215,7 +215,7 @@
         "consistent_n": 133,
         "anomaly_count": 2,
         "anomaly_share": 0.0148,
-        "missing_inputs_n": 24,
+        "missing_inputs_n": 25,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
@@ -292,7 +292,7 @@
     },
     "boost_player": {
       "valid_n": 102,
-      "missing_n": 57,
+      "missing_n": 58,
       "enabled_count": 86,
       "disabled_count": 16,
       "enabled_share": 0.8431
@@ -327,10 +327,8 @@
         "style": {
           "valid_n": 135,
           "categories": {
-            "4": 131,
+            "4": 133,
             "5": 1,
-            "6": 1,
-            "8": 1,
             "9": 1
           },
           "top_category": "4"
@@ -339,15 +337,13 @@
           "valid_n": 135,
           "categories": {
             "2": 79,
-            "3": 23,
-            "4": 19,
-            "5": 4,
+            "3": 24,
+            "4": 20,
+            "5": 5,
             "1": 3,
             "6": 2,
-            "7": 2,
             "0": 1,
-            "8": 1,
-            "9": 1
+            "8": 1
           },
           "median": 2.0,
           "top_category": "2"
@@ -355,11 +351,11 @@
         "gap": {
           "valid_n": 135,
           "categories": {
-            "1": 71,
+            "1": 74,
             "2": 41,
-            "0": 10,
-            "3": 9,
-            "4": 3,
+            "0": 9,
+            "3": 8,
+            "4": 2,
             "5": 1
           },
           "median": 1.0,
@@ -368,9 +364,9 @@
         "thickness": {
           "valid_n": 135,
           "categories": {
-            "2": 88,
-            "1": 38,
-            "3": 8,
+            "2": 87,
+            "1": 42,
+            "3": 5,
             "4": 1
           },
           "median": 2.0,
@@ -379,28 +375,27 @@
         "alpha": {
           "valid_n": 135,
           "categories": {
-            "255": 131,
+            "255": 132,
             "159": 1,
             "200": 1,
-            "238": 1,
-            "248": 1
+            "238": 1
           },
           "median": 255,
           "top_category": "255"
         },
         "dot": {
           "valid_n": 135,
-          "missing_n": 24,
-          "enabled_count": 8,
-          "disabled_count": 127,
-          "enabled_share": 0.0593
-        },
-        "outline": {
-          "valid_n": 135,
-          "missing_n": 24,
+          "missing_n": 25,
           "enabled_count": 9,
           "disabled_count": 126,
           "enabled_share": 0.0667
+        },
+        "outline": {
+          "valid_n": 135,
+          "missing_n": 25,
+          "enabled_count": 8,
+          "disabled_count": 127,
+          "enabled_share": 0.0593
         }
       }
     },
@@ -495,7 +490,7 @@
   },
   "panel": {
     "status": "available",
-    "player_count": 159,
-    "stable_identity_count": 159
+    "player_count": 160,
+    "stable_identity_count": 160
   }
 }
