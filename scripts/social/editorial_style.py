@@ -30,11 +30,62 @@ Usage (from the repo root)::
 
 from __future__ import annotations
 
+from collections.abc import Iterable, Sequence
 from pathlib import Path
+from typing import Any
 
 import matplotlib.pyplot as plt
 from matplotlib import font_manager
+from matplotlib.axes import Axes
+from matplotlib.collections import PathCollection
+from matplotlib.figure import Figure
+from matplotlib.legend import Legend
 from matplotlib.lines import Line2D
+from matplotlib.text import Annotation, Text
+
+__all__ = [
+    "ACCENT_COOL",
+    "ACCENT_WARM",
+    "ANNOTATION_FONT_SIZE",
+    "AXIS_LABEL_FONT_SIZE",
+    "FIG_BG",
+    "FIG_SIZE",
+    "FOOTER_FONT_SIZE",
+    "FOOTER_POS",
+    "GRID",
+    "HEADER_LEGEND_ANCHOR",
+    "HEADER_SUBTITLE_POS",
+    "HEADER_TITLE_POS",
+    "LEGEND_FONT_SIZE",
+    "MARGINS",
+    "NEUTRAL_WHITE",
+    "PILL_FONT_SIZE",
+    "PILL_LEFT_X",
+    "PILL_RIGHT_X",
+    "PILL_TOP",
+    "POINT_MUTED",
+    "REFERENCE",
+    "REFERENCE_TEXT_FONT_SIZE",
+    "SPINE",
+    "SUBTITLE_FONT_SIZE",
+    "TEXT_MUTED",
+    "TEXT_PRIMARY",
+    "TEXT_SECONDARY",
+    "TICK_FONT_SIZE",
+    "TITLE_FONT_SIZE",
+    "TITLE_FONT_WEIGHT",
+    "add_corner_pill",
+    "add_editorial_footer",
+    "add_editorial_header",
+    "add_reference_line",
+    "create_editorial_figure",
+    "editorial_annotate",
+    "legend_handle",
+    "save_editorial_figure",
+    "setup_editorial_typography",
+    "style_highlight_points",
+    "style_muted_points",
+]
 
 # ---------------------------------------------------------------------------
 # Style tokens — palette (semantic-neutral; map to your story per figure)
@@ -96,20 +147,24 @@ _CJK_FONT_CANDIDATES = (
     "/System/Library/Fonts/Hiragino Sans GB.ttc",
     "/System/Library/Fonts/STHeiti Light.ttc",
 )
+_REGISTERED_FONT_PATHS: set[str] = set()
 
 
 def setup_editorial_typography() -> None:
     """Register CJK fonts if present and set the editorial font family.
 
-    Call once per figure script, before creating any figure.
+    Idempotent: repeated calls in the same process do not re-register fonts.
     """
     for fp in _CJK_FONT_CANDIDATES:
-        if Path(fp).exists():
+        if fp not in _REGISTERED_FONT_PATHS and Path(fp).exists():
             font_manager.fontManager.addfont(fp)
+            _REGISTERED_FONT_PATHS.add(fp)
     plt.rcParams["font.family"] = [
         "PingFang SC",
         "Hiragino Sans GB",
         "Heiti SC",
+        "Noto Sans CJK SC",
+        "Microsoft YaHei",
         "Arial Unicode MS",
         "sans-serif",
     ]
@@ -120,12 +175,20 @@ def setup_editorial_typography() -> None:
 # Figure / axes primitives
 # ---------------------------------------------------------------------------
 
-def create_editorial_figure(figsize=FIG_SIZE, margins=None):
+def create_editorial_figure(
+    figsize: tuple[float, float] = FIG_SIZE,
+    margins: dict[str, float] | None = None,
+    *,
+    grid_axis: str | None = "y",
+) -> tuple[Figure, Axes]:
     """Create a figure + axes with the editorial background, margins,
-    spines, ticks and horizontal grid applied.
+    spines, ticks and subtle grid applied.
 
     Returns ``(fig, ax)``. No titles, ranges or data are set here.
     """
+    if grid_axis not in ("x", "y", "both", None):
+        raise ValueError(f"grid_axis must be 'x', 'y', 'both', or None, got {grid_axis!r}")
+
     fig, ax = plt.subplots(figsize=figsize)
     fig.patch.set_facecolor(FIG_BG)
     ax.set_facecolor(FIG_BG)
@@ -137,22 +200,32 @@ def create_editorial_figure(figsize=FIG_SIZE, margins=None):
         ax.spines[side].set_color(SPINE)
         ax.spines[side].set_linewidth(0.9)
 
-    ax.tick_params(colors=TEXT_SECONDARY, labelsize=TICK_FONT_SIZE,
-                   length=3.5, width=0.8)
-    ax.grid(axis="y", color=GRID, linewidth=0.8, alpha=0.45)
+    ax.tick_params(
+        colors=TEXT_SECONDARY,
+        labelsize=TICK_FONT_SIZE,
+        length=3.5,
+        width=0.8,
+    )
+    if grid_axis is not None:
+        ax.grid(axis=grid_axis, color=GRID, linewidth=0.8, alpha=0.45)
     ax.set_axisbelow(True)
 
     return fig, ax
 
 
-def add_editorial_header(fig, title, subtitle, legend_handles=None):
+def add_editorial_header(
+    fig: Figure,
+    title: str,
+    subtitle: str,
+    legend_handles: Sequence[Any] | None = None,
+) -> tuple[Text, Text, Legend | None]:
     """Place the big left-aligned title, one-line subtitle, and (optional)
     horizontal header legend.
 
-    ``legend_handles`` is a list of matplotlib handles (see ``legend_handle``);
+    ``legend_handles`` is a sequence of matplotlib handles (see ``legend_handle``);
     the legend is laid out in a single row under the subtitle.
     """
-    fig.text(
+    title_artist = fig.text(
         *HEADER_TITLE_POS,
         title,
         fontsize=TITLE_FONT_SIZE,
@@ -161,7 +234,7 @@ def add_editorial_header(fig, title, subtitle, legend_handles=None):
         ha="left",
         va="top",
     )
-    fig.text(
+    subtitle_artist = fig.text(
         *HEADER_SUBTITLE_POS,
         subtitle,
         fontsize=SUBTITLE_FONT_SIZE,
@@ -169,9 +242,10 @@ def add_editorial_header(fig, title, subtitle, legend_handles=None):
         ha="left",
         va="top",
     )
+    legend_artist: Legend | None = None
     if legend_handles:
-        fig.legend(
-            handles=legend_handles,
+        legend_artist = fig.legend(
+            handles=list(legend_handles),
             loc="upper left",
             bbox_to_anchor=HEADER_LEGEND_ANCHOR,
             ncol=len(legend_handles),
@@ -182,12 +256,13 @@ def add_editorial_header(fig, title, subtitle, legend_handles=None):
             columnspacing=1.6,
             borderaxespad=0,
         )
+    return title_artist, subtitle_artist, legend_artist
 
 
-def add_editorial_footer(fig, text):
+def add_editorial_footer(fig: Figure, text: str) -> Text:
     """Place the muted footer line (data notes / provenance, natural
     language — no internal field names)."""
-    fig.text(
+    return fig.text(
         *FOOTER_POS,
         text,
         fontsize=FOOTER_FONT_SIZE,
@@ -197,7 +272,12 @@ def add_editorial_footer(fig, text):
     )
 
 
-def add_corner_pill(ax, text, side="left", y=PILL_TOP):
+def add_corner_pill(
+    ax: Axes,
+    text: str,
+    side: str = "left",
+    y: float = PILL_TOP,
+) -> Text:
     """Add a lightweight outlined, italic corner hint (e.g. "步枪为主" /
     "主狙职责"). ``side`` is ``"left"`` or ``"right"`` (axes fraction coords).
     """
@@ -211,7 +291,7 @@ def add_corner_pill(ax, text, side="left", y=PILL_TOP):
         edgecolor=TEXT_MUTED,
         linewidth=0.9,
     )
-    ax.text(
+    return ax.text(
         x,
         y,
         text,
@@ -229,21 +309,151 @@ def add_corner_pill(ax, text, side="left", y=PILL_TOP):
 # Element styling helpers
 # ---------------------------------------------------------------------------
 
-def style_muted_points(ax, xs, ys, s=22, alpha=0.28, zorder=1):
+def style_muted_points(
+    ax: Axes,
+    xs: Iterable[float],
+    ys: Iterable[float],
+    s: float = 22,
+    alpha: float = 0.28,
+    zorder: float = 1,
+) -> PathCollection:
     """Background cloud of low-emphasis points (all other players)."""
-    ax.scatter(xs, ys, s=s, c=POINT_MUTED, alpha=alpha,
-               linewidths=0, zorder=zorder)
+    return ax.scatter(
+        xs, ys, s=s, c=POINT_MUTED, alpha=alpha, linewidths=0, zorder=zorder
+    )
 
 
-def add_reference_line(ax, y, color=REFERENCE, linewidth=1.15,
-                       linestyle=(0, (5, 5)), alpha=0.95, zorder=2):
-    """A restrained horizontal reference line (e.g. eDPI = 800)."""
-    ax.axhline(y, color=color, linewidth=linewidth, linestyle=linestyle,
-               alpha=alpha, zorder=zorder)
+def style_highlight_points(
+    ax: Axes,
+    xs: Iterable[float],
+    ys: Iterable[float],
+    color: str,
+    *,
+    s: float = 70,
+    edgecolor: str = FIG_BG,
+    linewidths: float = 1.0,
+    zorder: float = 5,
+) -> PathCollection:
+    """Highlighted foreground points with clean edge separation."""
+    return ax.scatter(
+        xs,
+        ys,
+        s=s,
+        c=color,
+        edgecolors=edgecolor,
+        linewidths=linewidths,
+        zorder=zorder,
+    )
 
 
-def editorial_annotate(ax, xy, text, color, *, xytext, ha="left", va="center",
-                       fontsize=ANNOTATION_FONT_SIZE, bold=False, leader=False):
+def add_reference_line(
+    ax: Axes,
+    y: float,
+    color: str = REFERENCE,
+    linewidth: float = 1.15,
+    linestyle: Any = (0, (5, 5)),
+    alpha: float = 0.95,
+    zorder: float = 2,
+    *,
+    orientation: str = "horizontal",
+    label: str | None = None,
+    label_pos: tuple[float, float] | None = None,
+    label_color: str = TEXT_SECONDARY,
+    label_fontsize: float = REFERENCE_TEXT_FONT_SIZE,
+) -> Line2D:
+    """A restrained reference line (horizontal by default, or vertical).
+
+    When ``label`` is provided without ``label_pos``, a subtle label is placed
+    beside the line using blended axes-fraction + data coordinates.
+    """
+    if orientation not in ("horizontal", "vertical"):
+        raise ValueError(
+            f"orientation must be 'horizontal' or 'vertical', got {orientation!r}"
+        )
+    if orientation == "horizontal":
+        line = ax.axhline(
+            y,
+            color=color,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            alpha=alpha,
+            zorder=zorder,
+        )
+        if label is not None:
+            if label_pos is not None:
+                ax.text(
+                    label_pos[0],
+                    label_pos[1],
+                    label,
+                    color=label_color,
+                    fontsize=label_fontsize,
+                    ha="left",
+                    va="bottom",
+                    zorder=zorder + 1,
+                )
+            else:
+                ax.annotate(
+                    label,
+                    xy=(0.012, y),
+                    xycoords=("axes fraction", "data"),
+                    xytext=(0, 5),
+                    textcoords="offset points",
+                    color=label_color,
+                    fontsize=label_fontsize,
+                    ha="left",
+                    va="bottom",
+                    zorder=zorder + 1,
+                )
+    else:
+        line = ax.axvline(
+            y,
+            color=color,
+            linewidth=linewidth,
+            linestyle=linestyle,
+            alpha=alpha,
+            zorder=zorder,
+        )
+        if label is not None:
+            if label_pos is not None:
+                ax.text(
+                    label_pos[0],
+                    label_pos[1],
+                    label,
+                    color=label_color,
+                    fontsize=label_fontsize,
+                    ha="left",
+                    va="top",
+                    zorder=zorder + 1,
+                )
+            else:
+                ax.annotate(
+                    label,
+                    xy=(y, 0.96),
+                    xycoords=("data", "axes fraction"),
+                    xytext=(6, 0),
+                    textcoords="offset points",
+                    color=label_color,
+                    fontsize=label_fontsize,
+                    ha="left",
+                    va="top",
+                    zorder=zorder + 1,
+                )
+    return line
+
+
+def editorial_annotate(
+    ax: Axes,
+    xy: tuple[float, float],
+    text: str,
+    color: str,
+    *,
+    xytext: tuple[float, float],
+    ha: str = "left",
+    va: str = "center",
+    fontsize: float = ANNOTATION_FONT_SIZE,
+    bold: bool = False,
+    leader: bool = False,
+) -> Annotation:
     """Annotate a highlighted point: offset-points placement, per-figure
     colors, optional short leader line. Coordinates are the caller's job."""
     arrowprops = None
@@ -255,7 +465,7 @@ def editorial_annotate(ax, xy, text, color, *, xytext, ha="left", va="center",
             shrinkA=3,
             shrinkB=4,
         )
-    ax.annotate(
+    return ax.annotate(
         text,
         xy=xy,
         xycoords="data",
@@ -271,13 +481,48 @@ def editorial_annotate(ax, xy, text, color, *, xytext, ha="left", va="center",
     )
 
 
-def legend_handle(color, label, size=8.5, alpha=1.0, edgecolor="none"):
+def legend_handle(
+    color: str,
+    label: str,
+    size: float = 8.5,
+    alpha: float = 1.0,
+    edgecolor: str = "none",
+) -> Line2D:
     """Build a single legend handle (filled dot) for header legends."""
     return Line2D(
-        [], [], marker="o", linestyle="",
+        [],
+        [],
+        marker="o",
+        linestyle="",
         markersize=size,
         markerfacecolor=color,
         markeredgecolor=edgecolor,
         alpha=alpha,
         label=label,
     )
+
+
+def save_editorial_figure(
+    fig: Figure,
+    output_stem: str | Path,
+    *,
+    formats: Sequence[str] = ("png",),
+    dpi: int = 200,
+    facecolor: str = FIG_BG,
+    close: bool = False,
+) -> list[Path]:
+    """Export an editorial figure to one or more formats with consistent background."""
+    stem = Path(output_stem)
+    stem.parent.mkdir(parents=True, exist_ok=True)
+    written: list[Path] = []
+    for fmt in formats:
+        ext = fmt.lstrip(".")
+        out = stem.with_suffix(f".{ext}")
+        kwargs: dict[str, Any] = {"facecolor": facecolor}
+        if ext.lower() in ("png", "jpg", "jpeg", "webp"):
+            kwargs["dpi"] = dpi
+        fig.savefig(out, **kwargs)
+        written.append(out)
+    if close:
+        plt.close(fig)
+    return written
