@@ -153,6 +153,8 @@ def _pick_primary(
 
 _GROUP_ATTRS: dict[str, set[str]] = {
     "crosshair": {
+        "crosshair_format", "crosshair_screen_height", "crosshair_code",
+        "crosshair_outline_mode", "crosshair_t_style",
         "crosshair_style", "crosshair_size", "crosshair_gap", "crosshair_thickness",
         "crosshair_color", "crosshair_color_code", "crosshair_color_r",
         "crosshair_color_g", "crosshair_color_b",

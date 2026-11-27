@@ -374,6 +374,30 @@ teams:
   team_id: luminosity
   source_refs:
     cs2settings:
-      team_slug: null
+      team_slug: luminosity
+    prosettings: {}
+    proconfig: {}
+- display_names:
+  - Nemiga
+  team_id: nemiga
+  source_refs:
+    cs2settings:
+      team_slug: nemiga
+    prosettings: {}
+    proconfig: {}
+- display_names:
+  - Nemesis
+  team_id: nemesis
+  source_refs:
+    cs2settings:
+      team_slug: nemesis
+    prosettings: {}
+    proconfig: {}
+- display_names:
+  - JiJieHao
+  team_id: jijiehao
+  source_refs:
+    cs2settings:
+      team_slug: jijiehao
     prosettings: {}
     proconfig: {}

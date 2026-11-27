@@ -14,6 +14,7 @@ preserved end to end.
 from __future__ import annotations
 
 import re
+import math
 from typing import Any, Optional
 
 # ---------------------------------------------------------------------------
@@ -43,6 +44,27 @@ def to_float(v: Any) -> Optional[float]:
 def to_int(v: Any) -> Optional[int]:
     f = to_float(v)
     return int(f) if f is not None and f.is_integer() else (int(f) if f is not None else None)
+
+
+def exact_int_in_range(v: Any, lo: int, hi: int) -> Optional[int]:
+    """Schema enums and reference heights reject lossy numeric coercion."""
+    if v is None or isinstance(v, bool):
+        return None
+    try:
+        f = float(v)
+    except (TypeError, ValueError):
+        return None
+    if not math.isfinite(f) or not f.is_integer() or not lo <= f <= hi:
+        return None
+    return int(f)
+
+
+def reference_height(v: Any) -> Optional[int]:
+    return exact_int_in_range(v, 1, 65535)
+
+
+def outline_mode_value(v: Any) -> Optional[int]:
+    return exact_int_in_range(v, 0, 2)
 
 
 def to_hz(v: Any) -> Optional[int]:
@@ -126,6 +148,11 @@ _PARSERS: dict[str, tuple[str, Any]] = {
     "max_fps": ("max_fps", to_int),
     "display_mode": ("display_mode", clean_string),  # informational
     # crosshair
+    "crosshair_format": ("crosshair_format", clean_string),
+    "crosshair_screen_height": ("crosshair_screen_height", reference_height),
+    "crosshair_code": ("crosshair_code", clean_string),
+    "crosshair_outline_mode": ("crosshair_outline_mode", outline_mode_value),
+    "crosshair_t_style": ("crosshair_t_style", to_bool),
     "crosshair_style": ("crosshair_style", clean_string),
     "style": ("crosshair_style", clean_string),
     "crosshair_size": ("crosshair_size", to_float),

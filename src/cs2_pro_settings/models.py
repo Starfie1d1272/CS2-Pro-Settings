@@ -84,7 +84,13 @@ class NormalizedPlayerSettings:
     reflex: Optional[str] = None  # NVIDIA Reflex; only from a real Reflex field
     max_fps: Optional[int] = None
 
-    # crosshair
+    # crosshair: format and reference height define the geometry context.
+    # None on historical records means legacy; unknown explicit formats stay unknown.
+    crosshair_format: Optional[str] = None
+    crosshair_screen_height: Optional[int] = None
+    crosshair_code: Optional[str] = None
+    crosshair_outline_mode: Optional[int] = None  # 0 none / 1 full / 2 half
+    crosshair_t_style: Optional[bool] = None
     crosshair_style: Optional[str] = None
     crosshair_size: Optional[float] = None
     crosshair_gap: Optional[float] = None
@@ -94,6 +100,8 @@ class NormalizedPlayerSettings:
     # which is the game's cl_crosshaircolor value). Never interpreted as a
     # color on its own: the verified label lives in crosshair_color.
     crosshair_color_code: Optional[int] = None
+    # In cs2-v1 and transitional legacy-v3/v4 these channels are directly
+    # active (no legacy color code).
     # RAW stored RGB channels (cl_crosshaircolor_r/g/b). These are ACTIVE
     # only when crosshair_color_code == CUSTOM_COLOR_CODE (Custom mode):
     # for preset modes the source keeps the values as latent state and
