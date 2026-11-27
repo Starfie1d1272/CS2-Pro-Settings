@@ -95,6 +95,12 @@ def _evaluate_conclusion(name: str, conf: dict, baseline_agg: dict, current_agg:
         "current": current,
         "level": 0,
     }
+    if path.startswith("crosshair."):
+        base_version = (baseline_agg.get("crosshair") or {}).get("measurement_version", "legacy-v1")
+        cur_version = (current_agg.get("crosshair") or {}).get("measurement_version", "legacy-v1")
+        if base_version != cur_version:
+            result["note"] = "crosshair measurement versions differ; new baseline required"
+            return result
     if baseline is None or current is None:
         result["level"] = 0
         result["note"] = "not comparable (missing value)"

@@ -309,6 +309,9 @@ class ReportView:
     crosshair_color_n: int = 0
     crosshair_color_rows: list[tuple[str, int, int]] = field(default_factory=list)
     crosshair_geometry: dict[str, dict] = field(default_factory=dict)
+    crosshair_migration: str = ""
+    crosshair_contexts: dict = field(default_factory=dict)
+    crosshair_outline_modes: dict = field(default_factory=dict)
     # Custom RGB (valid_n = Custom-mode players with complete R/G/B)
     custom_rgb_valid_n: int = 0
     custom_rgb_players: int = 0
@@ -527,6 +530,9 @@ def build_report_view(
         boost.get("enabled_share") if isinstance(boost.get("enabled_share"), (int, float)) else None)
 
     ch = agg.get("crosshair") or {}
+    v.crosshair_migration = ch.get("migration_note") or ""
+    v.crosshair_contexts = ch.get("geometry_by_context") or {}
+    v.crosshair_outline_modes = (ch.get("outline_modes") or {}).get("categories") or {}
     v.crosshair_n = _as_int(ch.get("valid_n"))
     v.crosshair_color_n = _as_int(ch.get("color_valid_n", ch.get("valid_n")))
     v.crosshair_minimal_pct = _pct(ch.get("dot_outline_off_share"))
@@ -781,6 +787,7 @@ def _render_en(v: ReportView, cross_link_base: str = "latest") -> str:
     if v.crosshair_n or v.crosshair_color_n or _geometry_available(v):
         lines.append(heading("Crosshair"))
         lines.append("")
+        lines.extend(_crosshair_migration_lines(v, chinese=False))
         if _geometry_available(v):
             lines.append(fig("crosshair_geometry"))
             lines.append("")
@@ -967,6 +974,7 @@ def _render_zh(v: ReportView, cross_link_base: str = "latest") -> str:
     if v.crosshair_n or v.crosshair_color_n or _geometry_available(v):
         lines.append(heading("准星"))
         lines.append("")
+        lines.extend(_crosshair_migration_lines(v, chinese=True))
         if _geometry_available(v):
             lines.append(fig("crosshair_geometry"))
             lines.append("")
@@ -1269,3 +1277,25 @@ def render_report(
     if locale == "zh-CN":
         return _render_zh(view, cross_link_base=cross_link_base)
     return _render_en(view, cross_link_base=cross_link_base)
+
+
+def _crosshair_migration_lines(v, chinese=False):
+    if not v.crosshair_migration:
+        return []
+    lines = [
+        "准星新口径：尺寸按格式和准星参考高度分组；不与旧单位合并。Custom 包含直接 RGB，不代表玩家选择了旧自定义模式。需建立新基线后再比较趋势。"
+        if chinese else v.crosshair_migration + " Custom includes direct RGB, not an inferred legacy mode selection.",
+        "",
+        "| 格式／单位／参考高度 | Size 中位数 (n) | Gap 中位数 (n) | Thickness 中位数 (n) |"
+        if chinese else "| Format / units / reference height | Size median (n) | Gap median (n) | Thickness median (n) |",
+        "|---|---:|---:|---:|",
+    ]
+    for context, blocks in v.crosshair_contexts.items():
+        cells = [f"{_num(blocks[k].get('median'))} ({blocks[k].get('valid_n', 0)})"
+                 for k in ("size", "gap", "thickness")]
+        lines.append("| " + context + " | " + " | ".join(cells) + " |")
+    modes = v.crosshair_outline_modes
+    lines.extend(["", ("描边（无／全／半）：" if chinese else "Outline (none / full / half): ")
+                  + " / ".join(str(modes.get(str(i), 0)) for i in range(3))
+                  + f" (n={sum(modes.values())})", ""])
+    return lines

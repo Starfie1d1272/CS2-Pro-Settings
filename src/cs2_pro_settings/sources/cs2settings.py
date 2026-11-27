@@ -24,6 +24,8 @@ import requests
 from bs4 import BeautifulSoup
 
 from .base import AccessPolicy, ParsedPlayer, SourceError
+from ..crosshair import LEGACY_FORMATS, PIXEL_FORMATS
+from ..normalize import to_bool
 
 BASE_URL = "https://cs2settings.com"
 UA = ("Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 "
@@ -261,6 +263,11 @@ _MOUSE_MAP = {
     "windowsSensitivity": "windows_sensitivity",
 }
 _CROSSHAIR_MAP = {
+    "format": "crosshair_format",
+    "screenHeight": "crosshair_screen_height",
+    "code": "crosshair_code",
+    "outlineMode": "crosshair_outline_mode",
+    "tStyle": "crosshair_t_style",
     "style": "crosshair_style",
     "size": "crosshair_size",
     "gap": "crosshair_gap",
@@ -555,6 +562,42 @@ class CS2SettingsSource:
                     fields[f] = rgb
             else:
                 fields[f] = v
+        if ch:
+            # Missing format is the historical source schema; a future explicit
+            # format must never inherit legacy semantics.
+            raw_format = ch.get("format")
+            fmt = ("legacy" if raw_format is None else
+                   raw_format if isinstance(raw_format, str) and raw_format else "unknown")
+            fields["crosshair_format"] = fmt
+            height = _as_int_in_range(ch.get("screenHeight"), 1, 65535)
+            fields.pop("crosshair_screen_height", None)
+            if height is not None:
+                fields["crosshair_screen_height"] = height
+            mode = _as_int_in_range(ch.get("outlineMode"), 0, 2)
+            fields.pop("crosshair_outline_mode", None)
+            if fmt in PIXEL_FORMATS:
+                # Direct RGB replaces cl_crosshaircolor. Keep no invented mode 5.
+                fields.pop("crosshair_color", None)
+                if all(f"crosshair_color_{c}" in fields for c in "rgb"):
+                    fields["crosshair_color"] = "Custom"
+                # outlineMode is authoritative; missing/invalid stays unknown,
+                # including when the old boolean is present and contradicts it.
+                fields.pop("crosshair_outline", None)
+                if fmt == "legacy-v3":
+                    old_outline = to_bool(ch.get("outline"))
+                    mode = int(old_outline) if old_outline is not None else None
+                if mode is not None:
+                    fields["crosshair_outline_mode"] = mode
+                    fields["crosshair_outline"] = mode != 0
+            elif fmt in LEGACY_FORMATS:
+                outline = to_bool(ch.get("outline"))
+                if outline is not None:
+                    fields["crosshair_outline_mode"] = int(outline)
+            else:
+                # Preserve raw geometry and format, but do not assign unknown
+                # color/outline semantics.
+                fields.pop("crosshair_color", None)
+                fields.pop("crosshair_outline", None)
         vid = blob.get("videoSettings")
         vid = vid if isinstance(vid, dict) else {}
         for k, v in vid.items():

@@ -329,8 +329,12 @@ def test_matched_ids_from_previous_runtime_panel():
 def test_uninitialized_core_blocks_monthly(tmp_path, monkeypatch):
     import sys
     sys.path.insert(0, str(REPO / "scripts"))
+    import actions_common
     import actions_weekly
 
+    fixture_work = tmp_path / "work"
+    monkeypatch.setattr(actions_common, "WORK", fixture_work)
+    monkeypatch.setattr(actions_weekly, "WORK", fixture_work)
     monkeypatch.setenv("DRY_RUN", "true")
     monkeypatch.setenv("PIPELINE_OUTCOME", "success")
     # empty Core aggregate
@@ -343,19 +347,19 @@ def test_uninitialized_core_blocks_monthly(tmp_path, monkeypatch):
         "failed_players": [], "unresolved_source_teams": [],
         "failed_core_team_rosters": [], "incomplete_reasons": ["no core snapshot"],
     }
-    (REPO / "work").mkdir(exist_ok=True)
-    (REPO / "work" / "metrics.json").write_text(json.dumps(empty))
-    (REPO / "work" / "drift.json").write_text(json.dumps({
+    fixture_work.mkdir(exist_ok=True)
+    (fixture_work / "metrics.json").write_text(json.dumps(empty))
+    (fixture_work / "drift.json").write_text(json.dumps({
         "level": 0, "scope_changed": False, "cohort_stability": "unavailable",
         "roster_turnover_rate": None, "headline_suppressed": True,
         "series_compatible": False, "baseline_incompatible_reason": "x"}))
-    (REPO / "work" / "roster-report.json").write_text(json.dumps({
+    (fixture_work / "roster-report.json").write_text(json.dumps({
         "status": "warmup", "previous_total": None, "current_total": 0,
         "matched_total": None, "turnover_rate": None, "pending_state": None}))
-    (REPO / "work" / "source-status.json").write_text(json.dumps({"cs2settings": "ok"}))
-    (REPO / "work" / "identities.json").write_text(json.dumps({"problems": [], "players": []}))
-    (REPO / "work" / "conflicts.json").write_text(json.dumps([]))
-    (REPO / "work" / "collection-manifest.json").write_text(json.dumps(manifest))
+    (fixture_work / "source-status.json").write_text(json.dumps({"cs2settings": "ok"}))
+    (fixture_work / "identities.json").write_text(json.dumps({"problems": [], "players": []}))
+    (fixture_work / "conflicts.json").write_text(json.dumps([]))
+    (fixture_work / "collection-manifest.json").write_text(json.dumps(manifest))
     assert actions_weekly.main() == 0  # dry-run: no writes, no crash
     # the monthly path must NOT fire when uninitialized (no PR created)
 
