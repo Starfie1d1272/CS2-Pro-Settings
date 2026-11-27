@@ -25,30 +25,32 @@ def test_legacy_may_artifacts_remain_byte_identical():
         assert _sha256(ROOT / relative) == digest, relative
 
 
-def test_accepted_august_monthly_latest_sync_and_identity():
-    month = ROOT / "data" / "aggregate" / "2026-08.json"
+def test_accepted_monthly_latest_sync_and_identity():
+    aug = ROOT / "data" / "aggregate" / "2026-08.json"
+    aug_agg = json.loads(aug.read_text(encoding="utf-8"))["aggregate"]
+    assert aug_agg["snapshot_date"] == "2026-08-11"
+    assert aug_agg["player_count"] == 149
+
+    month = ROOT / "data" / "aggregate" / "2026-11.json"
     latest = ROOT / "data" / "aggregate" / "latest.json"
     assert month.read_bytes() == latest.read_bytes()
     payload = json.loads(month.read_text(encoding="utf-8"))
     aggregate = payload["aggregate"]
-    assert aggregate["snapshot_date"] == "2026-08-11"
+    assert aggregate["snapshot_date"] == "2026-11-28"
     assert aggregate["series"] == {
         "series_id": "vrs-core-v2", "cohort_semantics": "core_top30"}
     assert aggregate["scope"]["scope_id"] == "vrs-core-v2"
-    assert aggregate["player_count"] == 149
+    assert aggregate["scope"]["core_snapshot"] == "2026-11-02"
+    assert aggregate["player_count"] == 155
     assert aggregate["team_count"] == 30
-    assert aggregate["scaling_mode"]["valid_n"] == 133
-    assert aggregate["zoom_sensitivity"]["valid_n"] == 132
-    assert aggregate["boost_player"]["valid_n"] == 101
-    assert aggregate["boost_player"]["missing_n"] == 48
-    assert aggregate["crosshair"]["geometry"]["style"]["valid_n"] == 133
-    assert aggregate["radar"]["zoom"]["valid_n"] == 99
-    assert aggregate["edpi"]["consistency_qc"]["anomaly_count"] == 2
+    assert aggregate["crosshair"]["measurement_version"] == "pixel-v2:cs2-v1"
+    assert aggregate["crosshair"]["color_valid_n"] == 152
 
 
 def test_all_committed_report_figure_links_resolve():
-    for report_name in ("latest.md", "latest.zh-CN.md", "2026-08.md",
-                        "2026-08.zh-CN.md"):
+    for report_name in ("latest.md", "latest.zh-CN.md",
+                        "2026-08.md", "2026-08.zh-CN.md",
+                        "2026-11.md", "2026-11.zh-CN.md"):
         report = ROOT / "reports" / report_name
         text = report.read_text(encoding="utf-8")
         links = re.findall(r"!\[[^\]]*\]\((\.\./figures/[^)]+)\)", text)
