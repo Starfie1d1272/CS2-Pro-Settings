@@ -24,15 +24,15 @@ def test_verified_six_team_slugs_resolve():
 
 def test_verified_slugs_enter_core_and_tracked_universe():
     slugs = set(core_slugs(COHORT))
-    assert {"aurora", "big", "dendele", "hotu", "inner-circle", "magic"} <= slugs
+    assert {"aurora", "dendele", "hotu", "inner-circle", "nemiga", "1win", "eternal-fire", "fnatic"} <= slugs
     assert len(slugs) == 30  # full VRS Core now cs2settings-resolved
     universe = tracked_slugs(COHORT)
-    assert "aurora" in universe and "big" in universe
+    assert "aurora" in universe and "1win" in universe
 
 
 def test_ranking_invariants_unchanged():
     sets = load_cohort_sets(COHORT)
     assert sets["core_count"] == 30
     assert sets["reference_count"] == 30
-    assert sets["consensus_count"] == 27
-    assert sets["ranked_union_count"] == 33
+    assert sets["consensus_count"] == 22
+    assert sets["ranked_union_count"] == 38

@@ -1,13 +1,13 @@
 {
   "aggregate": {
-    "snapshot_date": "2026-08-11",
-    "player_count": 149,
+    "snapshot_date": "2026-11-28",
+    "player_count": 155,
     "team_count": 30,
     "settings_availability": {
-      "cohort_players": 149,
-      "players_with_any_setting": 133,
-      "players_with_zero_settings": 16,
-      "any_setting_share": 0.8926
+      "cohort_players": 155,
+      "players_with_any_setting": 152,
+      "players_with_zero_settings": 3,
+      "any_setting_share": 0.9806
     },
     "source": {
       "primary": "v2-vrs-core"
@@ -15,41 +15,41 @@
     "scope": {
       "scope_id": "vrs-core-v2",
       "cohort_model": "vrs-core-hltv-reference-v4",
-      "core_snapshot": "2026-08-10",
+      "core_snapshot": "2026-11-02",
       "core_provider": "valve",
       "reference_snapshot": "2026-08-03",
       "reference_provider": "hltv",
       "core_teams": [
-        "team-spirit",
-        "falcons",
-        "9z",
         "mouz",
         "vitality",
-        "natus-vincere",
-        "legacy",
         "furia",
-        "betboom",
-        "faze",
-        "parivision",
-        "g2",
         "aurora",
+        "team-spirit",
+        "betboom",
+        "falcons",
         "fut",
-        "the-mongolz",
-        "alliance",
-        "mibr",
-        "big",
-        "liquid",
+        "legacy",
+        "nemiga",
+        "g2",
+        "1win",
+        "natus-vincere",
         "astralis",
-        "tyloo",
-        "b8",
-        "inner-circle",
-        "gamerlegion",
-        "magic",
-        "heroic",
-        "dendele",
         "ninjas-in-pyjamas",
+        "parivision",
+        "the-mongolz",
+        "heroic",
+        "mibr",
+        "faze",
+        "liquid",
+        "eternal-fire",
+        "100-thieves",
+        "9z",
+        "m80",
         "hotu",
-        "eyeballers"
+        "fnatic",
+        "b8",
+        "dendele",
+        "inner-circle"
       ],
       "reference_teams": [
         "falcons",
@@ -85,23 +85,19 @@
       ],
       "consensus_teams": [
         "9z",
-        "alliance",
         "astralis",
         "aurora",
         "b8",
         "betboom",
-        "big",
         "dendele",
         "falcons",
         "faze",
         "furia",
         "fut",
         "g2",
-        "gamerlegion",
         "heroic",
         "legacy",
         "liquid",
-        "magic",
         "mibr",
         "mouz",
         "natus-vincere",
@@ -109,10 +105,11 @@
         "parivision",
         "team-spirit",
         "the-mongolz",
-        "tyloo",
         "vitality"
       ],
       "ranked_union_teams": [
+        "100-thieves",
+        "1win",
         "3dmax",
         "9z",
         "alliance",
@@ -122,9 +119,10 @@
         "betboom",
         "big",
         "dendele",
-        "eyeballers",
+        "eternal-fire",
         "falcons",
         "faze",
+        "fnatic",
         "furia",
         "fut",
         "g2",
@@ -135,10 +133,12 @@
         "legacy",
         "liquid",
         "luminosity",
+        "m80",
         "magic",
         "mibr",
         "mouz",
         "natus-vincere",
+        "nemiga",
         "ninjas-in-pyjamas",
         "pain",
         "parivision",
@@ -149,12 +149,12 @@
       ],
       "core_team_count": 30,
       "reference_team_count": 30,
-      "consensus_team_count": 27,
-      "ranked_union_team_count": 33,
-      "core_scope_hash": "48e2d1753d63f137",
+      "consensus_team_count": 22,
+      "ranked_union_team_count": 38,
+      "core_scope_hash": "a0f4e9215c0ce405",
       "tracked_teams": [
         "100-thieves",
-        "3dmax",
+        "1win",
         "9z",
         "alliance",
         "astralis",
@@ -163,9 +163,10 @@
         "betboom",
         "big",
         "dendele",
-        "eyeballers",
+        "eternal-fire",
         "falcons",
         "faze",
+        "fnatic",
         "furia",
         "fut",
         "g2",
@@ -175,12 +176,14 @@
         "inner-circle",
         "legacy",
         "liquid",
+        "luminosity",
         "lynn-vision",
         "m80",
         "magic",
         "mibr",
         "mouz",
         "navi",
+        "nemiga",
         "ninjas-in-pyjamas",
         "pain",
         "parivision",
@@ -189,7 +192,7 @@
         "tyloo",
         "vitality"
       ],
-      "tracked_team_count": 35,
+      "tracked_team_count": 38,
       "source_resolved_core_teams": 30,
       "source_unresolved_core_teams": []
     },
@@ -198,104 +201,105 @@
       "cohort_semantics": "core_top30"
     },
     "edpi": {
-      "count": 133,
+      "count": 145,
       "median": 800.0,
-      "mean": 844.3,
+      "mean": 837.2,
       "distribution": {
-        "0-400": 0,
-        "400-600": 13,
-        "600-800": 32,
+        "0-400": 1,
+        "400-600": 14,
+        "600-800": 40,
         "800-1000": 61,
         "1000-1200": 18,
-        "1200-1600": 6,
-        "1600+": 3
+        "1200-1600": 9,
+        "1600+": 2
       },
       "consistency_qc": {
-        "comparable_n": 133,
-        "consistent_n": 131,
-        "anomaly_count": 2,
-        "anomaly_share": 0.015,
-        "missing_inputs_n": 16,
+        "comparable_n": 145,
+        "consistent_n": 144,
+        "anomaly_count": 1,
+        "anomaly_share": 0.0069,
+        "missing_inputs_n": 10,
         "absolute_tolerance": 2.0,
         "relative_tolerance": 0.01
       }
     },
     "dpi": {
-      "valid_n": 133,
+      "valid_n": 147,
       "categories": {
-        "800": 67,
-        "400": 60,
+        "800": 78,
+        "400": 63,
         "1600": 4,
-        "1000": 1,
-        "3200": 1
+        "3200": 1,
+        "900": 1
       },
       "top_category": "800",
-      "share_800": 0.5038,
-      "share_400": 0.4511,
-      "share_1600_plus": 0.0376
+      "share_800": 0.5306,
+      "share_400": 0.4286,
+      "share_1600_plus": 0.034
     },
     "resolution": {
-      "valid_n": 133,
+      "valid_n": 146,
       "categories": {
-        "1280x960": 91,
-        "1920x1080": 12,
+        "1280x960": 102,
+        "1920x1080": 11,
         "1024x768": 10,
-        "1280x1024": 7,
-        "1152x864": 4,
-        "1280x768": 2,
+        "1280x1024": 9,
+        "1440x1080": 4,
+        "1680x1050": 4,
+        "1152x864": 2,
         "1280x800": 2,
-        "1440x1080": 2,
-        "1680x1050": 2,
-        "1350x1080": 1
+        "1350x1080": 1,
+        "1600x900": 1
       },
       "top_category": "1280x960",
-      "share_1280x960": 0.6842
+      "share_1280x960": 0.6986
     },
     "aspect_ratio": {
-      "valid_n": 133,
+      "valid_n": 147,
       "categories": {
-        "4:3": 109,
-        "16:9": 11,
-        "5:4": 8,
-        "16:10": 5
+        "4:3": 119,
+        "16:9": 12,
+        "5:4": 10,
+        "16:10": 6
       },
-      "share_4_3": 0.8195
+      "share_4_3": 0.8095
     },
     "scaling_mode": {
-      "valid_n": 133,
+      "valid_n": 147,
       "categories": {
-        "Stretched": 119,
-        "Native": 9,
-        "Black Bars": 5
+        "Stretched": 125,
+        "Native": 12,
+        "Black Bars": 10
       },
       "top_category": "Stretched"
     },
     "zoom_sensitivity": {
-      "valid_n": 132,
+      "valid_n": 148,
       "categories": {
-        "1": 103,
+        "1": 119,
         "1.1": 6,
-        "0.8": 5,
         "0.9": 5,
-        "0.82": 3,
-        "1.2": 3,
-        "0.83": 1,
-        "0.93": 1,
-        "0.95": 1,
+        "0.8": 4,
+        "1.2": 4,
+        "0.95": 2,
+        "0.468": 1,
+        "0.799": 1,
+        "0.819": 1,
+        "0.88": 1,
         "0.98": 1,
-        "0.99": 1,
         "0.999": 1,
-        "1.16": 1
+        "1.105": 1,
+        "1.28": 1
       },
       "median": 1.0,
       "top_category": "1"
     },
     "boost_player": {
-      "valid_n": 101,
-      "missing_n": 48,
-      "enabled_count": 85,
-      "disabled_count": 16,
-      "enabled_share": 0.8416
+      "valid_n": 105,
+      "missing_n": 50,
+      "enabled_count": 87,
+      "disabled_count": 18,
+      "enabled_share": 0.8286
     },
     "refresh_rate": {
       "valid_n": 0,
@@ -309,161 +313,425 @@
       "unlimited_share": null
     },
     "crosshair": {
-      "valid_n": 133,
-      "dot_outline_off_share": 0.8045,
-      "color_valid_n": 133,
+      "measurement_version": "pixel-v2:cs2-v1",
+      "formats": {
+        "valid_n": 152,
+        "categories": {
+          "cs2-v1": 152
+        },
+        "top_category": "cs2-v1"
+      },
+      "outline_modes": {
+        "valid_n": 152,
+        "categories": {
+          "0": 142,
+          "1": 7,
+          "2": 3
+        },
+        "top_category": "0"
+      },
+      "geometry_context": "separate contexts",
+      "geometry_by_context": {
+        "cs2-v1:px@1024": {
+          "size": {
+            "valid_n": 8,
+            "categories": {
+              "2": 6,
+              "1": 1,
+              "4": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 8,
+            "categories": {
+              "1": 6,
+              "2": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 8,
+            "categories": {
+              "2": 5,
+              "1": 3
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@1050": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@1080": {
+          "size": {
+            "valid_n": 21,
+            "categories": {
+              "2": 11,
+              "4": 7,
+              "3": 2,
+              "6": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 21,
+            "categories": {
+              "1": 10,
+              "2": 7,
+              "3": 2,
+              "0": 1,
+              "5": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 21,
+            "categories": {
+              "2": 13,
+              "1": 7,
+              "4": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@768": {
+          "size": {
+            "valid_n": 6,
+            "categories": {
+              "2": 2,
+              "3": 2,
+              "1": 1,
+              "5": 1
+            },
+            "median": 2.5,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 6,
+            "categories": {
+              "1": 3,
+              "2": 2,
+              "5": 1
+            },
+            "median": 1.5,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 6,
+            "categories": {
+              "1": 4,
+              "2": 2
+            },
+            "median": 1.0,
+            "top_category": "1"
+          }
+        },
+        "cs2-v1:px@800": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "3": 1
+            },
+            "median": 3.0,
+            "top_category": "3"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          }
+        },
+        "cs2-v1:px@864": {
+          "size": {
+            "valid_n": 4,
+            "categories": {
+              "2": 4
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 4,
+            "categories": {
+              "1": 3,
+              "0": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 4,
+            "categories": {
+              "2": 3,
+              "1": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@900": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@960": {
+          "size": {
+            "valid_n": 109,
+            "categories": {
+              "2": 77,
+              "3": 13,
+              "4": 13,
+              "5": 3,
+              "6": 2,
+              "0": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 109,
+            "categories": {
+              "1": 70,
+              "2": 28,
+              "0": 5,
+              "3": 3,
+              "4": 2,
+              "5": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 109,
+            "categories": {
+              "2": 77,
+              "1": 30,
+              "3": 2
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        },
+        "cs2-v1:px@990": {
+          "size": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          },
+          "gap": {
+            "valid_n": 1,
+            "categories": {
+              "1": 1
+            },
+            "median": 1.0,
+            "top_category": "1"
+          },
+          "thickness": {
+            "valid_n": 1,
+            "categories": {
+              "2": 1
+            },
+            "median": 2.0,
+            "top_category": "2"
+          }
+        }
+      },
+      "migration_note": "Pixel geometry is grouped by format and reference screen height; Custom includes direct RGB. Initialize a new crosshair baseline.",
+      "valid_n": 152,
+      "dot_outline_off_share": 0.9013,
+      "color_valid_n": 152,
       "color_categories": {
-        "Custom": 60,
-        "Cyan": 35,
-        "Green": 30,
-        "Yellow": 8
+        "Custom": 152
       },
       "top_color": "Custom",
       "custom_rgb": {
-        "valid_n": 60,
-        "custom_players": 60,
+        "valid_n": 152,
+        "custom_players": 152,
         "coverage": 1.0,
         "categories": {
-          "255,255,255": 15,
-          "0,255,0": 9,
-          "0,255,255": 8,
-          "0,255,145": 3,
-          "0,0,0": 2,
-          "0,255,135": 2,
-          "250,250,250": 2,
-          "0,255,127": 1,
-          "0,255,144": 1,
-          "0,255,150": 1,
-          "0,255,160": 1,
-          "0,255,165": 1,
-          "0,255,168": 1,
-          "0,255,170": 1,
-          "0,255,175": 1,
-          "0,255,190": 1,
-          "0,255,194": 1,
-          "0,255,53": 1,
-          "150,255,50": 1,
+          "0,255,0": 35,
+          "0,255,255": 30,
+          "255,255,255": 11,
+          "0,255,165": 6,
+          "0,0,0": 4,
+          "0,229,255": 3,
+          "11,255,0": 3,
+          "0,238,255": 2,
+          "0,246,255": 2,
+          "0,254,17": 2,
+          "0,255,14": 2,
+          "0,255,145": 2,
+          "0,255,6": 2,
+          "20,255,0": 2,
+          "255,0,0": 2,
+          "255,255,0": 2,
+          "50,250,50": 2,
+          "0,200,0": 1,
+          "0,201,79": 1,
+          "0,216,232": 1,
+          "0,221,255": 1,
+          "0,240,255": 1,
+          "0,249,255": 1,
+          "0,255,10": 1,
+          "0,255,126": 1,
+          "0,255,135": 1,
+          "0,255,186": 1,
+          "0,255,192": 1,
+          "0,255,195": 1,
+          "0,255,209": 1,
+          "0,255,223": 1,
+          "0,255,224": 1,
+          "0,255,40": 1,
+          "0,255,54": 1,
+          "106,249,249": 1,
+          "13,255,0": 1,
+          "135,255,0": 1,
+          "138,245,138": 1,
           "161,255,201": 1,
-          "255,0,127": 1,
-          "255,0,255": 1,
-          "255,0,79": 1,
-          "255,255,0": 1,
+          "161,255,249": 1,
+          "176,250,255": 1,
+          "19,243,255": 1,
+          "218,255,0": 1,
+          "247,247,247": 1,
+          "250,250,250": 1,
+          "253,253,253": 1,
+          "255,249,0": 1,
+          "255,249,4": 1,
           "255,50,129": 1,
-          "83,255,255": 1
+          "29,255,0": 1,
+          "3,249,0": 1,
+          "34,200,200": 1,
+          "40,231,15": 1,
+          "41,190,230": 1,
+          "50,255,50": 1,
+          "80,255,161": 1,
+          "90,220,20": 1
         },
-        "unique_colors": 26,
-        "top_rgb": "255,255,255",
-        "top_rgb_share": 0.25
+        "unique_colors": 57,
+        "top_rgb": "0,255,0",
+        "top_rgb_share": 0.2303
       },
       "geometry": {
         "style": {
-          "valid_n": 133,
+          "valid_n": 152,
           "categories": {
-            "4": 132,
-            "5": 1
+            "4": 149,
+            "5": 3
           },
           "top_category": "4"
         },
         "size": {
-          "valid_n": 133,
-          "categories": {
-            "1": 65,
-            "2": 26,
-            "1.5": 13,
-            "0.9": 5,
-            "2.5": 5,
-            "0": 3,
-            "1.2": 3,
-            "0.5": 2,
-            "0.7": 2,
-            "1.1": 2,
-            "3": 2,
-            "0.8": 1,
-            "1.4": 1,
-            "1.7": 1,
-            "1.9": 1,
-            "25.5": 1
-          },
-          "median": 1.0,
-          "top_category": "1"
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
         },
         "gap": {
-          "valid_n": 133,
-          "categories": {
-            "-4": 53,
-            "-3": 30,
-            "-2": 8,
-            "-5": 8,
-            "-2.3": 3,
-            "-3.9": 3,
-            "-4.2": 3,
-            "-4.5": 3,
-            "-7": 3,
-            "-2.2": 2,
-            "-3.2": 2,
-            "-3.4": 2,
-            "-3.6": 2,
-            "-6": 2,
-            "-1": 1,
-            "-1.5": 1,
-            "-1.8": 1,
-            "-2.5": 1,
-            "-2.9": 1,
-            "-3.1": 1,
-            "-3.5": 1,
-            "-4.1": 1,
-            "0": 1
-          },
-          "median": -4.0,
-          "top_category": "-4"
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
         },
         "thickness": {
-          "valid_n": 133,
-          "categories": {
-            "1": 66,
-            "0": 43,
-            "0.5": 7,
-            "0.9": 7,
-            "0.1": 3,
-            "0.8": 2,
-            "1.5": 2,
-            "0.3": 1,
-            "0.6": 1,
-            "0.7": 1
-          },
-          "median": 1.0,
-          "top_category": "1"
+          "valid_n": 0,
+          "categories": {},
+          "median": null,
+          "top_category": null
         },
         "alpha": {
-          "valid_n": 133,
+          "valid_n": 152,
           "categories": {
-            "255": 113,
-            "200": 18,
-            "235": 1,
-            "250": 1
+            "255": 148,
+            "200": 2,
+            "159": 1,
+            "231": 1
           },
-          "median": 255,
+          "median": 255.0,
           "top_category": "255"
         },
         "dot": {
-          "valid_n": 133,
-          "missing_n": 16,
-          "enabled_count": 13,
-          "disabled_count": 120,
-          "enabled_share": 0.0977
+          "valid_n": 152,
+          "missing_n": 3,
+          "enabled_count": 7,
+          "disabled_count": 145,
+          "enabled_share": 0.0461
         },
         "outline": {
-          "valid_n": 133,
-          "missing_n": 16,
-          "enabled_count": 17,
-          "disabled_count": 116,
-          "enabled_share": 0.1278
+          "valid_n": 152,
+          "missing_n": 3,
+          "enabled_count": 10,
+          "disabled_count": 142,
+          "enabled_share": 0.0658
         }
       }
     },
     "viewmodel": {
-      "valid_n": 125,
-      "fov68_share": 0.912,
+      "valid_n": 150,
+      "fov68_share": 0.8667,
       "dominant_offset": [
         2.5,
         0.0,
@@ -471,36 +739,37 @@
       ]
     },
     "brightness": {
-      "valid_n": 117,
+      "valid_n": 126,
       "categories": {
         "100": 37,
-        "93": 14,
-        "80": 7,
-        "90": 7,
-        "70": 6,
-        "75": 5,
-        "85": 5,
-        "130": 4,
-        "110": 3,
+        "93": 23,
+        "70": 8,
+        "80": 8,
+        "130": 6,
+        "90": 6,
+        "110": 4,
+        "85": 4,
         "69": 3,
-        "83": 3,
         "50": 2,
         "60": 2,
-        "68": 2,
+        "75": 2,
+        "83": 2,
         "88": 2,
         "101": 1,
         "103": 1,
         "114": 1,
-        "119": 1,
+        "115": 1,
         "120": 1,
+        "126": 1,
         "45": 1,
+        "55": 1,
         "65": 1,
-        "77": 1,
+        "68": 1,
         "81": 1,
         "82": 1,
+        "84": 1,
         "91": 1,
         "92": 1,
-        "94": 1,
         "95": 1,
         "97": 1
       }
@@ -508,51 +777,51 @@
     "radar": {
       "valid_n": 0,
       "rotating_valid_n": 0,
-      "centered_valid_n": 120,
+      "centered_valid_n": 142,
       "rotating_share": null,
-      "centered_share": 0.7167,
+      "centered_share": 0.8028,
       "zoom": {
-        "valid_n": 99,
+        "valid_n": 132,
         "categories": {
-          "0.4": 29,
-          "0.7": 20,
-          "0.3": 10,
-          "0.35": 9,
-          "0.45": 7,
-          "0.25": 6,
-          "0.41": 4,
-          "0.445": 2,
+          "0.4": 36,
+          "0.7": 26,
+          "0.35": 15,
+          "0.25": 13,
+          "0.3": 13,
+          "0.45": 8,
+          "1": 4,
+          "0.5": 3,
+          "0.65": 3,
+          "0.3025": 1,
           "0.315": 1,
+          "0.43": 1,
+          "0.446872": 1,
           "0.454938": 1,
+          "0.459403": 1,
           "0.498025": 1,
-          "0.548077": 1,
+          "0.6": 1,
           "0.6025": 1,
-          "0.63": 1,
           "0.633826": 1,
-          "0.65": 1,
-          "0.701077": 1,
-          "0.8": 1,
-          "0.9": 1,
-          "1": 1
+          "0.8": 1
         },
         "median": 0.4,
         "top_category": "0.4"
       }
     },
     "mouse_polling": {
-      "valid_n": 133,
+      "valid_n": 147,
       "categories": {
-        "1000": 83,
-        "2000": 26,
+        "1000": 99,
+        "2000": 25,
         "4000": 21,
-        "8000": 3
+        "8000": 2
       },
-      "share_4000_plus": 0.1805
+      "share_4000_plus": 0.1565
     }
   },
   "panel": {
     "status": "available",
-    "player_count": 149,
-    "stable_identity_count": 149
+    "player_count": 155,
+    "stable_identity_count": 155
   }
 }

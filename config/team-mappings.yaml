@@ -99,7 +99,7 @@ teams:
   team_id: 3dmax
   source_refs:
     cs2settings:
-      team_slug: 3dmax
+      team_slug: null
     prosettings: {}
     proconfig: {}
 - display_names:
@@ -283,10 +283,11 @@ teams:
     proconfig: {}
 - display_names:
   - Fnatic
+  - fnatic
   team_id: fnatic
   source_refs:
     cs2settings:
-      team_slug: null
+      team_slug: fnatic
     prosettings: {}
     proconfig: {}
 - display_names:
@@ -399,5 +400,21 @@ teams:
   source_refs:
     cs2settings:
       team_slug: jijiehao
+    prosettings: {}
+    proconfig: {}
+- display_names:
+  - 1win
+  team_id: 1win
+  source_refs:
+    cs2settings:
+      team_slug: 1win
+    prosettings: {}
+    proconfig: {}
+- display_names:
+  - Eternal Fire
+  team_id: eternal-fire
+  source_refs:
+    cs2settings:
+      team_slug: eternal-fire
     prosettings: {}
     proconfig: {}

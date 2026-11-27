@@ -53,25 +53,29 @@ def _sets():
 # 1/2. ranking invariants from the COMMITTED manual snapshots
 # ---------------------------------------------------------------------------
 
-def test_vrs_core_30_hltv_reference_30_consensus_27_union_33():
+def test_vrs_core_30_hltv_reference_30_consensus_and_union():
     s = _sets()
     assert s["core_count"] == 30
     assert s["reference_count"] == 30
-    assert s["consensus_count"] == 27
-    assert s["ranked_union_count"] == 33
+    assert s["consensus_count"] == 22
+    assert s["ranked_union_count"] == 38
 
 
 def test_hltv_only_and_vrs_only_exact_sets():
     s = _sets()
-    assert set(s["hltv_only_teams"]) == {"pain", "3dmax", "luminosity"}
-    assert set(s["vrs_only_teams"]) == {"inner-circle", "hotu", "eyeballers"}
+    assert set(s["hltv_only_teams"]) == {
+        "3dmax", "alliance", "big", "gamerlegion", "luminosity", "magic", "pain", "tyloo",
+    }
+    assert set(s["vrs_only_teams"]) == {
+        "100-thieves", "1win", "eternal-fire", "fnatic", "hotu", "inner-circle", "m80", "nemiga",
+    }
 
 
 def test_committed_snapshots_are_structurally_valid():
-    vrs = load_snapshot("valve", "2026-08-10")
+    vrs = load_snapshot("valve", "2026-11-02")
     hltv = load_snapshot("hltv", "2026-08-03")
     assert vrs["ranking_authority"] == "valve"
-    assert vrs["presentation_host"] == "hltv.org"
+    assert vrs["presentation_host"] == "github.com"
     assert hltv["ranking_authority"] == "hltv"
     assert len(vrs["teams"]) == 30 and len(hltv["teams"]) == 30
     assert all("team_id" in t for t in vrs["teams"])
@@ -80,7 +84,9 @@ def test_committed_snapshots_are_structurally_valid():
 def test_watchlist_manual_entries():
     cfg = load_cohort_cfg()
     wl = {i["team_id"] for i in cfg["cohort"]["watchlist"]}
-    assert wl == {"bc-game", "100-thieves", "m80", "lynn-vision"}
+    assert wl == {"bc-game", "lynn-vision"}
+    # 100-thieves and m80 moved into Core in the 2026-11-02 VRS snapshot
+    assert {"100-thieves", "m80"} <= set(_sets()["core_teams"])
     # BC.Game has no resolvable settings slug -> coverage unresolved, never fabricated
     bc = next(i for i in cfg["cohort"]["watchlist"] if i["team_id"] == "bc-game")
     assert bc.get("settings_slug") is None
@@ -382,7 +388,7 @@ def test_watchlist_review_timing(tmp_path, monkeypatch):
     # (entries are static; simulate by shifting 'today')
     assert watchlist_review_due(today=date(2026, 8, 10) + timedelta(days=179)) == []
     due = watchlist_review_due(today=date(2026, 8, 10) + timedelta(days=180))
-    assert set(due) == {"bc-game", "100-thieves", "m80", "lynn-vision"}
+    assert set(due) == {"bc-game", "lynn-vision"}
 
 
 # ---------------------------------------------------------------------------
